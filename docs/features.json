@@ -190,8 +190,12 @@
    "M1-01",
    "M1-04"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 136s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 177s]",
+   "log": null
+  }
  },
  {
   "id": "M1-08",

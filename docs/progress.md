@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-07
+- Feature in progress: M1-08
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -34,4 +34,6 @@
 - The cap mutation that M1-04 missed (<= instead of <) now fails 5 edge tests.
 - Finding: two Capi edge tests build states no fresh deal reaches. reducer.test.ts:854 (a plain domino on a locking tile): a lock needs equal ends, so the last tile fits both old ends and the ending is always a capicua; no seed in 300,000 searched rounds gave a plain domino on a lock. rules.salida-and-tie.test.ts:238 (1v1, empty boneyard on the opening tile). Both are matched by the closest reachable case (docs/RULES.md, Edge cases). Not a rule question: Capi's behavior on reachable states is unchanged.
 - M1-06 passed: tools/capi-oracle/perft.mjs writes fixtures/perft.txt (194 queries, about 1 million Capi nodes, 3.9 s); crates/dominofish-core/src/perft.rs counts lines and divide; tests/perft.rs matches them. Verify: M1-06: PASS perft: queries 194 lines 269814 mismatches 0 (target 0), totals and divide; 14 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a. Negative control: emitting the right end on equal ends too gives 183 mismatches.
-- Next: M1-07 (lockstep differential fuzzer).
+- M1-07 passed: tools/capi-oracle/fuzz.mjs (Capi side) and dominofish capi-fuzz (Rust side), docs/FORMATS.md (Differential fuzzer), PLAN.md D9. The full run went in the background (nohup nice -n 10 scripts/mark-pass.sh M1-07, PID 52425, log runs/M1-07-full.log): M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 136s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 177s].
+- Negative controls: dropping the salida lone-tile guard gives 3,436 mismatches in 10,000 rounds; changing the salida pass test from == 1 to >= 1 gives 0, an equivalent mutant (the other guards already force one pass, as Capi's observation of 2026-09-27 found). A CAPI_DIR without the pin prints SKIP and exits 1.
+- Next: M1-08 (property tests).
