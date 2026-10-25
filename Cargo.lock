@@ -15,6 +15,13 @@ name = "dominofish-core"
 version = "0.1.0"
 
 [[package]]
+name = "dominofish-wasm"
+version = "0.1.0"
+dependencies = [
+ "dominofish-core",
+]
+
+[[package]]
 name = "lexopt"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

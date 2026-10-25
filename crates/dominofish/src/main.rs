@@ -11,7 +11,8 @@ use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, State};
 
 const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
-       dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N";
+       dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
+       dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N";
 
 fn main() -> ExitCode {
     match run() {
@@ -53,6 +54,33 @@ fn run() -> Result<(String, bool), String> {
             let mode = mode.ok_or("--mode is required")?;
             let seed = seed.ok_or("--seed is required")?;
             Ok((selfplay(mode, seed, target), true))
+        }
+        "playout-bench" => {
+            let (mut mode, mut rounds, mut seed) = (None, None, None);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("rounds") => rounds = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            let mode = mode.ok_or("--mode is required")?;
+            let rounds = u32::try_from(rounds.ok_or("--rounds is required")?)
+                .map_err(|_| "--rounds is too large")?;
+            let seed = u32::try_from(seed.ok_or("--seed is required")?)
+                .map_err(|_| "--seed must fit in 32 bits")?;
+            let start = std::time::Instant::now();
+            let (checksum, plies) = dominofish_core::bench::playouts(mode, rounds, u64::from(seed));
+            let secs = start.elapsed().as_secs_f64();
+            Ok((
+                format!(
+                    "native playouts: mode {} rounds {rounds} seed {seed} checksum {checksum:x} plies {plies} seconds {secs:.3} rounds/s {:.0}\n",
+                    mode_name(mode),
+                    f64::from(rounds) / secs
+                ),
+                true,
+            ))
         }
         "capi-fuzz" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);

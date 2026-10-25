@@ -1,0 +1,12 @@
+[package]
+name = "dominofish-wasm"
+description = "One extern C export of the DominoFish core for wasm32, used by the playout bench (M1-10)."
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+dominofish-core = { path = "../dominofish-core" }
