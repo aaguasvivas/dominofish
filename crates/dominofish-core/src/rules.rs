@@ -616,6 +616,17 @@ impl State {
         self.tiles_hash ^ self.scalar_hash()
     }
 
+    /// The state with its tile hash rebuilt, after a test edits the public
+    /// fields directly (mirror, seat rotation, pip relabeling).
+    #[cfg(test)]
+    pub(crate) fn rehashed(mut self, boneyard: &[Tile]) -> State {
+        self.boneyard[..boneyard.len()].copy_from_slice(boneyard);
+        self.boneyard_len = boneyard.len() as u8;
+        self.tiles_hash = 0;
+        self.tiles_hash = self.recomputed_hash() ^ self.scalar_hash();
+        self
+    }
+
     /// The same hash computed from scratch, for tests.
     pub fn recomputed_hash(&self) -> u64 {
         let mut h = 0;

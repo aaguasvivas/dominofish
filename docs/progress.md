@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-08
+- Feature in progress: M1-09
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -36,4 +36,8 @@
 - M1-06 passed: tools/capi-oracle/perft.mjs writes fixtures/perft.txt (194 queries, about 1 million Capi nodes, 3.9 s); crates/dominofish-core/src/perft.rs counts lines and divide; tests/perft.rs matches them. Verify: M1-06: PASS perft: queries 194 lines 269814 mismatches 0 (target 0), totals and divide; 14 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a. Negative control: emitting the right end on equal ends too gives 183 mismatches.
 - M1-07 passed: tools/capi-oracle/fuzz.mjs (Capi side) and dominofish capi-fuzz (Rust side), docs/FORMATS.md (Differential fuzzer), PLAN.md D9. The full run went in the background (nohup nice -n 10 scripts/mark-pass.sh M1-07, PID 52425, log runs/M1-07-full.log): M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 136s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 177s].
 - Negative controls: dropping the salida lone-tile guard gives 3,436 mismatches in 10,000 rounds; changing the salida pass test from == 1 to >= 1 gives 0, an equivalent mutant (the other guards already force one pass, as Capi's observation of 2026-09-27 found). A CAPI_DIR without the pin prints SKIP and exits 1.
-- Next: M1-08 (property tests).
+- The app quit at 17:41 during the first M1-08 test run; the M1-07 full run had finished and marked M1-07 at 17:41, and the resumed session committed it (798e09f).
+- M1-08 passed: crates/dominofish-core/src/properties.rs (7 property tests over seeded playouts, 1,000 games per mode for the per-state checks) and a test-only State::rehashed. Verify: M1-08: PASS tranque: 270766 states, 3304 locks, fewest board tiles 10 (target at least 10), least margin over 6k+42 0 (target at least 0); conservation: states 270766; mirror: states 9307 (lines to depth 4 and every move's result); rotation: states 9307; relabel: deals 400 at depth 5, late positions 283 to the end of the round; determinism: games 500 replayed identically; play-undo: moves 540100 undone exactly with the hash equal to recomputed.
+- The Parra and Trucco bounds are reached exactly in these games (a lock with 10 board tiles, and one with board pips equal to 6k+42). The digest's Leads said they were not measured before.
+- Two test bugs found and fixed before the pass: the mirror of a move must always swap the end (a lead's orientation and equal ends included), and complete-line counts in 1v1 need a nearly empty boneyard (with 14 tiles left the tree ran for over 10 minutes).
+- Next: M1-09 (allocation-counting test).

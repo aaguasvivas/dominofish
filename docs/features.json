@@ -206,8 +206,12 @@
   "requires": [
    "M1-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-08: PASS tranque: 270766 states, 3304 locks, fewest board tiles 10 (target at least 10), least margin over 6k+42 0 (target at least 0); conservation: states 270766; mirror: states 9307 (lines to depth 4 and every move's result); rotation: states 9307 (lines to depth 4 and every move's result); relabel: deals 400 at depth 5, late positions 283 to the end of the round; determinism: games 500 replayed identically; play-undo: moves 540100 undone exactly with the hash equal to recomputed",
+   "log": null
+  }
  },
  {
   "id": "M1-09",

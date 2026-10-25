@@ -4,6 +4,8 @@
 
 mod hash;
 pub mod perft;
+#[cfg(test)]
+mod properties;
 pub mod referee;
 pub mod rng;
 pub mod rules;
