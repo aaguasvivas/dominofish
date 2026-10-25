@@ -14,3 +14,4 @@ pub mod referee;
 pub mod rng;
 pub mod rules;
 pub mod tile;
+pub mod worlds;
