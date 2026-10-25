@@ -141,7 +141,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M1-04: PASS golden: files 6 games 608 moves 117456 mismatches 0 (target 0); fixtures 9200 KB (target under 20480); identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest 5 (2v2 tranque-tie-opener-not-compared)",
+   "result": "M1-04: PASS golden: files 6 games 608 moves 117456 mismatches 0 (target 0); fixtures/ 9432 KB (target under 20480); 150 games per mode at 100 and 200 and the whole-suit seeds at both; identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest 5 (2v2 tranque-tie-opener-not-compared)",
    "log": null
   }
  },
@@ -158,7 +158,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M1-05: PASS edges: scenarios 71 moves 1906 mismatches 0 (target 0); 51 Capi test cites from capi-rules-spec[2] mapped; 74 named tests passed, 3 published deals; fixtures/edges.txt identical to a fresh edges.mjs run at 1d8868a",
+   "result": "M1-05: PASS edges: scenarios 87 moves 2296 mismatches 0 (target 0); 51 Capi test cites from capi-rules-spec[2] mapped; 90 named tests passed, 3 published deals; fixtures/edges.txt identical to a fresh edges.mjs run at 1d8868a",
    "log": null
   }
  },
@@ -176,7 +176,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M1-06: PASS perft: queries 194 lines 269814 mismatches 0 (target 0), totals and divide; 14 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a",
+   "result": "M1-06: PASS perft: queries 200 lines 270716 mismatches 0 (target 0), totals and divide; 20 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a",
    "log": null
   }
  },
@@ -193,7 +193,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 136s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 177s]",
+   "result": "M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 150s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 180s]",
    "log": null
   }
  },
@@ -263,8 +263,12 @@
    "M1-09",
    "M1-10"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-99: PASS M1-01 ok; M1-02 ok; M1-03 ok; M1-04 ok; M1-05 ok; M1-06 ok; M1-07 ok; M1-08 ok; M1-09 ok; M1-10 ok; M1 milestone review recorded in docs/progress.md",
+   "log": null
+  }
  },
  {
   "id": "M2-01",

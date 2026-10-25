@@ -2,9 +2,9 @@
 
 ## Top block
 
-- Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-99
-- Last green commit: ba6b748 (M1-10)
+- Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
+- Feature in progress: M2-01
+- Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
 - Open questions: Q1 to Q4 in docs/PLAN.md, Decision log (sent 2026-10-25, unanswered)
@@ -49,4 +49,7 @@
   4. M1-04.sh checked file names only. It now counts the G lines per file by mode and target (150 each), checks the four whole-suit seeds at both targets, and measures all of fixtures/ (9,432 KB).
   5. Docs: RULES.md L7 reworded (the salida guards are plain conditions, not debug assertions); the top block's last green commit; PLAN.md lists dominofish-wasm.
 - One gap found after the review: BUILD.md M1d says legal-intent sets, but the fuzzer compared only canonical sets, so Rust accepting an intent Capi rejects went unseen (a mutation that allows a 1v1 pass with tiles in the boneyard passed the old fuzzer, because the generator offers a draw there). The stream now also carries Capi's raw accepted set mapped to moves, compared with every move Rust's is_legal accepts; the same mutation gives 1,913 mismatches in 2,000 rounds. M1-04 to M1-07 are re-marked on the fixed scripts and data.
-- Next: M1-99 (the M1 exit).
+- M1-07 rerun with the raw-set fuzzer (PID 1696, log runs/M1-exit.log): M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 150s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 180s].
+- M1 passed (M1-99): M1-99: PASS M1-01 ok; M1-02 ok; M1-03 ok; M1-04 ok; M1-05 ok; M1-06 ok; M1-07 ok; M1-08 ok; M1-09 ok; M1-10 ok; M1 milestone review recorded in docs/progress.md. regress: PASS 16 of 16 fast commands in 109s (target under 10 minutes).
+- No strength numbers yet (hard constraint 4 allowed them only after this exit; none were measured).
+- Next: M2-01 (InfoSet).

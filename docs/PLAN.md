@@ -9,8 +9,8 @@ Each milestone ends with an exit feature, id M<k>-99, whose verify command runs 
 | Milestone | Goal | Status |
 |---|---|---|
 | M0 | Bootstrap: toolchain, state files, check and regress scripts, random selfplay in both modes | passed 2026-10-25 |
-| M1 | Rules parity with Capi: bitboard core, RULES.md, golden traces, edge cases, perft, differential fuzzer, property tests, 0 allocations, playout bench | in progress |
-| M2 | Information sets, baseline bots, match harness with duplicate pairs and SPRT, REPORT.md | not started |
+| M1 | Rules parity with Capi: bitboard core, RULES.md, golden traces, edge cases, perft, differential fuzzer, property tests, 0 allocations, playout bench | passed 2026-10-25 |
+| M2 | Information sets, baseline bots, match harness with duplicate pairs and SPRT, REPORT.md | in progress |
 | M3 | Exact perfect-information solver, omniscient bot, dominofish bench | not started |
 | M4 | PIMC with an exact consistent-world sampler: the strength-first engine | not started |
 | M5 | Variance reduction (control variates) | not started |
