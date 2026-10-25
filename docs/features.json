@@ -138,8 +138,12 @@
    "M1-02",
    "M1-03"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-04: PASS golden: files 6 games 608 moves 117456 mismatches 0 (target 0); fixtures 9200 KB (target under 20480); identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest 5 (2v2 tranque-tie-opener-not-compared)",
+   "log": null
+  }
  },
  {
   "id": "M1-05",
