@@ -60,6 +60,8 @@ Public API (M2 on; hard constraint 1; the InfoSet exists since M2-01, D10): Info
 
 - D13, 2026-10-25. The match harness (M2-06, crates/dominofish/src/harness.rs and engine.rs). Every seat is a separate engine process over the line protocol, so 2v2 partners share nothing; the referee sends each engine the InfoSet it builds for that seat before each go. Binaries come from scripts/build-bin.sh (git archive of the commit, built in target/old, copied to runs/bin/<commit>/); the harness refuses target/. A duplicate pair plays one deal seed twice with the sides swapping seats, deals derived per round from the seed so full games share them, and seat seeds keyed by deal and seat, which makes identical deterministic bots score exactly 0 per pair. A per-move timeout (default 10 s) is a safety limit; budgets are nodes or worlds (hard constraint 7). Binary identity uses FNV-1a 64 of the file, written here instead of adding a hash crate because it is an identity check, not a security one.
 
+- D14, 2026-10-25. The SPRT (M2-07, crates/dominofish/src/stats.rs) is a normal-approximation GSPRT on per-pair results with the sample variance (after the Fishtest normalized GSPRT idea, digest 2.3), alpha = beta = 0.05, Wald bounds, and no decision before 16 pairs; `dominofish match --sprt mu0,mu1` runs it on the pair margin in points and stops at a decision. Confidence intervals are normal 95% intervals over pairs: points per round (pair margin over its rounds) and game-win rate (pair wins over 2). T1 checks the error rates on synthetic data. Game-win SPRTs (M6) and Elo are not used in M2.
+
 ## Rejected techniques
 
 None measured yet. Each rejection will record its numbers here.

@@ -173,12 +173,14 @@ pub struct Spec {
     pub timeout: Duration,
 }
 
-/// One duplicate pair: the final scores of each game as [side A, side B].
+/// One duplicate pair: the final scores of each game as [side A, side B],
+/// and the rounds each game lasted.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PairResult {
     pub pair: u64,
     pub deal_seed: u64,
     pub scores: [[u16; 2]; 2],
+    pub rounds: [u32; 2],
 }
 
 impl PairResult {
@@ -193,6 +195,11 @@ impl PairResult {
     /// Games side A won (full games at the target).
     pub fn wins(&self, target: u16) -> u32 {
         self.scores.iter().filter(|s| s[0] >= target).count() as u32
+    }
+
+    /// Side A's margin per round over the pair.
+    pub fn margin_per_round(&self) -> f64 {
+        f64::from(self.margin()) / f64::from(self.rounds[0] + self.rounds[1])
     }
 }
 
@@ -236,8 +243,9 @@ impl Spec {
     }
 }
 
-/// Plays the match; stops at the first fault.
-pub fn run(spec: &Spec) -> Report {
+/// Plays the match; stops at the first fault, or after a pair when `stop`
+/// says so (an SPRT decision).
+pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
     let header = spec.header();
     let mut report = Report {
         header: header.clone(),
@@ -263,7 +271,8 @@ pub fn run(spec: &Spec) -> Report {
         for i in 0..spec.pairs {
             let deal_seed = spec.seed + i;
             let mut scores = [[0u16; 2]; 2];
-            for (g, out) in scores.iter_mut().enumerate() {
+            let mut rounds = [0u32; 2];
+            for g in 0..2 {
                 // engine_at[seat]: side A's engines take team g's seats.
                 let engine_at: Vec<usize> = (0..spec.mode.seats())
                     .map(|seat| {
@@ -272,15 +281,22 @@ pub fn run(spec: &Spec) -> Report {
                         if a_side { k } else { per_side + k }
                     })
                     .collect();
-                let final_scores =
+                let (final_scores, played) =
                     play_game(spec, &mut engines, &engine_at, deal_seed, &mut report.moves)?;
-                *out = [final_scores[g], final_scores[1 - g]];
+                scores[g] = [final_scores[g], final_scores[1 - g]];
+                rounds[g] = played;
             }
-            report.pairs.push(PairResult {
+            let pair = PairResult {
                 pair: i,
                 deal_seed,
                 scores,
-            });
+                rounds,
+            };
+            let done = stop(&pair);
+            report.pairs.push(pair);
+            if done {
+                break;
+            }
         }
         Ok(())
     });
@@ -322,14 +338,14 @@ fn handshake(
 }
 
 /// One game (or its first round, for the round unit); returns the final
-/// scores by team.
+/// scores by team and the rounds played.
 fn play_game(
     spec: &Spec,
     engines: &mut [Engine],
     engine_at: &[usize],
     deal_seed: u64,
     moves: &mut u64,
-) -> Result<[u16; 2], (Fault, String)> {
+) -> Result<([u16; 2], u32), (Fault, String)> {
     let mode = spec.mode;
     let deal_for = |r: u64| Deal::shuffled(&mut Rng::new(derive(deal_seed, r)));
     for seat in 0..mode.seats() {
@@ -441,7 +457,7 @@ fn play_game(
             engines[engine_at[seat as usize]].send(&msg.to_line(mode))?;
         }
         if done {
-            return Ok(state.scores);
+            return Ok((state.scores, record.rounds.len() as u32));
         }
         let deal = deal_for(record.rounds.len() as u64);
         state = state.next_round(&deal);

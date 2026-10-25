@@ -3,6 +3,7 @@
 mod capi_fuzz;
 mod engine;
 mod harness;
+mod stats;
 
 use std::fmt::Write as _;
 use std::process::ExitCode;
@@ -107,6 +108,7 @@ fn run() -> Result<(String, bool), String> {
             let (mut mode, mut unit, mut target, mut pairs, mut seed) =
                 (None, None, None, None, None);
             let (mut a, mut b, mut out, mut timeout_ms) = (None, None, None, 10_000u64);
+            let mut sprt: Option<stats::Sprt> = None;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
@@ -124,6 +126,19 @@ fn run() -> Result<(String, bool), String> {
                     Long("b") => b = Some(harness::Side::new(&value(&mut parser)?)?),
                     Long("out") => out = Some(value(&mut parser)?),
                     Long("timeout-ms") => timeout_ms = parse_num(&value(&mut parser)?)?,
+                    Long("sprt") => {
+                        let v = value(&mut parser)?;
+                        let (h0, h1) = v.split_once(',').ok_or("--sprt takes mu0,mu1")?;
+                        let parse = |x: &str| {
+                            x.parse::<f64>()
+                                .map_err(|_| format!("bad --sprt bound {x}"))
+                        };
+                        let (h0, h1) = (parse(h0)?, parse(h1)?);
+                        if h1 <= h0 {
+                            return Err("--sprt needs mu0 < mu1".into());
+                        }
+                        sprt = Some(stats::Sprt::new(h0, h1, 0.05, 0.05));
+                    }
                     _ => return Err(arg.unexpected().to_string()),
                 }
             }
@@ -138,8 +153,15 @@ fn run() -> Result<(String, bool), String> {
                 timeout: std::time::Duration::from_millis(timeout_ms),
             };
             let out = out.ok_or("--out is required")?;
-            let report = harness::run(&spec);
-            Ok(write_match(&spec, &report, &out)?)
+            // The SPRT runs on each pair's margin and stops the match at a
+            // decision; --pairs is then the maximum.
+            let report = harness::run(&spec, &mut |pair| {
+                sprt.as_mut().is_some_and(|t| {
+                    t.push(f64::from(pair.margin()));
+                    t.decision().is_some()
+                })
+            });
+            Ok(write_match(&spec, &report, sprt.as_ref(), &out)?)
         }
         "capi-fuzz" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -325,42 +347,76 @@ fn write_event(out: &mut String, mode: Mode, event: &Event) {
     };
 }
 
-/// Writes a match's per-pair results to `out` and returns the summary line
+/// Writes a match's per-pair results to `out` and returns the summary lines
 /// (docs/FORMATS.md, Match results) and whether the match had no fault.
 fn write_match(
     spec: &harness::Spec,
     report: &harness::Report,
+    sprt: Option<&stats::Sprt>,
     out: &str,
 ) -> Result<(String, bool), String> {
     let mut text = format!("# header {}\n", report.header);
     for p in &report.pairs {
         let _ = writeln!(
             text,
-            "pair {} seed {} game1 {}-{} game2 {}-{} margin {} wins {}",
+            "pair {} seed {} game1 {}-{} game2 {}-{} rounds {},{} margin {} wins {}",
             p.pair,
             p.deal_seed,
             p.scores[0][0],
             p.scores[0][1],
             p.scores[1][0],
             p.scores[1][1],
+            p.rounds[0],
+            p.rounds[1],
             p.margin(),
             p.wins(spec.target)
         );
     }
+    let per_round: Vec<f64> = report.pairs.iter().map(|p| p.margin_per_round()).collect();
+    let r = stats::summary(&per_round);
+    let mut lines = format!(
+        "points per round (A minus B) mean {:.3} sd {:.3} 95% CI [{:.3}, {:.3}] over {} pairs",
+        r.mean, r.sd, r.lo, r.hi, r.n
+    );
+    if spec.unit == harness::Unit::Game {
+        let wins: Vec<f64> = report
+            .pairs
+            .iter()
+            .map(|p| f64::from(p.wins(spec.target)) / 2.0)
+            .collect();
+        let w = stats::summary(&wins);
+        let _ = write!(
+            lines,
+            "; game-win rate of A {:.3} 95% CI [{:.3}, {:.3}]",
+            w.mean, w.lo, w.hi
+        );
+    }
+    if let Some(t) = sprt {
+        let (lower, upper) = t.bounds();
+        let outcome = match t.decision() {
+            Some(stats::Decision::H0) => "H0",
+            Some(stats::Decision::H1) => "H1",
+            None => "inconclusive",
+        };
+        let _ = write!(
+            lines,
+            "; sprt on the pair margin, H0 {} H1 {}, alpha 0.05 beta 0.05: {outcome} after {} pairs, llr {:.3} in [{:.3}, {:.3}]",
+            t.mu0,
+            t.mu1,
+            t.n(),
+            t.llr(),
+            lower,
+            upper
+        );
+    }
+    let _ = writeln!(text, "# summary {lines}");
     if let Some((kind, detail)) = &report.fault {
         let _ = writeln!(text, "# fault {kind:?}: {detail}");
     }
     std::fs::write(out, text).map_err(|e| format!("{out}: {e}"))?;
-    let n = report.pairs.len() as f64;
-    let mean = report
-        .pairs
-        .iter()
-        .map(|p| f64::from(p.margin()))
-        .sum::<f64>()
-        / n.max(1.0);
     let summary = match &report.fault {
         None => format!(
-            "match: PASS mode {} unit {} target {} pairs {} moves {} mean margin per pair {:.2}; illegal 0, crashes 0, timeouts 0; results {out}\n",
+            "{lines}\nmatch: PASS mode {} unit {} target {} pairs {} moves {}; illegal 0, crashes 0, timeouts 0; results {out}\n",
             mode_name(spec.mode),
             if spec.unit == harness::Unit::Round {
                 "round"
@@ -370,7 +426,6 @@ fn write_match(
             spec.target,
             report.pairs.len(),
             report.moves,
-            mean
         ),
         Some((kind, detail)) => format!(
             "ERROR {kind:?}: {detail}\nmatch: FAIL {kind:?} after {} pairs; results {out}\n",
