@@ -84,3 +84,46 @@ Lines:
 - `END <rounds> <moves>`.
 
 A mismatch prints an ERROR line with the seed and round; the rest of that round is skipped.
+
+## Game records
+
+A game record is a text file of one game: each round's deal and its moves in order (core/src/record.rs, GameRecord::to_text and from_text). Blank lines and lines starting with # are ignored. Example:
+
+```
+dominofish-record 1
+mode 2v2
+target 100
+deal 0-6 0-4 0-0 5-6 1-5 2-6 0-1 5-5 6-6 3-6 4-6 2-5 2-4 3-3 1-4 1-1 4-5 0-3 0-5 2-3 4-4 1-3 1-2 3-4 0-2 2-2 1-6 3-5
+s pass
+w play 1-6 left
+n play 1-5 left
+...
+deal ...
+...
+end
+```
+
+- `dominofish-record 1`, `mode <1v1|2v2>`, `target <1 to 300>`: the header, in this order.
+- `deal <28 tiles>`: a round's deal in Capi's tile order and layout (docs/RULES.md R1 and R3): seven tiles per seat in seat order n, e, s, w (1v1: n, s), then the 1v1 boneyard, whose last tile is drawn first. Tiles are written `a-b` (the parser accepts either pip first; the printer writes the low pip first). Round 1's automatic tile is not a move: the referee places it from the deal.
+- `<seat> play <a-b> <left|right>`, `<seat> draw`, `<seat> pass`: one move of the seat on turn. On an empty board `left` places the tile low pip left and `right` places it flipped (docs/RULES.md, Moves). A draw's tiles follow from the deal.
+- `end`: the record ends.
+
+The parser replays the record and rejects, with the line number, a move by a seat not on turn, an illegal move, a deal before the previous round is over, and a deal after the game ended. The last round may be unfinished (a position under analysis).
+
+## Engine protocol
+
+Engines run as separate processes; the referee writes one line per message to an engine's stdin and reads one line per reply from its stdout (core/src/protocol.rs). Seats are named n, e, s, w (2v2) or n, s (1v1); tiles `a-b`; lists of tiles are comma-separated. An engine receives only its own hand, its own drawn tiles, and public moves.
+
+Referee to engine, in game order:
+- `dominofish 1`: the protocol version. Reply `dominofish 1 ready`.
+- `header <text>`: the match header (each side's commit, Bench, binary hash, budgets, threads, table sizes, seeds; M2-06). Reply with the same line, `header <text>`, before the first deal.
+- `game mode=<1v1|2v2> target=<t> seat=<seat> seed=<u64>`: a new game; the seed is the engine's own randomness.
+- `round <r> scores=<s0>,<s1> leader=<seat> hand=<tiles>`: round r starts (from 1); the engine's dealt hand in deal order; the leader is round 1's opener or the previous round's winner.
+- `opening <seat> <a-b>`: round 1's automatic tile.
+- `drew <tiles>`: to the drawer only, the tiles it drew in draw order, before the public draw line.
+- `played <seat> play <a-b> <left|right>`, `played <seat> draw <count>`, `played <seat> pass`: every move, to every engine, the mover's own included.
+- `go`: the engine's turn. Reply `move play <a-b> <left|right>`, `move draw`, or `move pass`.
+- `roundover scores=<s0>,<s1>` and `gameover scores=<s0>,<s1>`: a round or the game ended.
+- `quit`: exit.
+
+An engine may also write `info <text>` lines at any time; the referee logs and ignores them.

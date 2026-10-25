@@ -7,8 +7,10 @@
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
+use dominofish_core::record::{GameRecord, RoundRecord};
 use dominofish_core::referee::Referee;
-use dominofish_core::rules::{Deal, End, Event, Mode, Move, NO_SEAT, Phase, State};
+use dominofish_core::rng::Rng;
+use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, NO_SEAT, Phase, State};
 use dominofish_core::tile::Tile;
 
 pub fn fixture(rel: &str) -> PathBuf {
@@ -335,4 +337,54 @@ pub fn replay(path: &PathBuf) -> Report {
         }
     }
     report
+}
+
+/// A seeded game of random legal moves, recorded. With `raw`, a lead is
+/// sometimes flipped and a play on equal ends sometimes goes right, so the
+/// record holds non-canonical moves too.
+pub fn random_record(mode: Mode, target: u16, seed: u64, raw: bool) -> GameRecord {
+    let mut rng = Rng::new(seed);
+    let mut rounds = vec![RoundRecord {
+        deal: Deal::shuffled(&mut rng),
+        moves: vec![],
+    }];
+    let (mut state, _) = State::first_round(mode, target, &rounds[0].deal);
+    let mut moves = MoveList::new();
+    loop {
+        match state.phase {
+            Phase::Finished => break,
+            Phase::RoundOver => {
+                let deal = Deal::shuffled(&mut rng);
+                state = state.next_round(&deal);
+                rounds.push(RoundRecord {
+                    deal,
+                    moves: vec![],
+                });
+            }
+            Phase::Playing => {
+                state.legal_moves(&mut moves);
+                let mut mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
+                if let Move::Play {
+                    tile,
+                    end: End::Left,
+                } = mv
+                {
+                    let mirror = Move::Play {
+                        tile,
+                        end: End::Right,
+                    };
+                    if raw && rng.below(2) == 0 && state.is_legal(mirror) {
+                        mv = mirror;
+                    }
+                }
+                state.play(mv);
+                rounds.last_mut().unwrap().moves.push(mv);
+            }
+        }
+    }
+    GameRecord {
+        mode,
+        target,
+        rounds,
+    }
 }

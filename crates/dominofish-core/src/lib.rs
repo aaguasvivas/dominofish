@@ -8,6 +8,7 @@ pub mod infoset;
 pub mod perft;
 #[cfg(test)]
 mod properties;
+pub mod protocol;
 pub mod record;
 pub mod referee;
 pub mod rng;
