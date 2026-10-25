@@ -4,9 +4,11 @@
 
 pub mod bench;
 mod hash;
+pub mod infoset;
 pub mod perft;
 #[cfg(test)]
 mod properties;
+pub mod record;
 pub mod referee;
 pub mod rng;
 pub mod rules;

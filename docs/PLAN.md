@@ -37,7 +37,7 @@ Moves (provisional until docs/RULES.md at M1-01, decision D6): Play { tile, end 
 
 Hot-path bounds (digest 1.8): at most 12 distinct plays (MoveList holds 16); a 1v1 hand holds at most 21 tiles; a round has at most 128 plies; the boneyard holds at most 14 tiles. Hot-path buffers are fixed-size arrays sized from these bounds.
 
-Public API (planned, M2 on; hard constraint 1): InfoSet built from a game record and a seat (own hand, public history, hand sizes, boneyard count, scores, target, opener, derived voids, 1v1 opening deductions); Limits (worlds, nodes, memory cap); analyze(&InfoSet, &Limits, seed) -> Analysis (each legal move's value, the chosen move, information-set size, nodes). Full states stay in the referee, the simulator inside sampled worlds, and the omniscient bot.
+Public API (M2 on; hard constraint 1; the InfoSet exists since M2-01, D10): InfoSet built from a game record and a seat (own hand, public history, hand sizes, boneyard count, scores, target, opener, derived voids, 1v1 opening deductions); Limits (worlds, nodes, memory cap); analyze(&InfoSet, &Limits, seed) -> Analysis (each legal move's value, the chosen move, information-set size, nodes). Full states stay in the referee, the simulator inside sampled worlds, and the omniscient bot.
 
 ## Method decisions
 
@@ -51,6 +51,8 @@ Public API (planned, M2 on; hard constraint 1): InfoSet built from a game record
 - D8, 2026-10-25. The tranque test is O(1): locked if and only if no tile outside the board shows either end (ALL & !board & (SUIT[L] | SUIT[R]) == 0). It equals Capi's isBoardLocked (validate.ts:45-51) because every tile is on the board, in a hand, or in the boneyard. The tranque geometry property (digest 1.4) is tested at M1-08.
 
 - D9, 2026-10-25. The differential fuzzer (M1-07) runs Capi in Node as the driver and Rust as the verifier: fuzz.mjs streams Capi's canonical legal set before each move and a 32-bit digest of the canonical state and event after it, and `dominofish capi-fuzz` replays and compares. Reason: one stream per run instead of a round trip per move; Node is the bottleneck (about 3 minutes per 1,000,000 rounds). A digest collision could hide one mismatch with probability 2^-32 per differing move; a mismatch that diverges the state also changes the following moves' sets and digests. Fuzz seed 1 for the full and the fast run (the fast run is the first 10,000 rounds of the same stream).
+
+- D10, 2026-10-25. The InfoSet (M2-01, core/src/infoset.rs) is built from a GameRecord (core/src/record.rs: each round's deal and moves) and a seat by replaying to the point, and keeps only public facts and the seat's own hand: board and ends, turn, opener, last player, passes, scores, hand sizes, boneyard count, round 1's automatic tile, the round's public history (each move with the ends before it; draws as counts), current-hand voids, and the 1v1 round-1 exclusions of each dealt hand (opener rule R4). 1v1 voids are time-stamped: a draw's void binds the tiles held at the draw and its non-fitting tiles, and applies to the whole hand only after the drawer's next move (the drawn tile that fits is played then); older draws bind only older tiles, which the history keeps for the world counter (M2-03). The record holds hidden tiles; only the referee and record tools read it. Reason: one replay path for every consumer, and an equality test (records that differ only in hidden tiles give equal InfoSets) checks the no-hidden-tile rule of hard constraint 1.
 
 ## Rejected techniques
 
