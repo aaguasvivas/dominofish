@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-08
+- Feature in progress: M2-09
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -69,4 +69,6 @@
 - T1 was stated in PLAN.md and committed (979c3ee) before its first run; it passed on that run.
 - M2-07 passed: crates/dominofish/src/stats.rs, dominofish match --sprt and the summary line, docs/FORMATS.md (Match results), PLAN.md D14. Verify: M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.87, H1 5.29): false H1 0.0488, false H0 0.0530; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported
 - No strength numbers yet: every match so far pits identical bots, except the M2-06 harness checks (accompanied against rule, whose margins nothing reports) and one 10-pair game run in a draft of the M2-07 verify, replaced by identical bots before the pass.
-- Next: M2-08 (null tests).
+- T2 was stated in PLAN.md and committed (9f622bc) before its first formal run. One smoke run of its run 0 (2v2, seeds from 9,000,000, salts 1 and 2) went first with the dev binary to test --salt; results are fixed by their seeds, so it could not change T2's outcome.
+- M2-08 passed: engine --salt, scripts/verify/M2-08.sh. Verify (50 s): M2-08: PASS identical bots: 320 duplicate pairs (4 bots, both modes, rounds and games) all exactly 0; null SPRT runs: 200 (100 per mode), H1 12 (band [3, 19] at 200 runs), H0 188, inconclusive 0, 23508 pairs, no fault
+- Next: M2-09 (dominofish report, REPORT.md, README.md).

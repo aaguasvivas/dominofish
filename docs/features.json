@@ -393,8 +393,12 @@
    "M2-06",
    "M2-07"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-08: PASS identical bots: 320 duplicate pairs (4 bots, both modes, rounds and games) all exactly 0; null SPRT runs: 200 (100 per mode), H1 12 (band [3, 19] at 200 runs), H0 188, inconclusive 0, 23508 pairs, no fault",
+   "log": null
+  }
  },
  {
   "id": "M2-09",
