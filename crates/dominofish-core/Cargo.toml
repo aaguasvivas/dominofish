@@ -6,3 +6,9 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies]
+
+# Runs without the test harness, so no runner thread allocates while the
+# counter is read (M1-09).
+[[test]]
+name = "alloc"
+harness = false

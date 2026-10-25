@@ -222,8 +222,12 @@
   "requires": [
    "M1-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-09: PASS alloc: games 2000 plies 262167 moves played and undone 541185 perft lines 37330 allocations 0 (hash check true) (target 0 allocations)",
+   "log": null
+  }
  },
  {
   "id": "M1-10",
