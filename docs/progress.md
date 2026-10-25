@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-01
+- Feature in progress: M2-02
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -52,4 +52,7 @@
 - M1-07 rerun with the raw-set fuzzer (PID 1696, log runs/M1-exit.log): M1-07: PASS target 0 mismatches over 1000000 rounds per mode: [1v1: PASS mode 1v1 seed 1 rounds 1000000 moves 23259665 mismatches 0; rule paths 26 of 26 above zero (fewest open-no-double 685) in 150s] [2v2: PASS mode 2v2 seed 1 rounds 1000000 moves 25186385 mismatches 0; rule paths 29 of 29 above zero (fewest salida-cancelled-then-corrido 1191) in 180s].
 - M1 passed (M1-99): M1-99: PASS M1-01 ok; M1-02 ok; M1-03 ok; M1-04 ok; M1-05 ok; M1-06 ok; M1-07 ok; M1-08 ok; M1-09 ok; M1-10 ok; M1 milestone review recorded in docs/progress.md. regress: PASS 16 of 16 fast commands in 109s (target under 10 minutes).
 - No strength numbers yet (hard constraint 4 allowed them only after this exit; none were measured).
-- Next: M2-01 (InfoSet).
+- M2-01 passed: core/src/record.rs (GameRecord), core/src/infoset.rs (InfoSet), tests/infoset.rs, PLAN.md D10. Verify: M2-01: PASS infosets 44040 with voids 39028 and dealt exclusions 2464, all true of the hidden hands; swaps 3461, 3271 with the same public record gave equal infosets, 190 changed the record.
+- Found while testing: a 1v1 draw's void holds only after the drawer's next move. Between the draw and the forced play, the hand holds the drawn tile that fits, which shows an end; the first version applied the void at the draw and the truth test caught it (a seat held 1-5 against a void). The swap test must count the scores as public: a round's points reveal the pips left in the hands.
+- Negative control: leaking one bit of another seat's hand into the passes field fails both tests.
+- Next: M2-02 (game record format and line protocol).

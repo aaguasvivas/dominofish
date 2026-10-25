@@ -279,8 +279,12 @@
   "requires": [
    "M1-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-01: PASS infosets 44040 with voids 39028 and dealt exclusions 2464, all true of the hidden hands; swaps 3461, 3271 with the same public record gave equal infosets, 190 changed the record",
+   "log": null
+  }
  },
  {
   "id": "M2-02",
