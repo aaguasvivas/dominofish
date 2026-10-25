@@ -410,8 +410,12 @@
    "M2-06",
    "M2-07"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-09: PASS REPORT.md current with 36 rows for 36 result files, every claim-format field present; README.md has the three decided lines, its sections, and 6 numbers found in REPORT.md; readme-fast: PASS 4 rows reproduce docs/eval/results/2026-10-25-baselines-fast.txt; no license, publish = false",
+   "log": null
+  }
  },
  {
   "id": "M2-99",

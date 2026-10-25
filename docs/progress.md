@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-09
+- Feature in progress: M2-99
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -71,4 +71,7 @@
 - No strength numbers yet: every match so far pits identical bots, except the M2-06 harness checks (accompanied against rule, whose margins nothing reports) and one 10-pair game run in a draft of the M2-07 verify, replaced by identical bots before the pass.
 - T2 was stated in PLAN.md and committed (9f622bc) before its first formal run. One smoke run of its run 0 (2v2, seeds from 9,000,000, salts 1 and 2) went first with the dev binary to test --salt; results are fixed by their seeds, so it could not change T2's outcome.
 - M2-08 passed: engine --salt, scripts/verify/M2-08.sh. Verify (50 s): M2-08: PASS identical bots: 320 duplicate pairs (4 bots, both modes, rounds and games) all exactly 0; null SPRT runs: 200 (100 per mode), H1 12 (band [3, 19] at 200 runs), H0 188, inconclusive 0, 23508 pairs, no fault
-- Next: M2-09 (dominofish report, REPORT.md, README.md).
+- R1 was stated in PLAN.md and committed (a3e108a) before its first run; scripts/run-baselines.sh ran it once (1 min 38 s, load 14 to 47): 36 rows, 0 illegal moves, crashes, or timeouts. Results: docs/eval/results/2026-10-25-baselines/ (1.5 MB of pair lines); REPORT.md recomputes every number from them.
+- First strength results (relative self-play, held-out seeds, R1 at a3e108a; docs/eval/REPORT.md): the rule bot beats random by 10.77 [9.55, 11.98] points per round in 1v1 rounds and 9.78 [8.04, 11.52] in 2v2 rounds (SPRT H1 at pairs 54 and 143). Heaviest against random in 2v2 rounds: -0.54 [-2.03, 0.96], SPRT H0 at pair 595. Rule against accompanied in 2v2 games: inconclusive at 100 and 200.
+- M2-09 passed: crates/dominofish/src/report.rs (dominofish report, and --check in check.sh), --sprt-track, scripts/run-baselines.sh, scripts/readme-fast.sh, README.md (prose checked with the stop-slop skill). Verify: M2-09: PASS REPORT.md current with 36 rows for 36 result files, every claim-format field present; README.md has the three decided lines, its sections, and 6 numbers found in REPORT.md; readme-fast: PASS 4 rows reproduce docs/eval/results/2026-10-25-baselines-fast.txt; no license, publish = false
+- Next: M2-99 (the M2 exit and its milestone review).
