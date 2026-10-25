@@ -6,8 +6,12 @@
   "verify": "scripts/verify/M0-01.sh",
   "fast": "scripts/verify/M0-01.sh --fast",
   "requires": [],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M0-01: PASS rustc 1.99.1 (58cf8f9c3 2026-10-13), clippy, rustfmt, wasm32 target, jobs 4, line-tables-only",
+   "log": null
+  }
  },
  {
   "id": "M0-02",
@@ -18,8 +22,12 @@
   "requires": [
    "M0-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M0-02: PASS check.sh exit 0 (check: PASS in 1s); exit 1 with an em dash present",
+   "log": null
+  }
  },
  {
   "id": "M0-03",
@@ -30,8 +38,12 @@
   "requires": [
    "M0-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M0-03: PASS seed 1: 2v2 109-69 in 3 rounds, 68 moves; 1v1 69-116 in 9 rounds, 203 moves; identical on two runs; cargo test selfplay ok",
+   "log": null
+  }
  },
  {
   "id": "M0-04",
@@ -42,8 +54,12 @@
   "requires": [
    "M0-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M0-04: PASS CLAUDE.md 26 lines; PLAN.md headings; features.json 35 entries, M0 to M11; progress.md top block; regress.sh selection",
+   "log": null
+  }
  },
  {
   "id": "M0-99",
@@ -57,8 +73,12 @@
    "M0-03",
    "M0-04"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M0-99: PASS M0-01 ok; M0-02 ok; M0-03 ok; M0-04 ok; on main with 1 commits",
+   "log": null
+  }
  },
  {
   "id": "M1-01",
