@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-06
+- Feature in progress: M2-07
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -64,4 +64,6 @@
 - M2-05 passed: InfoSet::to_text and from_text, tests/never_peeks.rs, docs/FORMATS.md (InfoSet text). Verify: M2-05: PASS InfoSet texts 11380 round-trip; rearranged worlds with an identical public record in games of random 4715 heaviest 6379 accompanied 5352 rule 4352; byte-identical InfoSets and the same decision of every bot at a fixed seed
 - The first version of the test kept rearrangements that moved round 1's automatic tile (its view left out the opening); with the opening in the public view it passes. Negative control: one leaked hidden bit fails it.
 - Question for the batch: may I add a local git pre-commit hook (.git/hooks/pre-commit, not versioned) that runs scripts/check.sh? Two commits this session failed check.sh because a commit was not gated on it (31443cd, 2c11b62).
-- Next: M2-06 (match harness).
+- M2-06 passed: crates/dominofish/src/engine.rs (dominofish engine), harness.rs (dominofish match), scripts/build-bin.sh, scripts/test-engines/, the infoset protocol message, docs/FORMATS.md (Match results), PLAN.md D13. Verify: M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/0e51531/dominofish, 17918 moves, illegal 0, crashes 0, timeouts 0, header echoed; identical bots 0 in every duplicate pair (4 configurations); faults Illegal, Crash, Timeout, Header each stop a match; target/ refused
+- The silent test engine first left an orphaned sleep process after the harness killed its shell; it now execs the sleep.
+- Next: M2-07 (SPRT and confidence intervals).

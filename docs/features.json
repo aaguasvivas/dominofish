@@ -360,8 +360,12 @@
    "M2-02",
    "M2-04"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/0e51531/dominofish, 17918 moves, illegal 0, crashes 0, timeouts 0, header echoed; identical bots 0 in every duplicate pair (4 configurations); faults Illegal, Crash, Timeout, Header each stop a match; target/ refused",
+   "log": null
+  }
  },
  {
   "id": "M2-07",
