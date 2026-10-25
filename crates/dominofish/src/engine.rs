@@ -2,7 +2,9 @@
 //! (docs/FORMATS.md, Engine protocol) on stdin and stdout. It decides from
 //! the `infoset` line the referee sends before each `go`, with an RNG drawn
 //! from the game's seed and the round, so a seed keyed by deal and seat
-//! gives the same choices in both games of a duplicate pair.
+//! gives the same choices in both games of a duplicate pair. A salt mixes
+//! into that seed, so two copies of one bot can be seeded independently
+//! (the M2-08 null test).
 
 use std::io::{BufRead, Write};
 
@@ -12,7 +14,7 @@ use dominofish_core::protocol::{FromEngine, ToEngine, VERSION};
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::Mode;
 
-pub fn run(bot: Bot) -> Result<(), String> {
+pub fn run(bot: Bot, salt: Option<u64>) -> Result<(), String> {
     let stdin = std::io::stdin();
     let mut out = std::io::stdout().lock();
     let mut mode = Mode::TwoVsTwo;
@@ -41,7 +43,7 @@ pub fn run(bot: Bot) -> Result<(), String> {
                 mode: m, seed: s, ..
             } => {
                 mode = m;
-                seed = s;
+                seed = salt.map_or(s, |x| derive(s, x));
             }
             ToEngine::Round { round, .. } => rng = Rng::new(derive(seed, u64::from(round))),
             ToEngine::InfoSet(i) => info = Some(*i),

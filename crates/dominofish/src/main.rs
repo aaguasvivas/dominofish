@@ -16,7 +16,7 @@ use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, Stat
 const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
        dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
        dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N
-       dominofish engine --bot random|heaviest|accompanied|rule
+       dominofish engine --bot random|heaviest|accompanied|rule [--salt N]
        dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --a CMD --b CMD --out FILE [--timeout-ms N]";
 
 fn main() -> ExitCode {
@@ -88,7 +88,7 @@ fn run() -> Result<(String, bool), String> {
             ))
         }
         "engine" => {
-            let mut bot = None;
+            let (mut bot, mut salt) = (None, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("bot") => {
@@ -98,10 +98,11 @@ fn run() -> Result<(String, bool), String> {
                                 .ok_or(format!("unknown bot {name}"))?,
                         );
                     }
+                    Long("salt") => salt = Some(parse_num(&value(&mut parser)?)?),
                     _ => return Err(arg.unexpected().to_string()),
                 }
             }
-            engine::run(bot.ok_or("--bot is required")?)?;
+            engine::run(bot.ok_or("--bot is required")?, salt)?;
             Ok((String::new(), true))
         }
         "match" => {
