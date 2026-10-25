@@ -135,7 +135,11 @@ fn replay(path: &PathBuf, tally: &mut Tally) {
         match tag {
             "G" => {
                 let w: Vec<&str> = rest.split(' ').collect();
-                mode = if w[0] == "1v1" { Mode::OneVsOne } else { Mode::TwoVsTwo };
+                mode = if w[0] == "1v1" {
+                    Mode::OneVsOne
+                } else {
+                    Mode::TwoVsTwo
+                };
                 target = w[1].parse().expect("target");
                 seed = w[2];
                 referee = None;
@@ -188,7 +192,11 @@ fn replay(path: &PathBuf, tally: &mut Tally) {
                 let r = referee.as_mut().expect("M after D");
                 let state = *r.state();
                 if seat_text(mode, state.turn) != words[0] {
-                    fail(n, seed, format!("turn want {} got {}", words[0], seat_text(mode, state.turn)));
+                    fail(
+                        n,
+                        seed,
+                        format!("turn want {} got {}", words[0], seat_text(mode, state.turn)),
+                    );
                     continue;
                 }
                 let mv = parse_intent(&state, &words[1..]);
