@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-02
+- Feature in progress: M2-03
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -55,4 +55,5 @@
 - M2-01 passed: core/src/record.rs (GameRecord), core/src/infoset.rs (InfoSet), tests/infoset.rs, PLAN.md D10. Verify: M2-01: PASS infosets 44040 with voids 39028 and dealt exclusions 2464, all true of the hidden hands; swaps 3461, 3271 with the same public record gave equal infosets, 190 changed the record.
 - Found while testing: a 1v1 draw's void holds only after the drawer's next move. Between the draw and the forced play, the hand holds the drawn tile that fits, which shows an end; the first version applied the void at the draw and the truth test caught it (a seat held 1-5 against a void). The swap test must count the scores as public: a round's points reveal the pips left in the hands.
 - Negative control: leaking one bit of another seat's hand into the passes field fails both tests.
-- Next: M2-02 (game record format and line protocol).
+- M2-02 passed: GameRecord::to_text and from_text (core/src/record.rs), core/src/protocol.rs (ToEngine, FromEngine, messages_for), tests/formats.rs, docs/FORMATS.md (Game records, Engine protocol). Verify: M2-02: PASS malformed: 9 rejected at their line; protocol: messages 329216 round-trip exactly; malformed lines rejected; records: games 400 lines 83862 round-trip exactly; documented in docs/FORMATS.md.
+- Next: M2-03 (exact count of consistent worlds).

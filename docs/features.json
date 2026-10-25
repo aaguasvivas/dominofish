@@ -295,8 +295,12 @@
   "requires": [
    "M1-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-02: PASS malformed: 9 rejected at their line;protocol: messages 329216 round-trip exactly; malformed lines rejected;records: games 400 lines 83862 round-trip exactly; documented in docs/FORMATS.md",
+   "log": null
+  }
  },
  {
   "id": "M2-03",
