@@ -1,0 +1,448 @@
+[
+ {
+  "id": "M0-01",
+  "milestone": "M0",
+  "description": "Rust is pinned in rust-toolchain.toml (channel 1.99.1, clippy, rustfmt, wasm32-unknown-unknown, profile minimal); .cargo/config.toml sets [build] jobs = 4; [profile.dev] and [profile.test] set debug = \"line-tables-only\"; .gitignore holds target/, runs/, and tools/capi-oracle/build/.",
+  "verify": "scripts/verify/M0-01.sh",
+  "fast": "scripts/verify/M0-01.sh --fast",
+  "requires": [],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M0-02",
+  "milestone": "M0",
+  "description": "scripts/check.sh runs cargo fmt --check, cargo clippy --workspace --all-targets -- -D warnings, the tests with RUST_TEST_THREADS=4, the wasm32 build of the core, and the em dash scan, prints one summary line, exits 0 on the repo, and exits non-zero when a file holds an em dash.",
+  "verify": "scripts/verify/M0-02.sh",
+  "fast": "scripts/verify/M0-02.sh --fast",
+  "requires": [
+   "M0-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M0-03",
+  "milestone": "M0",
+  "description": "dominofish selfplay --mode 2v2 --seed 1 and --mode 1v1 --seed 1 deal from the seed, play random legal moves under the rules implemented so far, finish a full game to target score 100, and print the move log and final score, identical on two runs; one cargo test runs both. No rules fidelity is claimed.",
+  "verify": "scripts/verify/M0-03.sh",
+  "fast": "scripts/verify/M0-03.sh --fast",
+  "requires": [
+   "M0-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M0-04",
+  "milestone": "M0",
+  "description": "State files: CLAUDE.md under 40 lines; docs/PLAN.md with milestones, architecture and API, method decisions, seed ranges, resource caps, dependencies, toolchain versions, out-of-scope items, and the decision log; docs/features.json with M0 to M11 (M0 to M2 at feature grain) in the required entry shape; docs/progress.md with its top block; scripts/regress.sh selects the fast command of every passing feature that no later entry supersedes.",
+  "verify": "scripts/verify/M0-04.sh",
+  "fast": "scripts/verify/M0-04.sh --fast",
+  "requires": [
+   "M0-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M0-99",
+  "milestone": "M0",
+  "description": "M0 exit: check.sh exits 0; selfplay finishes a game in both modes with identical output on two runs; the core builds for wasm32; the state files exist; the first commit is on main.",
+  "verify": "scripts/verify/M0-99.sh",
+  "fast": "scripts/verify/M0-99.sh --fast",
+  "requires": [
+   "M0-01",
+   "M0-02",
+   "M0-03",
+   "M0-04"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-01",
+  "milestone": "M1",
+  "description": "docs/RULES.md states every rule of capi-rules-spec[1] with its Capi file:line at commit 1d8868a26ce930f478f98e64060c06b1d1a2c1f4, each cite checked against the pinned code; defines the canonical move set and maps Capi intents in the in-hand orientation used by rulesIntents (flow.endgame.test.ts:83-95) to canonical moves; names the legacy branches of capi-rules-spec[4] that are not reproduced; and lists the rule paths the differential fuzzer counts.",
+  "verify": "scripts/verify/M1-01.sh",
+  "fast": "scripts/verify/M1-01.sh --fast",
+  "requires": [
+   "M0-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-02",
+  "milestone": "M1",
+  "description": "Bitboard rules core on 28-bit masks in Capi's tile order: move generator, play and undo, an incremental hash, and typed events (DOMINO, CAPICUA, TRANQUE, PASE_CORRIDO, PASE_SALIDA); a referee that takes Capi-ordered deals (hands in seat order n, e, s, w, then the 1v1 boneyard, draws popping from its end). Play then undo restores state and hash exactly over seeded random games in both modes.",
+  "verify": "scripts/verify/M1-02.sh",
+  "fast": "scripts/verify/M1-02.sh --fast",
+  "requires": [
+   "M0-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-03",
+  "milestone": "M1",
+  "description": "Capi oracle tooling under tools/capi-oracle with no npm dependencies and no package.json: a committed script extracts the pinned engine with git archive into tools/capi-oracle/build/ and bundles it with Capi's esbuild through CAPI_DIR (default /Users/Adelson/Desktop/personal/capi), never writing inside CAPI_DIR; it fails when CAPI_DIR lacks the pinned commit. The copied mulberry32 (invariants.fuzz.test.ts:17-26) and the fixed-deal shuffle rng of BUILD.md M1b are recorded in docs/FORMATS.md.",
+  "verify": "scripts/verify/M1-03.sh",
+  "fast": "scripts/verify/M1-03.sh --fast",
+  "requires": [
+   "M0-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-04",
+  "milestone": "M1",
+  "description": "M1a golden traces: the oracle script plays seeded full games in both modes at target scores 100 and 200 and records the deal, every intent, every resulting canonical state, events, and scores, with the Capi commit. Fixtures stay under 20 MB, reach every rule path Capi's fuzz counts (whole-suit seeds 59313, 83322, 282144, 645301 as the mulberry32 deal seed in 2v2 as at invariants.fuzz.test.ts:357-360, reaching salida cancelled then pase corrido, :456-460), and include left-end leads. Rust replays them without Capi with 0 mismatches.",
+  "verify": "scripts/verify/M1-04.sh",
+  "fast": "scripts/verify/M1-04.sh --fast",
+  "requires": [
+   "M1-02",
+   "M1-03"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-05",
+  "milestone": "M1",
+  "description": "M1b: every capi-rules-spec[2] edge case is a named test, plus the three Parra and Trucco deals (digest 3.6), with expected values produced by Capi's engine through startNewRound on a round_over state (lastCallout domino, lastPlayedBy the leader) with the fixed-deal rng, never from hand-derived scores.",
+  "verify": "scripts/verify/M1-05.sh",
+  "fast": "scripts/verify/M1-05.sh --fast",
+  "requires": [
+   "M1-02",
+   "M1-03"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-06",
+  "milestone": "M1",
+  "description": "M1c perft: per seeded deal, line counts to fixed depths and complete-line counts from late positions, generated from Capi by a committed script, matched exactly by Rust with divide per root move, under the canonical moves defined in docs/RULES.md.",
+  "verify": "scripts/verify/M1-06.sh",
+  "fast": "scripts/verify/M1-06.sh --fast",
+  "requires": [
+   "M1-01",
+   "M1-02",
+   "M1-03"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-07",
+  "milestone": "M1",
+  "description": "M1d lockstep differential fuzzer comparing the legal-intent set and the full canonical state after every move. Under cargo test it runs when CAPI_DIR holds the pinned commit, else prints SKIP and passes; the verify and fast commands set CAPI_DIR explicitly and exit 1 on SKIP. Target: 0 mismatches over 1,000,000 random rounds per mode, with policies that include left-end leads and bias toward rare paths (bonus cap, target edges), and a counter per docs/RULES.md rule path, each above zero.",
+  "verify": "scripts/verify/M1-07.sh",
+  "fast": "scripts/verify/M1-07.sh --fast",
+  "requires": [
+   "M1-01",
+   "M1-04"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-08",
+  "milestone": "M1",
+  "description": "M1e property tests: tranque invariant and geometry (locked if and only if both ends show k and all 7 tiles of k are on the board; then at least 10 board tiles and board pips at least 6k+42), tile conservation, end-mirror symmetry, seat rotation with the opener and automatic tile fixed, line counts unchanged under pip relabeling with the opener fixed, determinism, play and undo round trip, incremental hash equal to recomputed.",
+  "verify": "scripts/verify/M1-08.sh",
+  "fast": "scripts/verify/M1-08.sh --fast",
+  "requires": [
+   "M1-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-09",
+  "milestone": "M1",
+  "description": "M1f: the allocation-counting test over move generation, play and undo, hashing, and playouts after setup reports 0 allocations.",
+  "verify": "scripts/verify/M1-09.sh",
+  "fast": "scripts/verify/M1-09.sh --fast",
+  "requires": [
+   "M1-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-10",
+  "milestone": "M1",
+  "description": "M1g playout bench: rounds per second per mode on one core, with a checksum equal in native and in wasm under Node (WebAssembly.instantiate from a dependency-free script run by /Users/Adelson/.nvm/versions/node/v20.20.0/bin/node, calling one extern \"C\" export of a cdylib crate); a recorded baseline, not a gate.",
+  "verify": "scripts/verify/M1-10.sh",
+  "fast": "scripts/verify/M1-10.sh --fast",
+  "requires": [
+   "M1-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M1-99",
+  "milestone": "M1",
+  "description": "M1 exit: M1a to M1g all pass (golden traces, edge cases and published deals, perft, the differential fuzzer at 1,000,000 rounds per mode, property tests, 0 allocations, the playout bench baseline), and the fresh-subagent milestone review is done with its gaps fixed or listed in progress.md.",
+  "verify": "scripts/verify/M1-99.sh",
+  "fast": "scripts/verify/M1-99.sh --fast",
+  "requires": [
+   "M1-01",
+   "M1-02",
+   "M1-03",
+   "M1-04",
+   "M1-05",
+   "M1-06",
+   "M1-07",
+   "M1-08",
+   "M1-09",
+   "M1-10"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-01",
+  "milestone": "M2",
+  "description": "InfoSet built from a game record and a seat: own hand, public history, hand sizes, boneyard count, scores, target, opener, derived voids, and 1v1 opening deductions; no type reachable from InfoSet holds hidden tiles.",
+  "verify": "scripts/verify/M2-01.sh",
+  "fast": "scripts/verify/M2-01.sh --fast",
+  "requires": [
+   "M1-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-02",
+  "milestone": "M2",
+  "description": "Game record format (deal plus ordered actions, Capi tile order, seats n, e, s, w) and the engine line protocol, both in docs/FORMATS.md, with parse and print round-trip tests.",
+  "verify": "scripts/verify/M2-02.sh",
+  "fast": "scripts/verify/M2-02.sh --fast",
+  "requires": [
+   "M1-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-03",
+  "milestone": "M2",
+  "description": "Exact count of consistent worlds per decision in both modes; the pass-deduction counts and the worked example in BUILD.md Leads pass as tests (399,072,960, 133,024,320, C(21,7) = 116,280, the (7-s)(8-s)/2 void counts, and the 4-6 example).",
+  "verify": "scripts/verify/M2-03.sh",
+  "fast": "scripts/verify/M2-03.sh --fast",
+  "requires": [
+   "M2-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-04",
+  "milestone": "M2",
+  "description": "Baseline bots: random, heaviest tile (bota gorda), most-accompanied tile (la mas acompanada), and a rule bot that counts tiles and uses pass voids, each deciding only from the InfoSet the referee builds for its seat.",
+  "verify": "scripts/verify/M2-04.sh",
+  "fast": "scripts/verify/M2-04.sh --fast",
+  "requires": [
+   "M2-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-05",
+  "milestone": "M2",
+  "description": "never-peeks for every bot: hidden tiles rearranged behind an identical public record give a byte-identical InfoSet and the same decision and values at a fixed seed.",
+  "verify": "scripts/verify/M2-05.sh",
+  "fast": "scripts/verify/M2-05.sh --fast",
+  "requires": [
+   "M2-04"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-06",
+  "milestone": "M2",
+  "description": "Match harness: engines run as separate processes over the line protocol from binaries under runs/bin/<commit>/ (never target/release); duplicate pairs (one deal, in 1v1 with its boneyard order, played twice with the sides swapping seats; full games share the per-round deal seeds); rounds and full games at targets 100 and 200; a match header (each side's commit, Bench, binary hash, budgets, threads, table sizes, seeds) that each engine echoes back before the first deal; 0 illegal moves, crashes, or timeouts.",
+  "verify": "scripts/verify/M2-06.sh",
+  "fast": "scripts/verify/M2-06.sh --fast",
+  "requires": [
+   "M2-02",
+   "M2-04"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-07",
+  "milestone": "M2",
+  "description": "SPRT (alpha = beta = 0.05) on per-pair results and 95% CIs for points per round and game-win rate; on synthetic data the SPRT error rates match alpha and beta within simulation error, by a test stated in docs/PLAN.md first.",
+  "verify": "scripts/verify/M2-07.sh",
+  "fast": "scripts/verify/M2-07.sh --fast",
+  "requires": [
+   "M1-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-08",
+  "milestone": "M2",
+  "description": "Null tests: identical deterministic bots with RNG keyed by deal and seat score exactly 0 per pair in both modes; at least 100 short null SPRT runs between independently seeded copies of a cheap bot accept H1 at a rate consistent with alpha, by a test stated in docs/PLAN.md first.",
+  "verify": "scripts/verify/M2-08.sh",
+  "fast": "scripts/verify/M2-08.sh --fast",
+  "requires": [
+   "M2-06",
+   "M2-07"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-09",
+  "milestone": "M2",
+  "description": "dominofish report generates docs/eval/REPORT.md from docs/eval/results/ in the strength-claim format, with a table of each baseline's results with CIs; README.md has the tagline, subtitle, and credit line exactly as decided, with prose passed through the stop-slop skill.",
+  "verify": "scripts/verify/M2-09.sh",
+  "fast": "scripts/verify/M2-09.sh --fast",
+  "requires": [
+   "M2-06",
+   "M2-07"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M2-99",
+  "milestone": "M2",
+  "description": "M2 exit: SPRT error rates on synthetic data match alpha and beta within simulation error; identical deterministic bots with RNG keyed by deal and seat score exactly 0 per pair in both modes; at least 100 short null SPRT runs accept H1 at a rate consistent with alpha; every bot passes never-peeks; the pass-deduction counts and worked example pass as tests; a table of each baseline's results with CIs is in docs/eval/REPORT.md; 0 illegal moves, crashes, or timeouts; the milestone review is done.",
+  "verify": "scripts/verify/M2-99.sh",
+  "fast": "scripts/verify/M2-99.sh --fast",
+  "requires": [
+   "M2-01",
+   "M2-02",
+   "M2-03",
+   "M2-04",
+   "M2-05",
+   "M2-06",
+   "M2-07",
+   "M2-08",
+   "M2-09"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M3-99",
+  "milestone": "M3",
+  "description": "M3 exit (exact perfect-information solver): 0 mismatches against naive minimax on fixed positions per mode, in the tiles-left range where naive minimax finishes (recorded) and including near-target scores; deeper positions give equal values with the table on and off; solve time (median, p90, max) and nodes by tiles left, per mode; the share of 1v1 solves that hit the node cap; dominofish bench prints Bench: <nodes>, identical across runs, checked in check.sh; the omniscient bot beats every baseline by SPRT.",
+  "verify": "scripts/verify/M3-99.sh",
+  "fast": "scripts/verify/M3-99.sh --fast",
+  "requires": [
+   "M2-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-99",
+  "milestone": "M4",
+  "description": "M4 exit (PIMC): the world counter reproduces the exact counts in Leads and the worked example, and reports its own medians by board size beside the research medians as a reference only; on enumerable information sets a chi-square test at a fixed seed matches exact enumeration and the true world appears at the uniform rate; the sampler fallback counter reads 0; never-peeks also compares node counts; PIMC beats every baseline by SPRT on held-out pairs in both modes; strength against worlds per move is measured as a curve; the gap to the omniscient bot is reported with its CI; per-move time and peak RSS are recorded; dominofish analyze ranks the legal moves; the first README results table exists.",
+  "verify": "scripts/verify/M4-99.sh",
+  "fast": "scripts/verify/M4-99.sh --fast",
+  "requires": [
+   "M3-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M5-99",
+  "milestone": "M5",
+  "description": "M5 exit (variance reduction): the control-variate correction is shown unbiased on null matches and against raw results, by a test stated in docs/PLAN.md first; the variance reduction is measured; later results show raw beside corrected.",
+  "verify": "scripts/verify/M5-99.sh",
+  "fast": "scripts/verify/M5-99.sh --fast",
+  "requires": [
+   "M4-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M6-99",
+  "milestone": "M6",
+  "description": "M6 exit (game equity and calibrated win probability): the W table for targets 100 and 200 is built by a committed command from the engine's own round outcomes; an SPRT on game-win rate (full games at 100 and at 200) against the current best, with bounds and the reason fixed first, is recorded either way; on held-out games the Brier score, Brier skill against a score-only W baseline, and a reliability table with counts per bin, per mode and target.",
+  "verify": "scripts/verify/M6-99.sh",
+  "fast": "scripts/verify/M6-99.sh --fast",
+  "requires": [
+   "M5-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M7-99",
+  "milestone": "M7",
+  "description": "M7 exit (exact endgames): enumeration and sampling agree within sampling error on a test set; PIMC's endgame loss against full enumeration on held-out endgames, in points per round and win probability with CIs; an SPRT against the current best.",
+  "verify": "scripts/verify/M7-99.sh",
+  "fast": "scripts/verify/M7-99.sh --fast",
+  "requires": [
+   "M6-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M8-99",
+  "milestone": "M8",
+  "description": "M8 exit (inference and partner modeling): the true-state sampling ratio on held-out games beats uniform sampling, with a CI; a cross-play table (partnered with itself, each baseline, and an earlier version, against fixed opponents); an SPRT gain against the current best.",
+  "verify": "scripts/verify/M8-99.sh",
+  "fast": "scripts/verify/M8-99.sh --fast",
+  "requires": [
+   "M7-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M9-99",
+  "milestone": "M9",
+  "description": "M9 exit (strategy-fusion fixes): each tried candidate has an SPRT result against the current best at equal compute, recorded either way; only winners stay.",
+  "verify": "scripts/verify/M9-99.sh",
+  "fast": "scripts/verify/M9-99.sh --fast",
+  "requires": [
+   "M8-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M10-99",
+  "milestone": "M10",
+  "description": "M10 exit (learned evaluation): an SPRT gain against the best non-learned engine at equal compute; calibration no worse than M6 on the same held-out set; training reproducible from one committed command and seed; the core still builds for wasm32.",
+  "verify": "scripts/verify/M10-99.sh",
+  "fast": "scripts/verify/M10-99.sh --fast",
+  "requires": [
+   "M9-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M11-99",
+  "milestone": "M11",
+  "description": "M11 exit (analysis CLI and release-ready docs): dominofish review agrees with analyze and equals the exact answers on endgame positions with known values; in a clean clone the documented commands build the engine and regenerate the README table; check.sh fails on a stale generated table; a fresh subagent builds the recorded commits of two README results, reruns their --fast reproductions, and gets identical summary lines; the owner can install and run review from a fresh shell by following the README.",
+  "verify": "scripts/verify/M11-99.sh",
+  "fast": "scripts/verify/M11-99.sh --fast",
+  "requires": [
+   "M10-99"
+  ],
+  "passes": false,
+  "evidence": null
+ }
+]
