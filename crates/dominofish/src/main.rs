@@ -1,6 +1,8 @@
 //! The dominofish command line.
 
 mod capi_fuzz;
+mod engine;
+mod harness;
 
 use std::fmt::Write as _;
 use std::process::ExitCode;
@@ -12,7 +14,9 @@ use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, Stat
 
 const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
        dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
-       dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N";
+       dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N
+       dominofish engine --bot random|heaviest|accompanied|rule
+       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --a CMD --b CMD --out FILE [--timeout-ms N]";
 
 fn main() -> ExitCode {
     match run() {
@@ -81,6 +85,61 @@ fn run() -> Result<(String, bool), String> {
                 ),
                 true,
             ))
+        }
+        "engine" => {
+            let mut bot = None;
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("bot") => {
+                        let name = value(&mut parser)?;
+                        bot = Some(
+                            dominofish_core::bots::Bot::from_name(&name)
+                                .ok_or(format!("unknown bot {name}"))?,
+                        );
+                    }
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            engine::run(bot.ok_or("--bot is required")?)?;
+            Ok((String::new(), true))
+        }
+        "match" => {
+            let (mut mode, mut unit, mut target, mut pairs, mut seed) =
+                (None, None, None, None, None);
+            let (mut a, mut b, mut out, mut timeout_ms) = (None, None, None, 10_000u64);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("unit") => {
+                        unit = Some(match value(&mut parser)?.as_str() {
+                            "round" => harness::Unit::Round,
+                            "game" => harness::Unit::Game,
+                            u => return Err(format!("--unit must be round or game, got {u}")),
+                        })
+                    }
+                    Long("target") => target = Some(parse_target(&value(&mut parser)?)?),
+                    Long("pairs") => pairs = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("a") => a = Some(harness::Side::new(&value(&mut parser)?)?),
+                    Long("b") => b = Some(harness::Side::new(&value(&mut parser)?)?),
+                    Long("out") => out = Some(value(&mut parser)?),
+                    Long("timeout-ms") => timeout_ms = parse_num(&value(&mut parser)?)?,
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            let spec = harness::Spec {
+                mode: mode.ok_or("--mode is required")?,
+                unit: unit.ok_or("--unit is required")?,
+                target: target.ok_or("--target is required")?,
+                pairs: pairs.ok_or("--pairs is required")?,
+                seed: seed.ok_or("--seed is required")?,
+                a: a.ok_or("--a is required")?,
+                b: b.ok_or("--b is required")?,
+                timeout: std::time::Duration::from_millis(timeout_ms),
+            };
+            let out = out.ok_or("--out is required")?;
+            let report = harness::run(&spec);
+            Ok(write_match(&spec, &report, &out)?)
         }
         "capi-fuzz" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -264,4 +323,59 @@ fn write_event(out: &mut String, mode: Mode, event: &Event) {
             seat(winner)
         ),
     };
+}
+
+/// Writes a match's per-pair results to `out` and returns the summary line
+/// (docs/FORMATS.md, Match results) and whether the match had no fault.
+fn write_match(
+    spec: &harness::Spec,
+    report: &harness::Report,
+    out: &str,
+) -> Result<(String, bool), String> {
+    let mut text = format!("# header {}\n", report.header);
+    for p in &report.pairs {
+        let _ = writeln!(
+            text,
+            "pair {} seed {} game1 {}-{} game2 {}-{} margin {} wins {}",
+            p.pair,
+            p.deal_seed,
+            p.scores[0][0],
+            p.scores[0][1],
+            p.scores[1][0],
+            p.scores[1][1],
+            p.margin(),
+            p.wins(spec.target)
+        );
+    }
+    if let Some((kind, detail)) = &report.fault {
+        let _ = writeln!(text, "# fault {kind:?}: {detail}");
+    }
+    std::fs::write(out, text).map_err(|e| format!("{out}: {e}"))?;
+    let n = report.pairs.len() as f64;
+    let mean = report
+        .pairs
+        .iter()
+        .map(|p| f64::from(p.margin()))
+        .sum::<f64>()
+        / n.max(1.0);
+    let summary = match &report.fault {
+        None => format!(
+            "match: PASS mode {} unit {} target {} pairs {} moves {} mean margin per pair {:.2}; illegal 0, crashes 0, timeouts 0; results {out}\n",
+            mode_name(spec.mode),
+            if spec.unit == harness::Unit::Round {
+                "round"
+            } else {
+                "game"
+            },
+            spec.target,
+            report.pairs.len(),
+            report.moves,
+            mean
+        ),
+        Some((kind, detail)) => format!(
+            "ERROR {kind:?}: {detail}\nmatch: FAIL {kind:?} after {} pairs; results {out}\n",
+            report.pairs.len()
+        ),
+    };
+    Ok((summary, report.fault.is_none()))
 }

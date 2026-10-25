@@ -4,7 +4,7 @@
 //! tiles, and public moves. Parsing and printing only; the processes and
 //! pipes belong to the command line.
 
-use crate::infoset::Action;
+use crate::infoset::{Action, InfoSet};
 use crate::record::{GameRecord, move_text, parse_move, parse_seat, parse_tile};
 use crate::rules::{Mode, Move, Phase};
 use crate::tile::Tile;
@@ -42,6 +42,9 @@ pub enum ToEngine {
     /// `played <seat> play <a-b> <left|right>`, `played <seat> draw <count>`,
     /// or `played <seat> pass`.
     Played { seat: u8, action: Action },
+    /// `infoset <text>`: the InfoSet the referee builds for the engine's
+    /// seat (docs/FORMATS.md, InfoSet text), sent before each `go`.
+    InfoSet(Box<InfoSet>),
     /// `go`: the engine's turn.
     Go,
     /// `roundover scores=<s0>,<s1>`.
@@ -134,6 +137,7 @@ impl ToEngine {
                 };
                 format!("played {} {what}", seat(*s))
             }
+            ToEngine::InfoSet(info) => format!("infoset {}", info.to_text()),
             ToEngine::Go => "go".into(),
             ToEngine::RoundOver { scores } => {
                 format!("roundover scores={},{}", scores[0], scores[1])
@@ -188,6 +192,9 @@ impl ToEngine {
                     },
                 },
             },
+            ["infoset", ..] => ToEngine::InfoSet(Box::new(InfoSet::from_text(
+                line.strip_prefix("infoset ")?,
+            )?)),
             ["go"] => ToEngine::Go,
             ["roundover", s] => ToEngine::RoundOver {
                 scores: parse_scores(s.strip_prefix("scores=")?)?,
@@ -225,9 +232,10 @@ impl FromEngine {
     }
 }
 
-/// Every message `seat` receives over a recorded game, from `game` to
-/// `quit`, with `go` before each of its own moves; the engine replies to
-/// each `go` with that move. The match harness drives engines with this.
+/// Every message `seat` receives over a recorded game, from `dominofish` to
+/// `quit`, with `infoset` and `go` before each of its own moves (the engine
+/// replies to each `go` with that move). The match harness sends the same
+/// sequence while the game is played.
 pub fn messages_for(record: &GameRecord, seat: u8, header: &str, seed: u64) -> Vec<ToEngine> {
     let mut out = vec![
         ToEngine::Hello { version: VERSION },
@@ -253,9 +261,11 @@ pub fn messages_for(record: &GameRecord, seat: u8, header: &str, seed: u64) -> V
                 tile,
             });
         }
-        for &mv in &round.moves {
+        for (ply, &mv) in round.moves.iter().enumerate() {
             let mover = state.turn;
             if mover == seat {
+                let info = InfoSet::new(record, r, ply, seat).expect("a valid record");
+                out.push(ToEngine::InfoSet(Box::new(info)));
                 out.push(ToEngine::Go);
             }
             let pile = state.boneyard().to_vec();

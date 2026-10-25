@@ -122,6 +122,7 @@ Referee to engine, in game order:
 - `opening <seat> <a-b>`: round 1's automatic tile.
 - `drew <tiles>`: to the drawer only, the tiles it drew in draw order, before the public draw line.
 - `played <seat> play <a-b> <left|right>`, `played <seat> draw <count>`, `played <seat> pass`: every move, to every engine, the mover's own included.
+- `infoset <text>`: before each `go`, the InfoSet the referee builds for the engine's seat (InfoSet text, below). An engine decides from it alone.
 - `go`: the engine's turn. Reply `move play <a-b> <left|right>`, `move draw`, or `move pass`.
 - `roundover scores=<s0>,<s1>` and `gameover scores=<s0>,<s1>`: a round or the game ended.
 - `quit`: exit.
