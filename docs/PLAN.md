@@ -66,7 +66,9 @@ None measured yet. Each rejection will record its numbers here.
 
 ## Pre-registered runs
 
-None yet. Every strength run records here, committed before it starts: engines and settings, mode and target, deal seed base and range, SPRT bounds, maximum pair count, and the expected wall time.
+Every strength run records here, committed before it starts: engines and settings, mode and target, deal seed base and range, SPRT bounds, maximum pair count, and the expected wall time. Statistical tests of the harness itself are stated here the same way.
+
+- T1, M2-07 synthetic SPRT test, stated 2026-10-25 and committed before its first run. The SPRT of crates/dominofish/src/stats.rs is a normal-approximation GSPRT on per-pair results: LLR = (mu1 - mu0) / s^2 * (sum - n (mu0 + mu1) / 2) with s^2 the sample variance, decisions from the 16th pair on, alpha = beta = 0.05, accept H0 at LLR <= ln(beta / (1 - alpha)) and H1 at LLR >= ln((1 - beta) / alpha). Configurations: (a) per-pair results Normal with SD 40, H0 mean 0, H1 mean 4; (b) a fixed empirical distribution of 2,000 per-pair margins of duplicate 2v2 first rounds, rule bot against accompanied bot (in process, deal seeds 7,100,000 + i), centered to mean 0 and shifted to the true mean, with H0 mean 0 and H1 mean 0.1 times its SD. Each configuration: 4,000 runs with the true mean at H0 and 4,000 at H1, run seeds 7,000,000 + k, at most 20,000 pairs per run. Pass if in each configuration the share of H0 runs that accept H1 and the share of H1 runs that accept H0 each lie in 0.05 +- 3 * sqrt(0.05 * 0.95 / 4000) = [0.0397, 0.0603], and under 1% of all runs reach the maximum.
 
 ## Seed ranges
 
