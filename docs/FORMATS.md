@@ -127,3 +127,13 @@ Referee to engine, in game order:
 - `quit`: exit.
 
 An engine may also write `info <text>` lines at any time; the referee logs and ignores them.
+
+## InfoSet text
+
+InfoSet::to_text writes what one seat knows as one line of space-separated key=value fields (core/src/infoset.rs); equal InfoSets give the same bytes, and InfoSet::from_text reads it back. Never-peeks (M2-05) compares these bytes; the match harness (M2-06) sends the line to an engine as `infoset <text>` before each `go`.
+
+`v=1 mode=<1v1|2v2> target=<t> scores=<s0>,<s1> seat=<seat> hand=<tiles> board=<hex mask> ends=<lr|--> turn=<seat> starter=<seat> last=<seat|-> passes=<n> phase=<P|R|F> sizes=<n>,<e>,<s>,<w> pile=<boneyard count> opening=<seat:a-b|-> voids=<hex>,<hex>,<hex>,<hex> excluded=<hex>,<hex>,<hex>,<hex> history=<entries|->`
+
+- hand: the seat's tiles, comma-separated, index order. ends: the two end pips as two digits, `--` on an empty board.
+- voids: per seat n, e, s, w, the pips it surely lacks in its current hand, bit p for pip p. excluded: per seat, the tiles its round-1 dealt hand cannot have held (1v1), bit i for tile index i.
+- history: the round's moves so far, `;`-separated, each `<seat>:<action>:<ends before>` with action `p<a-b><L|R>` (a play), `d<count>` (a draw), or `x` (a pass).
