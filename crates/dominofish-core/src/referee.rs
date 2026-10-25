@@ -50,47 +50,6 @@ impl Referee {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::rules::End;
-
-    fn deal_in_order() -> Deal {
-        Deal::from_tiles(core::array::from_fn(|i| Tile::from_index(i as u8))).unwrap()
-    }
-
-    #[test]
-    fn rejects_what_capi_rejects() {
-        // Tiles in index order: n holds 0-0..0-6, e 1-1..1-6 and 2-2, s
-        // 2-3..2-6 and 3-3..3-5, w 3-6 and 4-4..6-6, so w opens with 6-6.
-        let (mut referee, opening) = Referee::new(Mode::TwoVsTwo, 100, &deal_in_order());
-        assert_eq!(opening, Tile::new(6, 6));
-        assert_eq!(referee.state().turn, 0);
-        let play = |a, b| Move::Play {
-            tile: Tile::new(a, b),
-            end: End::Left,
-        };
-        assert_eq!(
-            referee.play(Move::Draw),
-            Err(RefereeError::IllegalMove(Move::Draw))
-        );
-        assert_eq!(
-            referee.play(play(1, 6)),
-            Err(RefereeError::IllegalMove(play(1, 6)))
-        );
-        assert_eq!(
-            referee.play(Move::Pass),
-            Err(RefereeError::IllegalMove(Move::Pass))
-        );
-        assert_eq!(referee.play(play(0, 6)), Ok(None));
-        assert_eq!(
-            referee.next_round(&deal_in_order()),
-            Err(RefereeError::RoundNotOver)
-        );
-        assert_eq!(referee.state().board.count_ones(), 2);
-    }
-}
-
 /// Plays one game of bots in process (`bots[seat]`), giving each bot only
 /// the InfoSet this referee builds for its seat from the record so far.
 /// Round r deals with derive(deal_seed, r); a seat's bot draws its
@@ -151,5 +110,46 @@ pub fn play_bots(
                 record.rounds[r].moves.push(mv);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rules::End;
+
+    fn deal_in_order() -> Deal {
+        Deal::from_tiles(core::array::from_fn(|i| Tile::from_index(i as u8))).unwrap()
+    }
+
+    #[test]
+    fn rejects_what_capi_rejects() {
+        // Tiles in index order: n holds 0-0..0-6, e 1-1..1-6 and 2-2, s
+        // 2-3..2-6 and 3-3..3-5, w 3-6 and 4-4..6-6, so w opens with 6-6.
+        let (mut referee, opening) = Referee::new(Mode::TwoVsTwo, 100, &deal_in_order());
+        assert_eq!(opening, Tile::new(6, 6));
+        assert_eq!(referee.state().turn, 0);
+        let play = |a, b| Move::Play {
+            tile: Tile::new(a, b),
+            end: End::Left,
+        };
+        assert_eq!(
+            referee.play(Move::Draw),
+            Err(RefereeError::IllegalMove(Move::Draw))
+        );
+        assert_eq!(
+            referee.play(play(1, 6)),
+            Err(RefereeError::IllegalMove(play(1, 6)))
+        );
+        assert_eq!(
+            referee.play(Move::Pass),
+            Err(RefereeError::IllegalMove(Move::Pass))
+        );
+        assert_eq!(referee.play(play(0, 6)), Ok(None));
+        assert_eq!(
+            referee.next_round(&deal_in_order()),
+            Err(RefereeError::RoundNotOver)
+        );
+        assert_eq!(referee.state().board.count_ones(), 2);
     }
 }
