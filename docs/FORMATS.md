@@ -138,3 +138,19 @@ InfoSet::to_text writes what one seat knows as one line of space-separated key=v
 - hand: the seat's tiles, comma-separated, index order. ends: the two end pips as two digits, `--` on an empty board.
 - voids: per seat n, e, s, w, the pips it surely lacks in its current hand, bit p for pip p. excluded: per seat, the tiles its round-1 dealt hand cannot have held (1v1), bit i for tile index i.
 - history: the round's moves so far, `;`-separated, each `<seat>:<action>:<ends before>` with action `p<a-b><L|R>` (a play), `d<count>` (a draw), or `x` (a pass).
+
+## Match results
+
+`dominofish match` writes one file per match (the --out path, under runs/) and prints one summary line. Build an engine binary first with `scripts/build-bin.sh <commit>`, which prints runs/bin/<commit>/dominofish; the harness refuses a binary under target/.
+
+```bash
+scripts/build-bin.sh HEAD
+```
+
+```bash
+runs/bin/<commit>/dominofish match --mode 2v2 --unit round --target 100 --pairs 20 --seed 4000 --a "runs/bin/<commit>/dominofish engine --bot accompanied" --b "runs/bin/<commit>/dominofish engine --bot rule" --out runs/m.txt
+```
+
+- `# header <text>`: the match header every engine echoed: for each side its command (spaces as +), commit (the runs/bin directory, - otherwise), Bench (- until M3), and binary hash (FNV-1a 64 of the file); then mode, unit, target, pairs, the deal seeds, budgets, threads, and table sizes.
+- `pair <i> seed <deal seed> game1 <A>-<B> game2 <A>-<B> margin <m> wins <w>`: one duplicate pair. Pair i plays deal seed (--seed) + i twice, side A on team 0's seats first, then on team 1's. Round r of either game deals with derive(deal seed, r); each seat's engine gets the seed derive(deal seed, 100 + seat). The scores are each side's team total at the end of the game (unit game) or of round 1 (unit round), bonuses included; margin is A minus B summed over both games; wins counts the games A finished at the target.
+- `# fault <kind>: <detail>`: the match stopped at an illegal move, crash, timeout (--timeout-ms, default 10,000, a safety limit, not a budget), protocol error, or header echo that differs; the match is void and the command exits 1.
