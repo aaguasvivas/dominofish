@@ -49,6 +49,8 @@ Public API (planned, M2 on; hard constraint 1): InfoSet built from a game record
 - D7, 2026-10-25. Selfplay and matches deal with DominoFish's RNG; parity tests inject Capi's deals (hard constraint 2). A deal keeps hand order and boneyard order.
 - D8, 2026-10-25. The tranque test is O(1): locked if and only if no tile outside the board shows either end (ALL & !board & (SUIT[L] | SUIT[R]) == 0). It equals Capi's isBoardLocked (validate.ts:45-51) because every tile is on the board, in a hand, or in the boneyard. The tranque geometry property (digest 1.4) is tested at M1-08.
 
+- D9, 2026-10-25. The differential fuzzer (M1-07) runs Capi in Node as the driver and Rust as the verifier: fuzz.mjs streams Capi's canonical legal set before each move and a 32-bit digest of the canonical state and event after it, and `dominofish capi-fuzz` replays and compares. Reason: one stream per run instead of a round trip per move; Node is the bottleneck (about 3 minutes per 1,000,000 rounds). A digest collision could hide one mismatch with probability 2^-32 per differing move; a mismatch that diverges the state also changes the following moves' sets and digests. Fuzz seed 1 for the full and the fast run (the fast run is the first 10,000 rounds of the same stream).
+
 ## Rejected techniques
 
 None measured yet. Each rejection will record its numbers here.

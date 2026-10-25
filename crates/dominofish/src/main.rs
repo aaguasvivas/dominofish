@@ -1,5 +1,7 @@
 //! The dominofish command line.
 
+mod capi_fuzz;
+
 use std::fmt::Write as _;
 use std::process::ExitCode;
 
@@ -8,13 +10,18 @@ use lexopt::ValueExt;
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, State};
 
-const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]";
+const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+       dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N";
 
 fn main() -> ExitCode {
     match run() {
-        Ok(out) => {
+        Ok((out, passed)) => {
             print!("{out}");
-            ExitCode::SUCCESS
+            if passed {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::from(1)
+            }
         }
         Err(e) => {
             eprintln!("ERROR {e}");
@@ -24,7 +31,8 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> Result<String, String> {
+/// The output to print and whether the command passed.
+fn run() -> Result<(String, bool), String> {
     use lexopt::prelude::*;
     let mut parser = lexopt::Parser::from_env();
     let command = match parser.next().map_err(|e| e.to_string())? {
@@ -44,7 +52,31 @@ fn run() -> Result<String, String> {
             }
             let mode = mode.ok_or("--mode is required")?;
             let seed = seed.ok_or("--seed is required")?;
-            Ok(selfplay(mode, seed, target))
+            Ok((selfplay(mode, seed, target), true))
+        }
+        "capi-fuzz" => {
+            let (mut mode, mut rounds, mut seed) = (None, None, None);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("rounds") => rounds = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            let outcome = capi_fuzz::run(
+                mode.ok_or("--mode is required")?,
+                rounds.ok_or("--rounds is required")?,
+                seed.ok_or("--seed is required")?,
+            )?;
+            let mut out = String::new();
+            for e in &outcome.errors {
+                out.push_str(e);
+                out.push('\n');
+            }
+            out.push_str(&outcome.summary);
+            out.push('\n');
+            Ok((out, outcome.passed))
         }
         other => Err(format!("unknown command {other}")),
     }

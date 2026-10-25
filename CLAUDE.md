@@ -8,6 +8,7 @@ Before engine work, read the docs/progress.md top block, docs/PLAN.md, and docs/
 - Regression (fast command of every passing feature): scripts/regress.sh
 - Selfplay: target/release/dominofish selfplay --mode 2v2 --seed 1 (or --mode 1v1)
 - Feature verify: the "verify" command of its docs/features.json entry, from the repo root.
+- Parity fuzzer against Capi: target/release/dominofish capi-fuzz --mode 2v2 --rounds 10000 --seed 1 (needs CAPI_DIR with the pinned commit; exit 1 on SKIP or a mismatch)
 - Git: /usr/bin/git only. Disk: df -g /Users/Adelson before builds and long runs.
 
 ## Hard constraints (BUILD.md numbers)
