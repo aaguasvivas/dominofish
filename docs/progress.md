@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-03
+- Feature in progress: M1-04
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -25,4 +25,5 @@
 - No strength numbers yet.
 - M1-01 passed: docs/RULES.md (R1 to R28, L1 to L9, moves, intent map, canonical state, 36 rule paths). Verify: M1-01: PASS R1-R28 and L1-L9 present; 76 cites, 76 anchors found in range at 1d8868a; 36 rule paths (14 from Capi's fuzz). Negative control: moving one cite to the wrong line made it exit 1. Added scripts/mark-pass.sh, which sets passes only after the verify command exits 0.
 - M1-02 passed: play and undo with an Undo record, a Zobrist hash (tile places incremental, scalars per call), State::is_legal for raw Capi moves, State::canonical, Deal::from_tiles, and core/src/referee.rs. Verify: M1-02: PASS play, undo, and hash exact over 2000 seeded games (target 2000, 1000 per mode), 262729 moves; referee rejects illegal moves; Capi-ordered deals. Mutation check: dropping the passes restore in undo, or one hash update in draw, makes the test fail. Selfplay output for seed 1 is unchanged.
-- Next: M1-03 (Capi oracle tooling).
+- M1-03 passed: tools/capi-oracle/build.sh, lib.mjs (mulberry32 copy, fixedDealRng, dealFixedRound), selftest.mjs, docs/FORMATS.md. Verify: M1-03: PASS built tools/capi-oracle/build/capi-engine.mjs from 1d8868a26ce930f478f98e64060c06b1d1a2c1f4 (23320 bytes); refuses a CAPI_DIR without the pin; CAPI_DIR unchanged; selftest: PASS bundle exports ok; fixedDealRng reproduced 1000 of 1000 deals (both modes); whole-suit seeds 4 of 4.
+- Next: M1-04 (golden traces).

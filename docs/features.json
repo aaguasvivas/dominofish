@@ -121,8 +121,12 @@
   "requires": [
    "M0-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-03: PASS built tools/capi-oracle/build/capi-engine.mjs from 1d8868a26ce930f478f98e64060c06b1d1a2c1f4 (23320 bytes); refuses a CAPI_DIR without the pin; CAPI_DIR unchanged; selftest: PASS bundle exports ok; fixedDealRng reproduced 1000 of 1000 deals (both modes); whole-suit seeds 4 of 4",
+   "log": null
+  }
  },
  {
   "id": "M1-04",
