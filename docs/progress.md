@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-03
+- Feature in progress: M2-04
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -56,4 +56,7 @@
 - Found while testing: a 1v1 draw's void holds only after the drawer's next move. Between the draw and the forced play, the hand holds the drawn tile that fits, which shows an end; the first version applied the void at the draw and the truth test caught it (a seat held 1-5 against a void). The swap test must count the scores as public: a round's points reveal the pips left in the hands.
 - Negative control: leaking one bit of another seat's hand into the passes field fails both tests.
 - M2-02 passed: GameRecord::to_text and from_text (core/src/record.rs), core/src/protocol.rs (ToEngine, FromEngine, messages_for), tests/formats.rs, docs/FORMATS.md (Game records, Engine protocol). Verify: M2-02: PASS malformed: 9 rejected at their line; protocol: messages 329216 round-trip exactly; malformed lines rejected; records: games 400 lines 83862 round-trip exactly; documented in docs/FORMATS.md.
-- Next: M2-03 (exact count of consistent worlds).
+- M2-03 passed: core/src/worlds.rs (Worlds, Holder), tests/worlds.rs, PLAN.md D11. Verify: M2-03: PASS deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example holds in all 2212848 worlds; leads: 399072960, 133024320, 116280, and C(20 - h, 6) after a d-d opening (d = 6, 5, 4) reproduced; oracle: 1v1 positions 150 (133 after a draw of the other seat, 150 constrained) worlds 1967; 2v2 positions 150 (87 constrained) worlds 38852; counts equal the brute force; truth: decisions 9873, the true world allowed at each.
+- Negative controls: applying a draw's void to batches acquired later, applying events after a tile was played, and dropping the round-1 exclusions each fail two of the four tests.
+- Known limit, recorded in D11 for the M4 sampler: a 1v1 round-1 no-double opening by the other seat weights worlds by hand order (1/m), which the count does not.
+- Next: M2-04 (baseline bots).

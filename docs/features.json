@@ -311,8 +311,12 @@
   "requires": [
    "M2-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-03: PASS deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example holds in all 2212848 worlds;leads: 399072960, 133024320, 116280, and C(20 - h, 6) after a d-d opening (d = 6, 5, 4) reproduced;oracle: 1v1 positions 150 (133 after a draw of the other seat, 150 constrained) worlds 1967; 2v2 positions 150 (87 constrained) worlds 38852; counts equal the brute force;truth: decisions 9873, the true world allowed at each",
+   "log": null
+  }
  },
  {
   "id": "M2-04",
