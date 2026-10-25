@@ -105,8 +105,12 @@
   "requires": [
    "M0-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-02: PASS play, undo, and hash exact over 2000 seeded games (target 2000, 1000 per mode), 262729 moves; referee rejects illegal moves; Capi-ordered deals",
+   "log": null
+  }
  },
  {
   "id": "M1-03",

@@ -111,7 +111,7 @@ fn selfplay(mode: Mode, seed: u64, target: u16) -> String {
                 let mv = moves.as_slice()[moves_rng.below(moves.len() as u32) as usize];
                 let seat = state.turn;
                 let pile_before = state.boneyard().len();
-                let event = state.play(mv);
+                let event = state.play(mv).event;
                 count += 1;
                 let mut line = format!("{} ", mode.seat_name(seat));
                 match mv {

@@ -2,6 +2,8 @@
 //! Dominican dominoes under Capi's rules. It has no I/O, global state,
 //! threads, or clocks, and builds for wasm32-unknown-unknown.
 
+mod hash;
+pub mod referee;
 pub mod rng;
 pub mod rules;
 pub mod tile;

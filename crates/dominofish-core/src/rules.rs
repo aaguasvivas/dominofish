@@ -1,16 +1,20 @@
 //! Round and game rules as Capi's engine implements them at the pinned commit
-//! (packages/engine/src; docs/RULES.md lists each rule with its file:line).
-//! M0 status: written from the digest's rule list and a reading of the code;
-//! no parity with Capi is claimed until the M1 checks pass.
+//! (packages/engine/src). docs/RULES.md states each rule (R1 to R28) with its
+//! Capi file:line; parity with Capi is checked by the M1 features, never by
+//! this file's comments.
 
+use crate::hash::KEYS;
 use crate::rng::Rng;
 use crate::tile::{ALL, SUIT, TILE_COUNT, Tile, mask_pips, tiles};
 
-/// Points of each mid-round bonus and of capicua (scoring.ts:100-104).
+/// Points of each mid-round bonus and of capicua (R18, R23 to R25).
 pub const BONUS: u16 = 25;
 
-/// Marks "no seat" in `State::last_played_by`.
-pub const NO_SEAT: u8 = u8::MAX;
+/// Marks "no seat" in `State::last_played_by` and `State::round_winner`.
+pub const NO_SEAT: u8 = 4;
+
+/// The highest target the score hash supports; Capi offers 100 or 200.
+pub const MAX_TARGET: u16 = 300;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Mode {
@@ -26,8 +30,7 @@ impl Mode {
         }
     }
 
-    /// The next seat in turn order: n, e, s, w in 2v2 and n, s in 1v1
-    /// (types.ts:103-110).
+    /// The next seat in turn order (R7).
     pub const fn next(self, seat: u8) -> u8 {
         (seat + 1) % self.seats()
     }
@@ -60,24 +63,21 @@ impl Mode {
     }
 }
 
-/// The team of a seat: n and s are team 0 and e and w team 1 in 2v2; n is
-/// team 0 and s team 1 in 1v1 (types.ts:116-119). Seat indices make both
-/// cases `seat % 2`.
+/// The team of a seat (R3). Seat indices make both modes `seat % 2`.
 pub const fn team(seat: u8) -> usize {
     (seat % 2) as usize
 }
 
-/// A deal in Capi's layout: seven tiles per seat in seat order, then the
-/// boneyard (1v1 only), whose last tile is drawn first (reducer.ts:120-133,
-/// 385-394).
+/// A deal in Capi's layout (R3): seven tiles per seat in seat order, then the
+/// 1v1 boneyard, whose last tile is drawn first (R14).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Deal {
-    pub tiles: [Tile; TILE_COUNT],
+    tiles: [Tile; TILE_COUNT],
 }
 
 impl Deal {
-    /// A uniformly shuffled deal. Uses DominoFish's own RNG: parity tests
-    /// inject Capi's deals instead of reproducing Capi's RNG.
+    /// A uniformly shuffled deal from DominoFish's own RNG (R2: parity tests
+    /// inject Capi's deals instead).
     pub fn shuffled(rng: &mut Rng) -> Deal {
         let mut tiles = core::array::from_fn(|i| Tile::from_index(i as u8));
         for i in (1..TILE_COUNT).rev() {
@@ -85,6 +85,17 @@ impl Deal {
             tiles.swap(i, j);
         }
         Deal { tiles }
+    }
+
+    /// A deal from a Capi-ordered tile list; None unless it holds every tile
+    /// exactly once.
+    pub fn from_tiles(tiles: [Tile; TILE_COUNT]) -> Option<Deal> {
+        let seen = tiles.iter().fold(0u32, |m, t| m | t.bit());
+        (seen == ALL).then_some(Deal { tiles })
+    }
+
+    pub fn tiles(&self) -> &[Tile; TILE_COUNT] {
+        &self.tiles
     }
 
     pub fn hand(&self, seat: u8) -> &[Tile] {
@@ -103,9 +114,8 @@ pub enum End {
     Right,
 }
 
-/// A move. On an empty board `end` sets the orientation instead of a side:
-/// Left places the tile low pip left, as dealt (Capi's in-hand orientation),
-/// and Right places it flipped. docs/RULES.md defines the canonical moves.
+/// A move. On an empty board `end` sets the orientation (R10): Left places
+/// the tile low pip left, as it sits in a hand; Right places it flipped.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Move {
     Play { tile: Tile, end: End },
@@ -113,19 +123,20 @@ pub enum Move {
     Pass,
 }
 
-/// What a move caused, as typed events; Capi's callouts map to these only in
-/// the parity harness.
+/// What a move caused. Capi's callouts map to these only in the parity
+/// harness (docs/RULES.md, L4).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Event {
-    /// The opener's partner played on the lone opening tile after one pass.
+    /// R24.
     PaseSalida { team: usize },
-    /// Three passes in a row after a play (2v2).
+    /// R23.
     PaseCorrido { team: usize },
-    /// A seat emptied its hand; `points` is every pip left in every hand.
+    /// R17: `points` is every pip left in every hand.
     Domino { seat: u8, points: u16 },
-    /// A domino whose last tile fit both ends; `points` includes the bonus.
+    /// R18: a domino whose last tile fit both ends; `points` includes the
+    /// bonus.
     Capicua { seat: u8, points: u16 },
-    /// The board locked after a play that did not empty the hand.
+    /// R19.
     Tranque {
         blocker: u8,
         rival: u8,
@@ -182,9 +193,30 @@ impl Default for MoveList {
     }
 }
 
+/// What `State::undo` needs to reverse one move.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Undo {
+    left: u8,
+    right: u8,
+    turn: u8,
+    last_played_by: u8,
+    passes: u8,
+    boneyard_len: u8,
+    phase: Phase,
+    round_winner: u8,
+    scores: [u16; 2],
+}
+
+/// The result of `State::play`.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Played {
+    pub event: Option<Event>,
+    pub undo: Undo,
+}
+
 /// A full game state, every hand included. Only the referee, the simulator
 /// inside sampled worlds, and the omniscient bot may hold one.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct State {
     pub mode: Mode,
     pub target: u16,
@@ -201,19 +233,17 @@ pub struct State {
     /// The round's opener (la mano, starterThisRound).
     pub starter: u8,
     pub last_played_by: u8,
-    /// Passes since the last play (one counter; Capi keeps two identical ones).
+    /// Passes since the last play (one counter, L5).
     pub passes: u8,
     pub phase: Phase,
-    /// The seat that leads the next round, set when a round ends.
+    /// The seat that leads the next round, set when a round ends (R6, R27).
     pub round_winner: u8,
+    /// XOR of the Zobrist keys of every tile's place; see `hash`.
+    tiles_hash: u64,
 }
 
 impl State {
-    /// Round 1. The opener is the seat with the highest double (seat order,
-    /// strict >); with no double (1v1 only) the highest pip sum, ties to the
-    /// earlier seat, then the first such tile in dealt order. That tile is
-    /// placed as dealt, low pip left (reducer.ts:90-109, 135-185). Returns the
-    /// state and the automatic tile.
+    /// Round 1 (R4, R5). Returns the state and the automatic tile.
     pub fn first_round(mode: Mode, target: u16, deal: &Deal) -> (State, Tile) {
         let mut opener = 0;
         let mut opening: Option<Tile> = None;
@@ -248,8 +278,7 @@ impl State {
         }
         let tile = opening.expect("every hand has a tile");
         let mut state = State::dealt(mode, target, [0, 0], deal, opener);
-        state.hands[opener as usize] &= !tile.bit();
-        state.board = tile.bit();
+        state.move_tile(tile, opener as usize);
         state.left = tile.low();
         state.right = tile.high();
         state.turn = mode.next(opener);
@@ -257,17 +286,24 @@ impl State {
         (state, tile)
     }
 
-    /// The next round: a fresh deal, an empty board, and the previous round's
-    /// winning seat to lead any tile; scores carry (reducer.ts:520-564).
+    /// The next round (R6): a fresh deal, an empty board, and the previous
+    /// round's winning seat to lead; scores carry.
     pub fn next_round(&self, deal: &Deal) -> State {
         assert_eq!(self.phase, Phase::RoundOver);
         State::dealt(self.mode, self.target, self.scores, deal, self.round_winner)
     }
 
-    fn dealt(mode: Mode, target: u16, scores: [u16; 2], deal: &Deal, leader: u8) -> State {
+    /// A round dealt from `deal` with `leader` to lead on an empty board and
+    /// the given scores carried in.
+    pub fn dealt(mode: Mode, target: u16, scores: [u16; 2], deal: &Deal, leader: u8) -> State {
+        assert!(target <= MAX_TARGET && scores.iter().all(|&s| s < target));
         let mut hands = [0u32; 4];
+        let mut tiles_hash = 0;
         for (seat, hand) in hands.iter_mut().enumerate().take(mode.seats() as usize) {
-            *hand = deal.hand(seat as u8).iter().fold(0, |m, t| m | t.bit());
+            for t in deal.hand(seat as u8) {
+                *hand |= t.bit();
+                tiles_hash ^= KEYS.hand[seat][t.index()];
+            }
         }
         let mut boneyard = [Tile::from_index(0); 14];
         let pile = deal.boneyard(mode);
@@ -288,17 +324,16 @@ impl State {
             passes: 0,
             phase: Phase::Playing,
             round_winner: NO_SEAT,
+            tiles_hash,
         }
     }
 
+    /// The boneyard in order; the last tile is drawn first.
     pub fn boneyard(&self) -> &[Tile] {
         &self.boneyard[..self.boneyard_len as usize]
     }
 
-    /// The canonical legal moves of the seat on turn: one per tile on an
-    /// empty board (as dealt), one per tile and end otherwise, and one end
-    /// only when both ends show the same pip. With no play: draw in 1v1 while
-    /// the boneyard has tiles, else pass (validate.ts:82-115).
+    /// The canonical legal moves of the seat on turn (docs/RULES.md, Moves).
     pub fn legal_moves(&self, out: &mut MoveList) {
         out.len = 0;
         if self.phase != Phase::Playing {
@@ -343,20 +378,60 @@ impl State {
         }
     }
 
+    /// Whether Capi accepts this move from the seat on turn (R8 to R16),
+    /// including the non-canonical ones: a flipped lead and the right end
+    /// when both ends show one pip.
+    pub fn is_legal(&self, mv: Move) -> bool {
+        if self.phase != Phase::Playing {
+            return false;
+        }
+        let hand = self.hands[self.turn as usize];
+        match mv {
+            Move::Play { tile, end } => {
+                hand & tile.bit() != 0
+                    && (self.board == 0
+                        || tile.has(match end {
+                            End::Left => self.left,
+                            End::Right => self.right,
+                        }))
+            }
+            Move::Draw => self.boneyard_len > 0 && !self.fits(hand),
+            Move::Pass => self.boneyard_len == 0 && !self.fits(hand),
+        }
+    }
+
+    /// The canonical move that stands for `mv` (docs/RULES.md, Capi intents
+    /// to moves): the right end becomes the left one on an empty board and
+    /// when both ends show one pip.
+    pub fn canonical(&self, mv: Move) -> Move {
+        match mv {
+            Move::Play {
+                tile,
+                end: End::Right,
+            } if self.board == 0 || self.left == self.right => Move::Play {
+                tile,
+                end: End::Left,
+            },
+            other => other,
+        }
+    }
+
     fn fits(&self, mask: u32) -> bool {
         self.board == 0 || mask & (SUIT[self.left as usize] | SUIT[self.right as usize]) != 0
     }
 
     fn all_hand_pips(&self) -> u16 {
-        mask_pips(
-            self.hands[..self.mode.seats() as usize]
-                .iter()
-                .fold(0, |m, h| m | h),
-        ) as u16
+        mask_pips(self.hands.iter().fold(0, |m, h| m | h)) as u16
     }
 
-    /// Only the round-winning side scores; reaching the target finishes the
-    /// game (reducer.ts:190-218, without its legacy branches).
+    /// Moves a tile from a seat's hand onto the board, keeping the tile hash.
+    fn move_tile(&mut self, tile: Tile, seat: usize) {
+        self.hands[seat] &= !tile.bit();
+        self.board |= tile.bit();
+        self.tiles_hash ^= KEYS.hand[seat][tile.index()] ^ KEYS.board[tile.index()];
+    }
+
+    /// R21, without the legacy branches (L2).
     fn credit(&mut self, winner: u8, points: u16) {
         let t = team(winner);
         self.scores[t] += points;
@@ -368,8 +443,8 @@ impl State {
         };
     }
 
-    /// A mid-round bonus pays only while it leaves the side strictly below
-    /// the target (reducer.ts:349, 431).
+    /// R25: a mid-round bonus pays only while it leaves the side strictly
+    /// below the target.
     fn pay_bonus(&mut self, team: usize) -> bool {
         if self.scores[team] + BONUS < self.target {
             self.scores[team] += BONUS;
@@ -379,20 +454,31 @@ impl State {
         }
     }
 
-    /// Applies a legal move of the seat on turn. The move must come from
-    /// `legal_moves` or be a raw Capi play that `legal_moves` maps to one.
-    pub fn play(&mut self, mv: Move) -> Option<Event> {
-        debug_assert_eq!(self.phase, Phase::Playing);
+    /// Applies a legal move (`is_legal`) of the seat on turn.
+    pub fn play(&mut self, mv: Move) -> Played {
+        debug_assert!(self.is_legal(mv), "illegal move {mv:?}");
+        let undo = Undo {
+            left: self.left,
+            right: self.right,
+            turn: self.turn,
+            last_played_by: self.last_played_by,
+            passes: self.passes,
+            boneyard_len: self.boneyard_len,
+            phase: self.phase,
+            round_winner: self.round_winner,
+            scores: self.scores,
+        };
         let seat = self.turn;
-        match mv {
+        let event = match mv {
             Move::Play { tile, end } => self.place(seat, tile, end),
             Move::Draw => {
-                // Pop from the end until a tile fits or the pile is empty; the
-                // turn and the pass counter stay (reducer.ts:385-405).
+                // R14.
+                let s = seat as usize;
                 while self.boneyard_len > 0 {
                     self.boneyard_len -= 1;
                     let drawn = self.boneyard[self.boneyard_len as usize];
-                    self.hands[seat as usize] |= drawn.bit();
+                    self.hands[s] |= drawn.bit();
+                    self.tiles_hash ^= KEYS.hand[s][drawn.index()];
                     if self.fits(drawn.bit()) {
                         break;
                     }
@@ -400,9 +486,7 @@ impl State {
                 None
             }
             Move::Pass => {
-                // Pase corrido: the third pass since the last play hands the
-                // turn back to the player who made it (2v2 only;
-                // reducer.ts:408-458).
+                // R16, R23.
                 self.passes += 1;
                 let next = self.mode.next(seat);
                 self.turn = next;
@@ -412,13 +496,42 @@ impl State {
                     && self.passes == 3
                 {
                     let t = team(self.last_played_by);
-                    if self.pay_bonus(t) {
-                        return Some(Event::PaseCorrido { team: t });
-                    }
+                    self.pay_bonus(t).then_some(Event::PaseCorrido { team: t })
+                } else {
+                    None
                 }
-                None
             }
+        };
+        Played { event, undo }
+    }
+
+    /// Reverses `play(mv)`, given the `Undo` it returned.
+    pub fn undo(&mut self, mv: Move, undo: Undo) {
+        let seat = undo.turn as usize;
+        match mv {
+            Move::Play { tile, .. } => {
+                self.hands[seat] |= tile.bit();
+                self.board &= !tile.bit();
+                self.tiles_hash ^= KEYS.hand[seat][tile.index()] ^ KEYS.board[tile.index()];
+            }
+            Move::Draw => {
+                for i in self.boneyard_len..undo.boneyard_len {
+                    let t = self.boneyard[i as usize];
+                    self.hands[seat] &= !t.bit();
+                    self.tiles_hash ^= KEYS.hand[seat][t.index()];
+                }
+            }
+            Move::Pass => {}
         }
+        self.left = undo.left;
+        self.right = undo.right;
+        self.turn = undo.turn;
+        self.last_played_by = undo.last_played_by;
+        self.passes = undo.passes;
+        self.boneyard_len = undo.boneyard_len;
+        self.phase = undo.phase;
+        self.round_winner = undo.round_winner;
+        self.scores = undo.scores;
     }
 
     fn place(&mut self, seat: u8, tile: Tile, end: End) -> Option<Event> {
@@ -429,8 +542,7 @@ impl State {
         let played_before = self.last_played_by;
         let passes_before = self.passes;
 
-        self.hands[s] &= !tile.bit();
-        self.board |= tile.bit();
+        self.move_tile(tile, s);
         match (was_empty, end) {
             (true, End::Left) => (self.left, self.right) = (tile.low(), tile.high()),
             (true, End::Right) => (self.left, self.right) = (tile.high(), tile.low()),
@@ -439,10 +551,7 @@ impl State {
         }
         self.last_played_by = seat;
 
-        // Going out is a domino even when the same tile locks the board
-        // (reducer.ts:306-316); every hand's pips score, the boneyard's never
-        // (scoring.ts:35-43). Capicua: the last tile fit both ends as they
-        // were before it (scoring.ts:91-98).
+        // R17 (checked before the lock), R18.
         if self.hands[s] == 0 {
             let mut points = self.all_hand_pips();
             let capicua = !was_empty && tile.has(left_before) && tile.has(right_before);
@@ -457,9 +566,7 @@ impl State {
             });
         }
 
-        // Tranque: no tile outside the board fits either end
-        // (validate.ts:45-51). Blocker against the next seat; equal pips go
-        // to the round's opener (scoring.ts:63-82).
+        // R19: no tile outside the board shows either end (docs/PLAN.md, D8).
         let open = SUIT[self.left as usize] | SUIT[self.right as usize];
         if ALL & !self.board & open == 0 {
             let rival = self.mode.next(seat);
@@ -487,8 +594,7 @@ impl State {
         self.turn = self.mode.next(seat);
         self.passes = 0;
 
-        // Pase de salida: the opener's partner plays on the lone opening tile
-        // after the seat between them passed (2v2; reducer.ts:334-373).
+        // R24.
         if self.mode == Mode::TwoVsTwo
             && lone_tile
             && played_before == self.starter
@@ -502,48 +608,135 @@ impl State {
         }
         None
     }
+
+    /// A 64-bit Zobrist hash of everything a later move or score depends on:
+    /// every tile's place, the ends, turn, opener, last player, passes,
+    /// boneyard position, scores, phase, and the next leader.
+    pub fn hash(&self) -> u64 {
+        self.tiles_hash ^ self.scalar_hash()
+    }
+
+    /// The same hash computed from scratch, for tests.
+    pub fn recomputed_hash(&self) -> u64 {
+        let mut h = 0;
+        for seat in 0..self.mode.seats() as usize {
+            for t in tiles(self.hands[seat]) {
+                h ^= KEYS.hand[seat][t.index()];
+            }
+        }
+        for t in tiles(self.board) {
+            h ^= KEYS.board[t.index()];
+        }
+        h ^ self.scalar_hash()
+    }
+
+    fn scalar_hash(&self) -> u64 {
+        let mut h = KEYS.turn[self.turn as usize]
+            ^ KEYS.starter[self.starter as usize]
+            ^ KEYS.last[self.last_played_by as usize]
+            ^ KEYS.passes[self.passes as usize]
+            ^ KEYS.pile[self.boneyard_len as usize]
+            ^ KEYS.score[0][self.scores[0] as usize]
+            ^ KEYS.score[1][self.scores[1] as usize]
+            ^ KEYS.phase[self.phase as usize]
+            ^ KEYS.winner[self.round_winner as usize];
+        if self.board != 0 {
+            h ^= KEYS.left[self.left as usize] ^ KEYS.right[self.right as usize];
+        }
+        h
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Plays random canonical moves to the end of a game and checks that
-    /// every tile stays in exactly one place. Not a parity check.
-    fn random_game(mode: Mode, seed: u64) -> State {
+    /// Every tile is in exactly one place.
+    fn assert_conserved(state: &State) {
+        let pile = state.boneyard().iter().fold(0, |m, t| m | t.bit());
+        let mut seen = state.board | pile;
+        let mut count = state.board.count_ones() + pile.count_ones();
+        for h in &state.hands {
+            assert_eq!(seen & h, 0);
+            seen |= h;
+            count += h.count_ones();
+        }
+        assert_eq!((seen, count), (ALL, 28));
+    }
+
+    /// The raw moves Capi accepts here: the canonical ones plus a flipped
+    /// lead and the right end on equal ends.
+    fn raw_moves(state: &State, canonical: &MoveList, out: &mut [Move; 32]) -> usize {
+        let mut n = 0;
+        for &mv in canonical.as_slice() {
+            out[n] = mv;
+            n += 1;
+            if let Move::Play {
+                tile,
+                end: End::Left,
+            } = mv
+            {
+                let right = Move::Play {
+                    tile,
+                    end: End::Right,
+                };
+                if (state.board == 0 && !tile.is_double()) || state.left == state.right {
+                    out[n] = right;
+                    n += 1;
+                }
+            }
+        }
+        n
+    }
+
+    /// Plays raw moves at random to the end of a game. After each move: tile
+    /// conservation, the incremental hash equals the recomputed one, and undo
+    /// restores the previous state exactly. Returns the final state and the
+    /// number of moves.
+    pub(crate) fn random_game_checked(mode: Mode, seed: u64) -> (State, u64) {
         let mut rng = Rng::new(seed);
         let (mut state, _) = State::first_round(mode, 100, &Deal::shuffled(&mut rng));
         let mut moves = MoveList::new();
+        let mut raw = [Move::Pass; 32];
+        let mut count = 0;
         loop {
             match state.phase {
-                Phase::Finished => return state,
+                Phase::Finished => return (state, count),
                 Phase::RoundOver => state = state.next_round(&Deal::shuffled(&mut rng)),
                 Phase::Playing => {
                     state.legal_moves(&mut moves);
-                    let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
-                    state.play(mv);
-                    let pile = state.boneyard().iter().fold(0, |m, t| m | t.bit());
-                    let mut seen = state.board | pile;
-                    let mut count = state.board.count_ones() + pile.count_ones();
-                    for h in &state.hands {
-                        assert_eq!(seen & h, 0);
-                        seen |= h;
-                        count += h.count_ones();
+                    let n = raw_moves(&state, &moves, &mut raw);
+                    for &mv in &raw[..n] {
+                        assert!(state.is_legal(mv), "{mv:?}");
+                        assert!(moves.as_slice().contains(&state.canonical(mv)));
                     }
-                    assert_eq!((seen, count), (ALL, 28));
+                    let mv = raw[rng.below(n as u32) as usize];
+                    let before = state;
+                    let played = state.play(mv);
+                    count += 1;
+                    assert_conserved(&state);
+                    assert_eq!(state.hash(), state.recomputed_hash(), "seed {seed}");
+                    let mut back = state;
+                    back.undo(mv, played.undo);
+                    assert_eq!(back, before, "seed {seed} undo of {mv:?}");
+                    assert_eq!(back.hash(), before.hash());
                 }
             }
         }
     }
 
     #[test]
-    fn random_games_finish_and_conserve_tiles() {
-        for seed in 0..200 {
+    fn play_undo_round_trip_and_hash_in_both_modes() {
+        let (mut games, mut moves) = (0, 0);
+        for seed in 0..1000 {
             for mode in [Mode::OneVsOne, Mode::TwoVsTwo] {
-                let state = random_game(mode, seed);
+                let (state, n) = random_game_checked(mode, seed);
                 assert!(state.scores.iter().any(|&s| s >= 100));
+                games += 1;
+                moves += n;
             }
         }
+        println!("play-undo: games {games} moves {moves} ok");
     }
 
     #[test]
@@ -555,5 +748,13 @@ mod tests {
             assert_eq!(tile, Tile::new(6, 6));
             assert!(deal.hand(state.starter).contains(&tile));
         }
+    }
+
+    #[test]
+    fn from_tiles_rejects_a_repeated_tile() {
+        let mut tiles = *Deal::shuffled(&mut Rng::new(1)).tiles();
+        assert!(Deal::from_tiles(tiles).is_some());
+        tiles[0] = tiles[1];
+        assert!(Deal::from_tiles(tiles).is_none());
     }
 }
