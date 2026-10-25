@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-07
+- Feature in progress: M2-08
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -66,4 +66,7 @@
 - Question for the batch: may I add a local git pre-commit hook (.git/hooks/pre-commit, not versioned) that runs scripts/check.sh? Two commits this session failed check.sh because a commit was not gated on it (31443cd, 2c11b62).
 - M2-06 passed: crates/dominofish/src/engine.rs (dominofish engine), harness.rs (dominofish match), scripts/build-bin.sh, scripts/test-engines/, the infoset protocol message, docs/FORMATS.md (Match results), PLAN.md D13. Verify: M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/0e51531/dominofish, 17918 moves, illegal 0, crashes 0, timeouts 0, header echoed; identical bots 0 in every duplicate pair (4 configurations); faults Illegal, Crash, Timeout, Header each stop a match; target/ refused
 - The silent test engine first left an orphaned sleep process after the harness killed its shell; it now execs the sleep.
-- Next: M2-07 (SPRT and confidence intervals).
+- T1 was stated in PLAN.md and committed (979c3ee) before its first run; it passed on that run.
+- M2-07 passed: crates/dominofish/src/stats.rs, dominofish match --sprt and the summary line, docs/FORMATS.md (Match results), PLAN.md D14. Verify: M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.87, H1 5.29): false H1 0.0488, false H0 0.0530; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported
+- No strength numbers yet: every match so far pits identical bots, except the M2-06 harness checks (accompanied against rule, whose margins nothing reports) and one 10-pair game run in a draft of the M2-07 verify, replaced by identical bots before the pass.
+- Next: M2-08 (null tests).

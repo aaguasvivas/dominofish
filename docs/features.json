@@ -376,8 +376,12 @@
   "requires": [
    "M1-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.87, H1 5.29): false H1 0.0488, false H0 0.0530; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported",
+   "log": null
+  }
  },
  {
   "id": "M2-08",
