@@ -173,8 +173,12 @@
    "M1-02",
    "M1-03"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-06: PASS perft: queries 194 lines 269814 mismatches 0 (target 0), totals and divide; 14 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a",
+   "log": null
+  }
  },
  {
   "id": "M1-07",

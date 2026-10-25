@@ -207,3 +207,7 @@ Source: capi-rules-spec[2] (digest 1.5) and the published deals (digest 3.6). Ea
 | Parra and Trucco 2025, immortal game (digest 3.6) | parra_trucco_immortal_game | Capi gives 198 to n and s (salida 25, two pases corridos 50, domino 123); the paper's 111 uses other scoring. |
 | Parra and Trucco 2025, minimal tranque A (digest 3.6) | parra_trucco_minimal_tranque | Capi gives 126 to e and w (21 against 39). |
 | Parra and Trucco 2025, the "107" deal (digest 3.6) | parra_trucco_107 | Capi gives 151 to n and s (salida 25, tranque 126, 5 against 50). |
+
+## Perft
+
+lines(position, d) is 1 when d is 0 or the round is over at the position; otherwise it is the sum, over the canonical moves (Moves, above), of lines(child, d - 1). The complete-line count is lines(position, infinity). Divide lists lines(child, d - 1) for each canonical root move. On Capi's side, tools/capi-oracle/perft.mjs collapses Capi's accepted intents with the canonical map and plays each canonical move with the intent that gives DominoFish's exact state (a lead in the in-hand orientation with end left; end left when both ends show one pip), so both sides count the same tree.

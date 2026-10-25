@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-06
+- Feature in progress: M1-07
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -33,4 +33,5 @@
 - Published deals, values from Capi: immortal game 198 to n and s (salida 25, two pases corridos 50, domino 123); minimal tranque A 126 to e and w (21 against 39); the "107" deal 151 to n and s (salida 25, tranque 126). These equal the digest's derived values.
 - The cap mutation that M1-04 missed (<= instead of <) now fails 5 edge tests.
 - Finding: two Capi edge tests build states no fresh deal reaches. reducer.test.ts:854 (a plain domino on a locking tile): a lock needs equal ends, so the last tile fits both old ends and the ending is always a capicua; no seed in 300,000 searched rounds gave a plain domino on a lock. rules.salida-and-tie.test.ts:238 (1v1, empty boneyard on the opening tile). Both are matched by the closest reachable case (docs/RULES.md, Edge cases). Not a rule question: Capi's behavior on reachable states is unchanged.
-- Next: M1-06 (perft).
+- M1-06 passed: tools/capi-oracle/perft.mjs writes fixtures/perft.txt (194 queries, about 1 million Capi nodes, 3.9 s); crates/dominofish-core/src/perft.rs counts lines and divide; tests/perft.rs matches them. Verify: M1-06: PASS perft: queries 194 lines 269814 mismatches 0 (target 0), totals and divide; 14 complete-line queries from late positions; fixtures/perft.txt identical to a fresh perft.mjs run at 1d8868a. Negative control: emitting the right end on equal ends too gives 183 mismatches.
+- Next: M1-07 (lockstep differential fuzzer).

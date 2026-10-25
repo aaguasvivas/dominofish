@@ -1,0 +1,123 @@
+// Perft (M1-06): counts lines of canonical moves (docs/RULES.md, Moves and
+// Perft) through Capi's engine, with divide per root move, from seeded deals
+// to fixed depths and from late positions to the end of the round. Writes
+// fixtures/perft.txt (docs/FORMATS.md, Perft).
+// Usage: node tools/capi-oracle/perft.mjs [out-file]
+
+import { writeFileSync } from "node:fs";
+import { PIN, loadCapi, mulberry32, ALL_TILES, tileIndex, tileText, fixedDealRng, dealFixedRound, seatsOf } from "./lib.mjs";
+
+const outFile = process.argv[2] ?? "fixtures/perft.txt";
+const capi = await loadCapi();
+
+const ends = (s) => [s.board[0][0], s.board[s.board.length - 1][1]];
+
+// The canonical moves at a state, each with the Capi intent that plays it
+// exactly as DominoFish does: an empty-board lead in the in-hand orientation
+// (low pip first) with end left, end left when both ends show one pip.
+// Capi's accepted intents are collapsed by the canonical map, so the set is
+// Capi's, not DominoFish's.
+function canonicalMoves(state) {
+  const seat = state.currentTurn;
+  const moves = new Map();
+  for (const [a, b] of state.hands[seat]) {
+    const orientations = a === b ? [[a, b]] : [[a, b], [b, a]];
+    for (const tile of orientations) {
+      for (const end of ["left", "right"]) {
+        const intent = { type: "play", tile, end };
+        if (capi.validateMove(state, seat, intent) !== null) continue;
+        const equal = state.board.length === 0 || ends(state)[0] === ends(state)[1];
+        const canonEnd = equal ? "left" : end;
+        const low = [Math.min(a, b), Math.max(a, b)];
+        const key = `${tileText(low)}${canonEnd === "left" ? "L" : "R"}`;
+        if (!moves.has(key)) moves.set(key, { type: "play", tile: low, end: canonEnd });
+      }
+    }
+  }
+  for (const type of ["draw", "pass"]) {
+    if (capi.validateMove(state, seat, { type }) === null) moves.set(type === "draw" ? "D" : "P", { type });
+  }
+  return moves;
+}
+
+let nodes = 0;
+function lines(state, depth) {
+  nodes++;
+  if (depth === 0 || state.phase !== "playing") return 1;
+  let n = 0;
+  for (const intent of canonicalMoves(state).values()) {
+    const r = capi.applyMove(state, state.currentTurn, intent);
+    if (!r.success) throw new Error(`Capi rejected its own canonical move: ${r.error}`);
+    n += lines(r.newState, depth - 1);
+  }
+  return n;
+}
+
+function divide(state, depth) {
+  const out = [];
+  for (const [key, intent] of canonicalMoves(state)) {
+    const r = capi.applyMove(state, state.currentTurn, intent);
+    out.push(`${key}:${lines(r.newState, depth - 1)}`);
+  }
+  return out;
+}
+
+function shuffledOrder(seed) {
+  const rng = mulberry32(seed);
+  const order = ALL_TILES.map((t) => [...t]);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
+const queries = [];
+const INF = 1000;
+function query(id, start, state, path, depth) {
+  const total = lines(state, depth);
+  const parts = divide(state, depth);
+  const sum = parts.reduce((n, p) => n + Number(p.split(":")[1]), 0);
+  if (state.phase === "playing" && sum !== total) throw new Error(`${id}: divide sums to ${sum}, total ${total}`);
+  queries.push(
+    `Q ${id} ${start} path=${path.join(",") || "-"} depth=${depth === INF ? "all" : depth} total=${total} divide=${parts.join(",") || "-"}`
+  );
+  return total;
+}
+
+for (const is2v2 of [true, false]) {
+  const mode = is2v2 ? "2v2" : "1v1";
+  for (let k = 0; k < 10; k++) {
+    const seed = (is2v2 ? 500000 : 600000) + k;
+    const order = shuffledOrder(seed);
+    const round1 = k < 5;
+    const leader = seatsOf(is2v2)[k % seatsOf(is2v2).length];
+    const state = round1
+      ? capi.createInitialState({ mode: "live", theme: "patio", is2v2, targetScore: 100, rng: fixedDealRng(order) })
+      : dealFixedRound(capi, { is2v2, targetScore: 100, scores: [0, 0], leader, order });
+    const start = `${mode} 100 ${round1 ? "round1" : `later:${leader}:0:0`} deal=${order.map(tileIndex).join(",")}`;
+    for (let d = 1; d <= 9; d++) query(`${mode}-${seed}-d${d}`, start, state, [], d);
+
+    // A late position: random canonical moves until few tiles remain, then
+    // every line to the end of the round.
+    const rng = mulberry32(seed ^ 0x9e3779b9);
+    let s = state;
+    const path = [];
+    const held = (x) => seatsOf(is2v2).reduce((n, seat) => n + x.hands[seat].length, 0);
+    while (s.phase === "playing" && (held(s) > (is2v2 ? 16 : 12) || s.boneyard.length > 4)) {
+      const moves = [...canonicalMoves(s)];
+      const [key, intent] = moves[Math.floor(rng() * moves.length)];
+      const r = capi.applyMove(s, s.currentTurn, intent);
+      path.push(key);
+      s = r.newState;
+    }
+    if (s.phase === "playing") query(`${mode}-${seed}-late`, start, s, path, INF);
+  }
+}
+
+const header = [
+  `# DominoFish perft counts from Capi's engine at ${PIN}.`,
+  `# Generated by tools/capi-oracle/perft.mjs; never edit by hand. Format: docs/FORMATS.md.`,
+];
+writeFileSync(outFile, [...header, ...queries].join("\n") + "\n");
+console.log(`perft: ${queries.length} queries, ${nodes} Capi nodes, written to ${outFile}`);

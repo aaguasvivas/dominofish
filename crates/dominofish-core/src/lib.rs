@@ -3,6 +3,7 @@
 //! threads, or clocks, and builds for wasm32-unknown-unknown.
 
 mod hash;
+pub mod perft;
 pub mod referee;
 pub mod rng;
 pub mod rules;
