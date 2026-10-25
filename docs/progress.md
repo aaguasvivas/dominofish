@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-10
+- Feature in progress: M1-99
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -41,4 +41,5 @@
 - The Parra and Trucco bounds are reached exactly in these games (a lock with 10 board tiles, and one with board pips equal to 6k+42). The digest's Leads said they were not measured before.
 - Two test bugs found and fixed before the pass: the mirror of a move must always swap the end (a lead's orientation and equal ends included), and complete-line counts in 1v1 need a nearly empty boneyard (with 14 tiles left the tree ran for over 10 minutes).
 - M1-09 passed: crates/dominofish-core/tests/alloc.rs, a counting global allocator in a test target without the harness. Verify: M1-09: PASS alloc: games 2000 plies 262167 moves played and undone 541185 perft lines 37330 allocations 0 (hash check true) (target 0 allocations). Negative control: one Box in State::play gives 865,634 allocations and exit 1.
-- Next: M1-10 (playout bench, native and wasm checksum).
+- M1-10 passed: core/src/bench.rs, the dominofish-wasm cdylib (one extern C export), dominofish playout-bench, tools/wasm-bench.mjs. Verify at de3109a: checksums equal native and wasm in both modes; baseline in docs/eval/results/2026-10-25-playout-bench.md (1v1 about 1.43M native and 1.18M wasm rounds/s, 2v2 about 1.29M native and 0.93M to 1.05M wasm, load 13.94). Not a gate; rerun idle before comparing speeds.
+- Next: M1-99 (the M1 exit and the fresh-subagent milestone review).

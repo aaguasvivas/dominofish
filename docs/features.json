@@ -238,8 +238,12 @@
   "requires": [
    "M1-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-10: PASS checksums equal native and wasm, 200000 rounds per mode, commit de3109a, 1 thread: [1v1 run 1: checksum 78c57dbf4108684c native 1422987 rounds/s wasm 1162490 rounds/s load 13.94] [1v1 run 2: checksum 78c57dbf4108684c native 1433537 rounds/s wasm 1204983 rounds/s load 13.94] [2v2 run 1: checksum 74a663b29dbfa9d1 native 1290757 rounds/s wasm 1045326 rounds/s load 13.94] [2v2 run 2: checksum 74a663b29dbfa9d1 native 1288643 rounds/s wasm 933270 rounds/s load 13.94]",
+   "log": "docs/eval/results/2026-10-25-playout-bench.md"
+  }
  },
  {
   "id": "M1-99",
