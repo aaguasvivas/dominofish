@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
-- Feature in progress: M1-05
+- Feature in progress: M1-06
 - Last green commit: 2466844 (M0-99)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -29,4 +29,8 @@
 - M1-04 passed: tools/capi-oracle/traces.mjs writes fixtures/golden (608 games, 117,456 moves, 9.2 MB); crates/dominofish-core/tests/golden.rs replays them. Verify: M1-04: PASS golden: files 6 games 608 moves 117456 mismatches 0 (target 0); fixtures 9200 KB (target under 20480); identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest 5 (2v2 tranque-tie-opener-not-compared).
 - Negative controls on the replay: tranque ties to the blocker instead of the opener gives mismatches (first at 1v1-100.txt:8431, seed 100047). Paying a bonus at score + 25 == target (<= instead of <) gives 0 mismatches: no trace holds a bonus exactly 25 below the target (coverage: bonus-25-short absent, bonus-26-short 2). M1-05 (the cap edge tests) and M1-07 (the bonus-25-short counter) must cover it. 1v1 open-no-double is also absent from the traces (about 0.3% of 1v1 deals); M1-05 and M1-07 cover it.
 - Commit 31443cd failed check.sh on rustfmt only (tests/golden.rs); I piped check.sh through tail, which hid the exit code. Fixed in the next commit; later steps gate on check.sh's own exit code.
-- Next: M1-05 (edge cases and the published deals).
+- M1-05 passed: tools/capi-oracle/edges.mjs writes fixtures/edges.txt (71 scenarios from Capi); crates/dominofish-core/tests/edges.rs holds 74 named tests plus the replay check; docs/RULES.md (Edge cases) maps all 51 Capi test cites of capi-rules-spec[2]. Verify: M1-05: PASS edges: scenarios 71 moves 1906 mismatches 0 (target 0); 51 Capi test cites from capi-rules-spec[2] mapped; 74 named tests passed, 3 published deals; fixtures/edges.txt identical to a fresh edges.mjs run at 1d8868a.
+- Published deals, values from Capi: immortal game 198 to n and s (salida 25, two pases corridos 50, domino 123); minimal tranque A 126 to e and w (21 against 39); the "107" deal 151 to n and s (salida 25, tranque 126). These equal the digest's derived values.
+- The cap mutation that M1-04 missed (<= instead of <) now fails 5 edge tests.
+- Finding: two Capi edge tests build states no fresh deal reaches. reducer.test.ts:854 (a plain domino on a locking tile): a lock needs equal ends, so the last tile fits both old ends and the ending is always a capicua; no seed in 300,000 searched rounds gave a plain domino on a lock. rules.salida-and-tie.test.ts:238 (1v1, empty boneyard on the opening tile). Both are matched by the closest reachable case (docs/RULES.md, Edge cases). Not a rule question: Capi's behavior on reachable states is unchanged.
+- Next: M1-06 (perft).

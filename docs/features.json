@@ -155,8 +155,12 @@
    "M1-02",
    "M1-03"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-05: PASS edges: scenarios 71 moves 1906 mismatches 0 (target 0); 51 Capi test cites from capi-rules-spec[2] mapped; 74 named tests passed, 3 published deals; fixtures/edges.txt identical to a fresh edges.mjs run at 1d8868a",
+   "log": null
+  }
  },
  {
   "id": "M1-06",

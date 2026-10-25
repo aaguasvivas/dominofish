@@ -143,3 +143,67 @@ The differential fuzzer (M1-07) counts how often each path occurs and requires e
 | game-won-by-tranque | 1v1, 2v2 | a tranque finishes the game |
 | round-ends-one-short | 1v1, 2v2 | a round leaves the winner exactly 1 below the target |
 | game-ends-exactly-at-target | 1v1, 2v2 | a game finishes with the winner exactly at the target |
+
+## Edge cases
+
+Source: capi-rules-spec[2] (digest 1.5) and the published deals (digest 3.6). Each scenario in fixtures/edges.txt is a round from Capi's engine (tools/capi-oracle/edges.mjs): a fixed deal with a script, a seeded deal found by searching for the case, or a found round replayed from other start scores. crates/dominofish-core/tests/edges.rs replays every scenario against Capi's events and states and holds the named test for each case. A Capi test that builds a state no fresh deal reaches is matched by the closest reachable case, with the reason in the note.
+
+| Capi test | DominoFish tests | Note |
+|---|---|---|
+| `reducer.test.ts:11`: `starter has 6 tiles, other(s) have 7 in 1v1` | start_1v1_starter_has_6 | |
+| `reducer.test.ts:37`: `boneyard has correct remainder` | start_1v1_boneyard_14 | |
+| `reducer.test.ts:664`: `has empty boneyard in 2v2` | start_2v2_no_boneyard | |
+| `reducer.test.ts:680`: `follows N` | turn_order_n_e_s_w | |
+| `reducer.test.ts:1357`: `draw stops at first playable tile; turn does not advance` | draw_stops_at_first_fit | also R15: only the last tile drawn fits |
+| `reducer.test.ts:1387`: `draw exhausts boneyard without finding a match; subsequent pass is allowed` | draw_exhausts_then_pass | |
+| `reducer.test.ts:1427`: `drawn tiles count against you when the table locks right after` | drawn_tiles_count_in_tranque | |
+| `validate.test.ts:118`: `rejects draw in 2v2 mode` | reject_draw_in_2v2 | |
+| `validate.test.ts:70`: `rejects pass when boneyard has tiles (1v1)` | reject_pass_with_boneyard | |
+| `reducer.test.ts:314`: `even with tiles in the boneyard` | lock_with_boneyard_tiles | |
+| `reducer.test.ts:362`: `no lock while the boneyard still holds a tile that fits` | no_lock_while_boneyard_fits | |
+| `validate.test.ts:155`: `a fitting tile in the boneyard keeps the board open` | boneyard_tile_keeps_board_open | |
+| `validate.test.ts:160`: `an empty table is never locked` | empty_table_never_locked | |
+| `reducer.test.ts:734`: `ends the round on the locking tile: no passes and no pase corrido first` | tranque_on_locking_tile | |
+| `reducer.test.ts:760`: `the blocker's own hand decides, even when his side holds more pips` | tranque_blocker_hand_decides | |
+| `reducer.test.ts:813`: `the rival is always the next seat: W blocks, N compares` | tranque_w_blocks_n_compares | |
+| `rules.salida-and-tie.test.ts:364`: `opener N, blocker S, rival W on equal pips` | tranque_tie_opener_n_blocker_s_rival_w | |
+| `rules.salida-and-tie.test.ts:393`: `opener W, blocker N, rival E on equal pips` | tranque_tie_opener_w_blocker_n_rival_e | |
+| `rules.salida-and-tie.test.ts:409`: `1v1: a tie goes to whichever of the two opened the round` | tranque_tie_1v1_opener | |
+| `reducer.test.ts:854`: `locking the board with the last tile is a domin` | going_out_on_locking_tile_is_domino | Capi's state (two board tiles) is unreachable. From a fresh deal a lock needs equal ends (digest 1.4), so the last tile fits both old ends and the ending is a capicua; the reachable case tests that going out on the locking tile is never a tranque. |
+| `reducer.test.ts:870`: `locking the board with the double 6-6 on ends 6 and 6 as the last tile` | capicua_6_6_on_6_6_locks | |
+| `reducer.test.ts:605`: `a tile that fits both ends but is not the last one` | tranque_both_ends_tile_not_last | |
+| `reducer.test.ts:540`: `3-5 on ends 3 and 5` | capicua_3_5_on_3_5_left, capicua_3_5_on_3_5_right | |
+| `reducer.test.ts:557`: `5-6 on ends 5 and 5` | capicua_5_6_on_5_5 | |
+| `reducer.test.ts:563`: `the double 2-2 on ends 2 and 2` | capicua_2_2_on_2_2 | |
+| `reducer.test.ts:579`: `the double 2-2 on ends 2 and 5 is a plain` | domino_2_2_on_2_5 | |
+| `reducer.test.ts:586`: `the double 0-0 on ends 0 and 0` | capicua_0_0_on_0_0 | |
+| `scoring.test.ts:213`: `4-4 on ends 2 and 2` | reject_4_4_on_2_2 | The tile cannot be played there, so the reachable case is the rejection. |
+| `scoring.test.ts:224`: `false on an empty table` | no_capicua_on_empty_table | No round ends on a lead (the leader holds 7 tiles). |
+| `reducer.test.ts:967`: `does NOT trigger VEINTICINCO after only 2 passes in 2v2` | no_corrido_after_two_passes | |
+| `reducer.test.ts:1898`: `same player can earn VEINTICINCO twice in one round` | corrido_twice_same_player | |
+| `reducer.test.ts:1879`: `after a pase corrido the forcer always has a play` | corrido_forcer_must_play | |
+| `reducer.test.ts:2021`: `all bank into the same column` | corrido_domino_capicua_same_column | |
+| `scoring.attribution.test.ts:106`: `no pase corrido heads-up` | no_corrido_heads_up | |
+| `rules.hardening.test.ts:93`: `seeded games produce domino, capicua, trancao and (in 2v2) veinticinco` | seeded_games_produce_every_ending | Replays fixtures/golden/2v2-100.txt. |
+| `rules.salida-and-tie.test.ts:80`: `round 1: pays 25 to the opener's side on the auto-placed 6-6` | salida_round1_auto_6_6 | |
+| `rules.salida-and-tie.test.ts:128`: `a later round: pays 25 after a pass on a free opening tile` | salida_later_round | |
+| `rules.salida-and-tie.test.ts:162`: `is cancelled when the partner passes too` | salida_cancelled_fourth_seat_play_pays_nothing | |
+| `rules.salida-and-tie.test.ts:182`: `the pase corrido pays 25 once, not 50` | salida_cancelled_then_corrido_once | |
+| `rules.salida-and-tie.test.ts:263`: `a later pass in the round never counts` | salida_later_pass_never_counts | |
+| `rules.salida-and-tie.test.ts:238`: `heads-up there is none` | salida_none_heads_up | Capi's state (an empty boneyard on the opening tile) is unreachable in 1v1; the reachable case has the rival draw and checks that nothing pays. |
+| `reducer.test.ts:2112`: `74 + 25 = 99` | corrido_paid_at_74 | |
+| `reducer.test.ts:2120`: `75 + 25 = 100` | corrido_plain_at_75 | |
+| `reducer.test.ts:2135`: `80 + 25 = 105` | corrido_plain_at_80 | |
+| `rules.salida-and-tie.test.ts:206`: `plain play at 75 of 100, paid at 74` | salida_paid_at_74, salida_plain_at_75 | |
+| `rules.hardening.test.ts:127`: `a pase corrido is paid only while it leaves the side below the target` | corrido_cap_hardening | |
+| `flow.endgame.test.ts:548`: `one point short is round_over, the exact total is finished` | edge_1v1_domino_one_short, edge_1v1_domino_exact, edge_1v1_capicua_one_short, edge_1v1_capicua_exact, edge_1v1_tranque_one_short, edge_1v1_tranque_exact, edge_2v2_domino_one_short, edge_2v2_domino_exact, edge_2v2_capicua_one_short, edge_2v2_capicua_exact, edge_2v2_tranque_one_short, edge_2v2_tranque_exact | |
+| `flow.endgame.test.ts:574`: `pays at 26 short, a plain move at 25 short, and never ends the game` | corrido_paid_26_short_of_200, corrido_plain_25_short_of_200, salida_paid_26_short_of_200, salida_plain_25_short_of_200, corrido_paid_at_74, corrido_plain_at_75, salida_paid_at_74, salida_plain_at_75 | at targets 200 and 100 |
+| `reducer.test.ts:1537`: `awards bonus AND finishes game` | capicua_wins_game | |
+| `rules.hardening.test.ts:59`: `a tile in hand with a bogus end is rejected` | bogus_end_cannot_be_expressed | Wire input; End has only left and right, and input parsing (M2) validates at the boundary. |
+| `rules.hardening.test.ts:81`: `non-canonical tile shapes are rejected` | non_canonical_tile_shapes_are_rejected | The tile type cannot hold a pip outside 0 to 6. |
+| `reducer.ts:135-145`: `if (!starterTile || d[0] > starterTile[0]) {` | open_1v1_lower_double | hard constraint 2 |
+| `reducer.ts:146-159`: `if (sum > bestSum) {` | open_1v1_no_double, open_1v1_no_double_tie_to_earlier_seat | hard constraint 2 |
+| `reducer.ts:98-109`: `if (sum > bestSum) {` | open_1v1_no_double_first_in_hand_order | hard constraint 2 |
+| Parra and Trucco 2025, immortal game (digest 3.6) | parra_trucco_immortal_game | Capi gives 198 to n and s (salida 25, two pases corridos 50, domino 123); the paper's 111 uses other scoring. |
+| Parra and Trucco 2025, minimal tranque A (digest 3.6) | parra_trucco_minimal_tranque | Capi gives 126 to e and w (21 against 39). |
+| Parra and Trucco 2025, the "107" deal (digest 3.6) | parra_trucco_107 | Capi gives 151 to n and s (salida 25, tranque 126, 5 against 50). |

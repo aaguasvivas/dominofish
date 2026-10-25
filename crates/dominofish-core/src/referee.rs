@@ -24,6 +24,12 @@ impl Referee {
         (Referee { state }, tile)
     }
 
+    /// A referee for a round already dealt, such as `State::dealt` with
+    /// scores carried in.
+    pub fn from_state(state: State) -> Referee {
+        Referee { state }
+    }
+
     pub fn state(&self) -> &State {
         &self.state
     }
