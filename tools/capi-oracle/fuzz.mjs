@@ -1,6 +1,6 @@
 // Lockstep differential fuzzer, Capi side (M1-07). Plays seeded random rounds
-// through Capi's engine and streams, per move, Capi's canonical legal-move
-// set before the move and a digest of the canonical state and event after it
+// through Capi's engine and streams, per move, Capi's canonical and raw
+// legal-move sets before the move and a digest of the canonical state and event after it
 // (docs/FORMATS.md, Differential fuzzer). `dominofish capi-fuzz` spawns this
 // script, replays every move in Rust, and compares.
 // Usage: node tools/capi-oracle/fuzz.mjs <1v1|2v2> <rounds> <seed>
@@ -81,6 +81,22 @@ function canonicalSet(s, intents) {
   const equal = s.board.length === 0 || s.board[0][0] === s.board[s.board.length - 1][1];
   for (const i of intents) {
     const bit = i.type === "draw" ? 56 : i.type === "pass" ? 57 : 2 * tileIndex(i.tile) + (equal || i.end === "left" ? 0 : 1);
+    if (bit < 32) lo |= 1 << bit;
+    else hi |= 1 << (bit - 32);
+  }
+  return [lo >>> 0, hi >>> 0];
+}
+// The raw set: every accepted intent mapped to a DominoFish move by the
+// exact-replay map of docs/RULES.md (on an empty board the orientation picks
+// the end; elsewhere the end is kept), in the same bit encoding.
+function rawSet(s, intents) {
+  let lo = 0;
+  let hi = 0;
+  for (const i of intents) {
+    let bit;
+    if (i.type !== "play") bit = i.type === "draw" ? 56 : 57;
+    else if (s.board.length === 0) bit = 2 * tileIndex(i.tile) + (i.tile[0] <= i.tile[1] ? 0 : 1);
+    else bit = 2 * tileIndex(i.tile) + (i.end === "left" ? 0 : 1);
     if (bit < 32) lo |= 1 << bit;
     else hi |= 1 << (bit - 32);
   }
@@ -167,6 +183,7 @@ for (let r = 0; r < rounds; r++) {
     if (step > 400) throw new Error(`round ${r} did not end`);
     const ok = accepted(state);
     const [lo, hi] = canonicalSet(state, ok);
+    const [rawLo, rawHi] = rawSet(state, ok);
     const intent = step === 0 && script ? script : POLICY[policy](state, ok, rng);
     const seat = state.currentTurn;
     const res = capi.applyMove(state, seat, intent);
@@ -174,7 +191,7 @@ for (let r = 0; r < rounds; r++) {
     for (const p of pathsOf(capi, state, seat, intent, res.newState, res, round)) counts.set(p, (counts.get(p) ?? 0) + 1);
     state = res.newState;
     const code = intent.type === "play" ? `${intent.tile[0]}${intent.tile[1]}${intent.end[0]}` : intent.type[0];
-    out.push(`${code} ${lo.toString(16)} ${hi.toString(16)} ${digest([...stateWords(state), ...eventWords(state, res)]).toString(16)}`);
+    out.push(`${code} ${lo.toString(16)} ${hi.toString(16)} ${rawLo.toString(16)} ${rawHi.toString(16)} ${digest([...stateWords(state), ...eventWords(state, res)]).toString(16)}`);
     moves++;
   }
   if (out.length > 4000) await flush();

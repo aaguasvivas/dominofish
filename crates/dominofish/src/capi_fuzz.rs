@@ -1,7 +1,7 @@
 //! `dominofish capi-fuzz`: the Rust side of the lockstep differential fuzzer
 //! (M1-07). Spawns tools/capi-oracle/fuzz.mjs, which plays seeded rounds
 //! through Capi's engine, and replays every move through the referee,
-//! comparing Capi's canonical legal-move set before each move and a digest of
+//! comparing Capi's canonical and raw legal-move sets before each move and a digest of
 //! the canonical state and event after it (docs/FORMATS.md, Differential
 //! fuzzer). Runs from the repository root.
 
@@ -103,6 +103,31 @@ fn legal_mask(s: &State) -> u64 {
                 Move::Pass => 57,
             }
     })
+}
+
+/// Rust's raw legal set: every move `is_legal` accepts, in the same encoding.
+/// A double on an empty board has one placement, so only its left move is
+/// listed there (Capi's intents for it all map to that move).
+fn raw_mask(s: &State) -> u64 {
+    let mut m = 0u64;
+    for i in 0..28u8 {
+        let tile = Tile::from_index(i);
+        for (end, bit) in [(End::Left, 0), (End::Right, 1)] {
+            if s.board == 0 && tile.is_double() && end == End::Right {
+                continue;
+            }
+            if s.is_legal(Move::Play { tile, end }) {
+                m |= 1u64 << (2 * u32::from(i) + bit);
+            }
+        }
+    }
+    if s.is_legal(Move::Draw) {
+        m |= 1 << 56;
+    }
+    if s.is_legal(Move::Pass) {
+        m |= 1 << 57;
+    }
+    m
 }
 
 /// A move code from fuzz.mjs: "<a><b><l|r>" (the tile as Capi's intent
@@ -263,6 +288,20 @@ pub fn run(mode: Mode, rounds: u64, seed: u64) -> Result<Outcome, String> {
                 let capi_set = u64::from_str_radix(w[1], 16).unwrap_or(u64::MAX)
                     | u64::from_str_radix(w[2], 16).unwrap_or(u64::MAX) << 32;
                 let rust_set = legal_mask(s);
+                let capi_raw = u64::from_str_radix(w[3], 16).unwrap_or(u64::MAX)
+                    | u64::from_str_radix(w[4], 16).unwrap_or(u64::MAX) << 32;
+                let rust_raw = raw_mask(s);
+                if capi_raw != rust_raw {
+                    mismatches += 1;
+                    fail(
+                        &mut errors,
+                        format!(
+                            "ERROR capi-fuzz {round} move {code}: raw legal set want {capi_raw:x} got {rust_raw:x}"
+                        ),
+                    );
+                    state = None;
+                    continue;
+                }
                 if capi_set != rust_set {
                     mismatches += 1;
                     fail(
@@ -291,13 +330,13 @@ pub fn run(mode: Mode, rounds: u64, seed: u64) -> Result<Outcome, String> {
                 state_words(s, &mut words);
                 event_words(event, &mut words);
                 let got = digest(&words);
-                if u32::from_str_radix(w[3], 16).ok() != Some(got) {
+                if u32::from_str_radix(w[5], 16).ok() != Some(got) {
                     mismatches += 1;
                     fail(
                         &mut errors,
                         format!(
                             "ERROR capi-fuzz {round} move {code}: state or event differs (digest want {} got {got:x})",
-                            w[3]
+                            w[5]
                         ),
                     );
                     state = None;

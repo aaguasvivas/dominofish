@@ -20,14 +20,23 @@ rm -rf "$regen"
 "$node" tools/capi-oracle/traces.mjs "$regen" > runs/M1-04.traces.log 2>&1 || err "traces.mjs failed (runs/M1-04.traces.log)"
 diff -rq fixtures/golden "$regen" > /dev/null || err "fixtures/golden differ from a fresh traces.mjs run"
 
-for f in 1v1-100 1v1-200 2v2-100 2v2-200 2v2-whole-suit 2v2-whole-suit-200; do
-  [ -s "fixtures/golden/$f.txt" ] || err "missing fixtures/golden/$f.txt"
+# Each file holds games of its own mode and target only: 150 seeded games
+# per mode at 100 and at 200, and the four whole-suit seeds at both targets.
+games() { grep -c "^G $2 " "fixtures/golden/$1.txt" 2> /dev/null || echo 0; }
+all_games() { grep -c "^G " "fixtures/golden/$1.txt" 2> /dev/null || echo 0; }
+for spec in "1v1-100:1v1 100:150" "1v1-200:1v1 200:150" "2v2-100:2v2 100:150" "2v2-200:2v2 200:150" \
+            "2v2-whole-suit:2v2 100:4" "2v2-whole-suit-200:2v2 200:4"; do
+  f=${spec%%:*}; rest=${spec#*:}; want=${rest#*:}; mt=${rest%:*}
+  n=$(games "$f" "$mt"); total=$(all_games "$f")
+  [ "$n" -eq "$want" ] && [ "$total" -eq "$want" ] || err "fixtures/golden/$f.txt: $n games of $mt and $total in all, want $want"
 done
-for seed in 59313 83322 282144 645301; do
-  grep -q "^G 2v2 100 $seed capi-fuzz$" fixtures/golden/2v2-whole-suit.txt || err "whole-suit seed $seed missing"
+for f in 2v2-whole-suit:100 2v2-whole-suit-200:200; do
+  for seed in 59313 83322 282144 645301; do
+    grep -q "^G 2v2 ${f#*:} $seed capi-fuzz$" "fixtures/golden/${f%%:*}.txt" || err "whole-suit seed $seed missing at target ${f#*:}"
+  done
 done
-kb=$(du -sk fixtures/golden | awk '{print $1}')
-[ "$kb" -lt 20480 ] || err "fixtures/golden is ${kb} KB, target under 20 MB"
+kb=$(du -sk fixtures | awk '{print $1}')
+[ "$kb" -lt 20480 ] || err "fixtures/ is ${kb} KB, target under 20 MB"
 
 min=""
 for want in "1v1 capicua" "1v1 capicua-equal-ends" "1v1 capicua-double" "1v1 domino-double-one-end" \
@@ -54,7 +63,7 @@ case "$summary" in
 esac
 
 if [ "$fail" -eq 0 ]; then
-  echo "M1-04: PASS $summary (target 0); fixtures ${kb} KB (target under 20480); identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest $min"
+  echo "M1-04: PASS $summary (target 0); fixtures/ ${kb} KB (target under 20480); 150 games per mode at 100 and 200 and the whole-suit seeds at both; identical to a fresh traces.mjs run at 1d8868a; Capi's fuzz paths and left leads reached, fewest $min"
 else
   echo "M1-04: FAIL"
 fi

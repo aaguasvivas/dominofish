@@ -27,8 +27,9 @@ M2 to M4 are the strength-first path of owner decision 4: nothing outside it sta
 
 Cargo workspace (decision D1):
 - crates/dominofish-core, library: rules, information sets, sampling, search. No I/O, global state, threads, or clocks; no dependencies; builds for wasm32-unknown-unknown at every commit (check.sh).
-- crates/dominofish, binary dominofish: the command line (selfplay now; match, bench, analyze, review, report later) and all process and file I/O.
-- Planned: a cdylib crate for the wasm checksum (M1-10, one extern "C" export, no wasm-bindgen); a native crate that splits one call's worlds across threads and merges them to the one-thread result (hard constraint 1), when search exists.
+- crates/dominofish, binary dominofish: the command line (selfplay, capi-fuzz, playout-bench now; match, bench, analyze, review, report later) and all process and file I/O.
+- crates/dominofish-wasm, cdylib (since M1-10): one extern "C" export, playouts_checksum, for the native and wasm checksum; no wasm-bindgen.
+- Planned: a native crate that splits one call's worlds across threads and merges them to the one-thread result (hard constraint 1), when search exists.
 
 Core state (M0, rules.rs): per-seat hand masks (u32, 28 bits in Capi's tile order), a board mask with left and right ends, the 1v1 boneyard as an ordered array popped from its end, turn, opener (starterThisRound), last player, one pass counter, scores, target, phase, and the next round's leader. The automatic round-1 tile and the opener tie-breaks follow reducer.ts:90-185 and need the deal's hand order, which the Deal type keeps.
 

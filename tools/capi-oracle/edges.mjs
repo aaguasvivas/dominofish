@@ -347,12 +347,23 @@ add("salida-none-heads-up", "rules.salida-and-tie.test.ts:238", find(one, (r) =>
 const rescore = (f, scores, target = 100) =>
   playRound({ is2v2: f.run.init.is2v2, target, leader: f.leader, scores, order: f.order, script: f.run.intents, seed: f.seed });
 const teamScores = (team, score) => (team === 0 ? [score, 0] : [0, score]);
+// The scoring side at `mine` and the other side one point below the target,
+// as flow.endgame.test.ts:555-556 and :578-583 set them.
+const edgeScores = (team, mine, target) => (team === 0 ? [mine, target - 1] : [target - 1, mine]);
+// A bonus paid at 26 short, and a plain move at 25 short and at 1 short
+// (flow.endgame.test.ts:574-599), at both targets.
+const bonusEdges = (kind, f, team) => {
+  for (const target of [100, 200]) {
+    add(`${kind}-paid-26-short-of-${target}`, "flow.endgame.test.ts:574", rescore(f, edgeScores(team, target - 26, target), target));
+    add(`${kind}-plain-25-short-of-${target}`, "flow.endgame.test.ts:574", rescore(f, edgeScores(team, target - 25, target), target));
+    add(`${kind}-plain-1-short-of-${target}`, "flow.endgame.test.ts:574", rescore(f, edgeScores(team, target - 1, target), target));
+  }
+};
 {
   const salidaTeam = capi.getTeam(laterSalida.leader, true);
   add("salida-paid-at-74", "rules.salida-and-tie.test.ts:206", rescore(laterSalida, teamScores(salidaTeam, 74)));
   add("salida-plain-at-75", "rules.salida-and-tie.test.ts:206", rescore(laterSalida, teamScores(salidaTeam, 75)));
-  add("salida-paid-26-short-of-200", "flow.endgame.test.ts:574", rescore(laterSalida, teamScores(salidaTeam, 174), 200));
-  add("salida-plain-25-short-of-200", "flow.endgame.test.ts:574", rescore(laterSalida, teamScores(salidaTeam, 175), 200));
+  bonusEdges("salida", laterSalida, salidaTeam);
 }
 
 // ------------------------------------------------------------------ cap
@@ -367,27 +378,37 @@ const teamScores = (team, score) => (team === 0 ? [score, 0] : [0, score]);
   add("corrido-plain-at-75", "reducer.test.ts:2120", rescore(f, teamScores(t, 75)));
   add("corrido-plain-at-80", "reducer.test.ts:2135", rescore(f, teamScores(t, 80)));
   add("corrido-cap-hardening", "rules.hardening.test.ts:127", rescore(f, teamScores(t, 76)));
-  add("corrido-paid-26-short-of-200", "flow.endgame.test.ts:574", rescore(f, teamScores(t, 174), 200));
-  add("corrido-plain-25-short-of-200", "flow.endgame.test.ts:574", rescore(f, teamScores(t, 175), 200));
+  bonusEdges("corrido", f, t);
 }
 
 // --------------------------------------------------------- target edges
+// Every ending kind of flow.endgame.test.ts:547 in both modes, from a round
+// with no bonus, replayed with the winner one point short and exactly at the
+// target, the other side at target - 1.
+const roundPoints = (tr) => (callout(tr) === "trancao" ? pay(tr).pts : pay(tr).pipsAwarded + (pay(tr).capicuaBonus ?? 0));
+const ENDINGS = [
+  ["domino", (tr) => callout(tr) === "domino"],
+  ["capicua", (tr) => callout(tr) === "capicua"],
+  ["tranque-blocker", (tr) => callout(tr) === "trancao" && pay(tr).blockerPips < pay(tr).rivalPips],
+  ["tranque-rival", (tr) => callout(tr) === "trancao" && pay(tr).rivalPips < pay(tr).blockerPips],
+  ["tranque-tie", (tr) => callout(tr) === "trancao" && pay(tr).blockerPips === pay(tr).rivalPips],
+];
 for (const [mode, spec] of [["1v1", one], ["2v2", two]]) {
-  for (const kind of ["domino", "capicua", "trancao"]) {
+  ENDINGS.forEach(([name, ending], k) => {
     const f = find(spec, (r) => {
       const last = r.trs[r.trs.length - 1];
-      return callout(last) === kind && !r.trs.some((tr) => callout(tr) === "veinticinco") && pay(last).pipsAwarded !== 0 ? 0 : false;
-    }, 9100 + (mode === "2v2" ? 500 : 0) + ["domino", "capicua", "trancao"].indexOf(kind) * 100);
+      const points = callout(last) ? roundPoints(last) : 0;
+      return ending(last) && !r.trs.some((tr) => callout(tr) === "veinticinco") && points > 0 && points < 99 ? 0 : false;
+    }, 9100 + (mode === "2v2" ? 500 : 0) + k * 100);
     const last = f.run.trs[f.run.trs.length - 1];
-    const points = kind === "trancao" ? pay(last).pts : pay(last).pipsAwarded + (pay(last).capicuaBonus ?? 0);
+    const points = roundPoints(last);
     const t = pay(last).winningTeam;
-    const name = kind === "trancao" ? "tranque" : kind;
-    add(`edge-${mode}-${name}-one-short`, "flow.endgame.test.ts:548", rescore(f, teamScores(t, 100 - 1 - points)));
-    add(`edge-${mode}-${name}-exact`, "flow.endgame.test.ts:548", rescore(f, teamScores(t, 100 - points)));
-    if (kind === "capicua" && mode === "2v2") {
+    add(`edge-${mode}-${name}-one-short`, "flow.endgame.test.ts:548", rescore(f, edgeScores(t, 100 - 1 - points, 100)));
+    add(`edge-${mode}-${name}-exact`, "flow.endgame.test.ts:548", rescore(f, edgeScores(t, 100 - points, 100)));
+    if (name === "capicua" && mode === "2v2") {
       add("capicua-wins-game", "reducer.test.ts:1537", rescore(f, teamScores(t, 100 - points + 1)));
     }
-  }
+  });
 }
 
 // ------------------------------------------------------ published deals

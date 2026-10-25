@@ -15,9 +15,13 @@ mkdir -p runs
 tools/capi-oracle/build.sh > runs/M1-06.build.log 2>&1 || { cat runs/M1-06.build.log; echo "M1-06: FAIL oracle build"; exit 1; }
 "$node" tools/capi-oracle/perft.mjs runs/perft-regen.txt > runs/M1-06.perft.log 2>&1 || err "perft.mjs failed (runs/M1-06.perft.log)"
 cmp -s fixtures/perft.txt runs/perft-regen.txt || err "fixtures/perft.txt differs from a fresh perft.mjs run"
+# Per mode: 10 deals, each at depths 1 to 9, and one complete-line count
+# from a late position of each deal.
 for mode in 1v1 2v2; do
-  grep -q "^Q $mode-.* depth=9 " fixtures/perft.txt || err "no depth-9 query in $mode"
-  grep -q "^Q $mode-.* depth=all " fixtures/perft.txt || err "no complete-line query in $mode"
+  deep=$(grep -c "^Q $mode-[0-9]*-d9 .* depth=9 " fixtures/perft.txt)
+  full=$(grep -c "^Q $mode-[0-9]*-late .* depth=all " fixtures/perft.txt)
+  [ "$deep" -eq 10 ] || err "$mode: $deep deals at depth 9, want 10"
+  [ "$full" -eq 10 ] || err "$mode: $full complete-line queries from late positions, want 10"
 done
 late=$(grep -c ' depth=all ' fixtures/perft.txt)
 

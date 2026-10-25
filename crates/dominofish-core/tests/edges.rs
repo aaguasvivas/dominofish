@@ -537,17 +537,33 @@ fn no_corrido_heads_up() {
 
 #[test]
 fn seeded_games_produce_every_ending() {
-    let report = common::replay(&common::fixture("golden/2v2-100.txt"));
-    assert_eq!(report.mismatches, 0);
-    let all: Vec<Event> = report
-        .games
-        .iter()
-        .flat_map(|g| g.steps.iter().filter_map(|s| s.event))
-        .collect();
-    assert!(all.iter().any(|e| matches!(e, Event::Domino { .. })));
-    assert!(all.iter().any(|e| matches!(e, Event::Capicua { .. })));
-    assert!(all.iter().any(|e| matches!(e, Event::Tranque { .. })));
-    assert!(all.iter().any(|e| matches!(e, Event::PaseCorrido { .. })));
+    // Over every golden trace: 1v1 has dominoes and tranques, some game has a
+    // capicua, 2v2 has a pase corrido, and 1v1 never pays a bonus
+    // (rules.hardening.test.ts:93-115).
+    let mut events = [Vec::new(), Vec::new()];
+    for name in ["1v1-100", "1v1-200", "2v2-100", "2v2-200"] {
+        let report = common::replay(&common::fixture(&format!("golden/{name}.txt")));
+        assert_eq!(report.mismatches, 0, "{name}");
+        let k = usize::from(name.starts_with("2v2"));
+        events[k].extend(
+            report
+                .games
+                .iter()
+                .flat_map(|g| g.steps.iter().filter_map(|s| s.event)),
+        );
+    }
+    let has = |k: usize, f: fn(&Event) -> bool| events[k].iter().any(f);
+    assert!(has(0, |e| matches!(e, Event::Domino { .. })));
+    assert!(has(0, |e| matches!(e, Event::Tranque { .. })));
+    assert!(
+        has(0, |e| matches!(e, Event::Capicua { .. }))
+            || has(1, |e| matches!(e, Event::Capicua { .. }))
+    );
+    assert!(has(1, |e| matches!(e, Event::PaseCorrido { .. })));
+    assert!(!has(0, |e| matches!(
+        e,
+        Event::PaseCorrido { .. } | Event::PaseSalida { .. }
+    )));
 }
 
 // ------------------------------------------------------------------ salida
@@ -653,154 +669,354 @@ fn bonus_at(name: &str, salida: bool) -> (u16, Option<Event>) {
     if s.event.is_some() {
         // A paid bonus adds 25 and never ends the game.
         assert_eq!(s.after.scores[t], s.before.scores[t] + 25);
-        assert_eq!(s.after.phase, Phase::Playing);
+    } else {
+        // A plain move pays nothing.
+        assert_eq!(s.after.scores, s.before.scores);
     }
+    assert_eq!(s.after.phase, Phase::Playing);
     (s.before.target - s.before.scores[t], s.event)
+}
+
+fn salida_paid(name: &str, short: u16) {
+    let (got, ev) = bonus_at(name, true);
+    assert_eq!(got, short);
+    assert!(matches!(ev, Some(Event::PaseSalida { .. })), "{name}");
+}
+
+fn salida_plain(name: &str, short: u16) {
+    assert_eq!(bonus_at(name, true), (short, None), "{name}");
+}
+
+fn corrido_paid(name: &str, short: u16) {
+    let (got, ev) = bonus_at(name, false);
+    assert_eq!(got, short);
+    assert!(matches!(ev, Some(Event::PaseCorrido { .. })), "{name}");
+}
+
+fn corrido_plain(name: &str, short: u16) {
+    assert_eq!(bonus_at(name, false), (short, None), "{name}");
+}
+
+/// The side that did not score sits at target - 1 (flow.endgame.test.ts:556).
+fn other_side_one_short(name: &str) {
+    let p = run(name);
+    let s = init(p);
+    assert!(s.scores.contains(&(s.target - 1)), "{name}: {:?}", s.scores);
 }
 
 #[test]
 fn salida_paid_at_74() {
-    let (short, ev) = bonus_at("salida-paid-at-74", true);
-    assert_eq!(short, 26);
-    assert!(matches!(ev, Some(Event::PaseSalida { .. })));
+    salida_paid("salida-paid-at-74", 26);
 }
 
 #[test]
 fn salida_plain_at_75() {
-    let (short, ev) = bonus_at("salida-plain-at-75", true);
-    assert_eq!((short, ev), (25, None));
+    salida_plain("salida-plain-at-75", 25);
+}
+
+#[test]
+fn salida_paid_26_short_of_100() {
+    salida_paid("salida-paid-26-short-of-100", 26);
+    other_side_one_short("salida-paid-26-short-of-100");
+}
+
+#[test]
+fn salida_plain_25_short_of_100() {
+    salida_plain("salida-plain-25-short-of-100", 25);
+}
+
+#[test]
+fn salida_plain_1_short_of_100() {
+    salida_plain("salida-plain-1-short-of-100", 1);
 }
 
 #[test]
 fn salida_paid_26_short_of_200() {
-    let (short, ev) = bonus_at("salida-paid-26-short-of-200", true);
-    assert_eq!(short, 26);
-    assert!(matches!(ev, Some(Event::PaseSalida { .. })));
+    salida_paid("salida-paid-26-short-of-200", 26);
+    other_side_one_short("salida-paid-26-short-of-200");
 }
 
 #[test]
 fn salida_plain_25_short_of_200() {
-    let (short, ev) = bonus_at("salida-plain-25-short-of-200", true);
-    assert_eq!((short, ev), (25, None));
+    salida_plain("salida-plain-25-short-of-200", 25);
+}
+
+#[test]
+fn salida_plain_1_short_of_200() {
+    salida_plain("salida-plain-1-short-of-200", 1);
 }
 
 // --------------------------------------------------------------------- cap
 
 #[test]
 fn corrido_paid_at_74() {
-    let (short, ev) = bonus_at("corrido-paid-at-74", false);
-    assert_eq!(short, 26);
-    assert!(matches!(ev, Some(Event::PaseCorrido { .. })));
+    corrido_paid("corrido-paid-at-74", 26);
 }
 
 #[test]
 fn corrido_plain_at_75() {
-    let (short, ev) = bonus_at("corrido-plain-at-75", false);
-    assert_eq!((short, ev), (25, None));
+    corrido_plain("corrido-plain-at-75", 25);
 }
 
 #[test]
 fn corrido_plain_at_80() {
-    let (short, ev) = bonus_at("corrido-plain-at-80", false);
-    assert_eq!((short, ev), (20, None));
+    corrido_plain("corrido-plain-at-80", 20);
 }
 
 #[test]
 fn corrido_cap_hardening() {
-    let (short, ev) = bonus_at("corrido-cap-hardening", false);
-    assert_eq!((short, ev), (24, None));
+    corrido_plain("corrido-cap-hardening", 24);
+}
+
+#[test]
+fn corrido_paid_26_short_of_100() {
+    corrido_paid("corrido-paid-26-short-of-100", 26);
+    other_side_one_short("corrido-paid-26-short-of-100");
+}
+
+#[test]
+fn corrido_plain_25_short_of_100() {
+    corrido_plain("corrido-plain-25-short-of-100", 25);
+}
+
+#[test]
+fn corrido_plain_1_short_of_100() {
+    corrido_plain("corrido-plain-1-short-of-100", 1);
 }
 
 #[test]
 fn corrido_paid_26_short_of_200() {
-    let (short, ev) = bonus_at("corrido-paid-26-short-of-200", false);
-    assert_eq!(short, 26);
-    assert!(matches!(ev, Some(Event::PaseCorrido { .. })));
+    corrido_paid("corrido-paid-26-short-of-200", 26);
+    other_side_one_short("corrido-paid-26-short-of-200");
 }
 
 #[test]
 fn corrido_plain_25_short_of_200() {
-    let (short, ev) = bonus_at("corrido-plain-25-short-of-200", false);
-    assert_eq!((short, ev), (25, None));
+    corrido_plain("corrido-plain-25-short-of-200", 25);
+}
+
+#[test]
+fn corrido_plain_1_short_of_200() {
+    corrido_plain("corrido-plain-1-short-of-200", 1);
 }
 
 // ------------------------------------------------------------ target edges
 
-fn round_winner_score(s: &Step) -> (u16, Phase) {
-    let winner = match s.event {
-        Some(Event::Domino { seat, .. } | Event::Capicua { seat, .. }) => seat,
-        Some(Event::Tranque { winner, .. }) => winner,
-        other => panic!("round end expected, got {other:?}"),
+/// The round winner ends `short` below the target in `phase`, and the other
+/// side stays at target - 1 (flow.endgame.test.ts:548-571).
+fn edge(name: &str, short: u16, phase: Phase, kind: fn(&Event) -> bool) {
+    let s = last(run(name));
+    let event = s.event.expect("round end");
+    assert!(kind(&event), "{name}: {event:?}");
+    let winner = match event {
+        Event::Domino { seat, .. } | Event::Capicua { seat, .. } => seat,
+        Event::Tranque { winner, .. } => winner,
+        other => panic!("{name}: round end expected, got {other:?}"),
     };
-    (
-        s.before.target - s.after.scores[team(winner)].min(s.before.target),
-        s.after.phase,
-    )
+    let t = team(winner);
+    assert_eq!(
+        (
+            s.before.target - s.after.scores[t].min(s.before.target),
+            s.after.phase
+        ),
+        (short, phase),
+        "{name}"
+    );
+    assert_eq!(
+        s.after.scores[1 - t],
+        s.before.target - 1,
+        "{name}: the other side"
+    );
 }
 
-fn edge(name: &str, short: u16, phase: Phase) {
-    let s = last(run(name));
-    assert_eq!(round_winner_score(s), (short, phase), "{name}");
+fn domino(e: &Event) -> bool {
+    matches!(e, Event::Domino { .. })
+}
+
+fn capicua_event(e: &Event) -> bool {
+    matches!(e, Event::Capicua { .. })
+}
+
+fn blocker_wins(e: &Event) -> bool {
+    matches!(e, Event::Tranque { blocker, winner, blocker_pips, rival_pips, .. } if blocker == winner && blocker_pips < rival_pips)
+}
+
+fn rival_wins(e: &Event) -> bool {
+    matches!(e, Event::Tranque { rival, winner, blocker_pips, rival_pips, .. } if rival == winner && rival_pips < blocker_pips)
+}
+
+fn tie_to_opener(e: &Event) -> bool {
+    matches!(e, Event::Tranque { blocker_pips, rival_pips, .. } if blocker_pips == rival_pips)
 }
 
 #[test]
 fn edge_1v1_domino_one_short() {
-    edge("edge-1v1-domino-one-short", 1, Phase::RoundOver);
+    edge("edge-1v1-domino-one-short", 1, Phase::RoundOver, domino);
 }
 
 #[test]
 fn edge_1v1_domino_exact() {
-    edge("edge-1v1-domino-exact", 0, Phase::Finished);
+    edge("edge-1v1-domino-exact", 0, Phase::Finished, domino);
 }
 
 #[test]
 fn edge_1v1_capicua_one_short() {
-    edge("edge-1v1-capicua-one-short", 1, Phase::RoundOver);
+    edge(
+        "edge-1v1-capicua-one-short",
+        1,
+        Phase::RoundOver,
+        capicua_event,
+    );
 }
 
 #[test]
 fn edge_1v1_capicua_exact() {
-    edge("edge-1v1-capicua-exact", 0, Phase::Finished);
+    edge("edge-1v1-capicua-exact", 0, Phase::Finished, capicua_event);
 }
 
 #[test]
-fn edge_1v1_tranque_one_short() {
-    edge("edge-1v1-tranque-one-short", 1, Phase::RoundOver);
+fn edge_1v1_tranque_blocker_one_short() {
+    edge(
+        "edge-1v1-tranque-blocker-one-short",
+        1,
+        Phase::RoundOver,
+        blocker_wins,
+    );
 }
 
 #[test]
-fn edge_1v1_tranque_exact() {
-    edge("edge-1v1-tranque-exact", 0, Phase::Finished);
+fn edge_1v1_tranque_blocker_exact() {
+    edge(
+        "edge-1v1-tranque-blocker-exact",
+        0,
+        Phase::Finished,
+        blocker_wins,
+    );
+}
+
+#[test]
+fn edge_1v1_tranque_rival_one_short() {
+    edge(
+        "edge-1v1-tranque-rival-one-short",
+        1,
+        Phase::RoundOver,
+        rival_wins,
+    );
+}
+
+#[test]
+fn edge_1v1_tranque_rival_exact() {
+    edge(
+        "edge-1v1-tranque-rival-exact",
+        0,
+        Phase::Finished,
+        rival_wins,
+    );
+}
+
+#[test]
+fn edge_1v1_tranque_tie_one_short() {
+    edge(
+        "edge-1v1-tranque-tie-one-short",
+        1,
+        Phase::RoundOver,
+        tie_to_opener,
+    );
+}
+
+#[test]
+fn edge_1v1_tranque_tie_exact() {
+    edge(
+        "edge-1v1-tranque-tie-exact",
+        0,
+        Phase::Finished,
+        tie_to_opener,
+    );
 }
 
 #[test]
 fn edge_2v2_domino_one_short() {
-    edge("edge-2v2-domino-one-short", 1, Phase::RoundOver);
+    edge("edge-2v2-domino-one-short", 1, Phase::RoundOver, domino);
 }
 
 #[test]
 fn edge_2v2_domino_exact() {
-    edge("edge-2v2-domino-exact", 0, Phase::Finished);
+    edge("edge-2v2-domino-exact", 0, Phase::Finished, domino);
 }
 
 #[test]
 fn edge_2v2_capicua_one_short() {
-    edge("edge-2v2-capicua-one-short", 1, Phase::RoundOver);
+    edge(
+        "edge-2v2-capicua-one-short",
+        1,
+        Phase::RoundOver,
+        capicua_event,
+    );
 }
 
 #[test]
 fn edge_2v2_capicua_exact() {
-    edge("edge-2v2-capicua-exact", 0, Phase::Finished);
+    edge("edge-2v2-capicua-exact", 0, Phase::Finished, capicua_event);
 }
 
 #[test]
-fn edge_2v2_tranque_one_short() {
-    edge("edge-2v2-tranque-one-short", 1, Phase::RoundOver);
+fn edge_2v2_tranque_blocker_one_short() {
+    edge(
+        "edge-2v2-tranque-blocker-one-short",
+        1,
+        Phase::RoundOver,
+        blocker_wins,
+    );
 }
 
 #[test]
-fn edge_2v2_tranque_exact() {
-    edge("edge-2v2-tranque-exact", 0, Phase::Finished);
+fn edge_2v2_tranque_blocker_exact() {
+    edge(
+        "edge-2v2-tranque-blocker-exact",
+        0,
+        Phase::Finished,
+        blocker_wins,
+    );
+}
+
+#[test]
+fn edge_2v2_tranque_rival_one_short() {
+    edge(
+        "edge-2v2-tranque-rival-one-short",
+        1,
+        Phase::RoundOver,
+        rival_wins,
+    );
+}
+
+#[test]
+fn edge_2v2_tranque_rival_exact() {
+    edge(
+        "edge-2v2-tranque-rival-exact",
+        0,
+        Phase::Finished,
+        rival_wins,
+    );
+}
+
+#[test]
+fn edge_2v2_tranque_tie_one_short() {
+    edge(
+        "edge-2v2-tranque-tie-one-short",
+        1,
+        Phase::RoundOver,
+        tie_to_opener,
+    );
+}
+
+#[test]
+fn edge_2v2_tranque_tie_exact() {
+    edge(
+        "edge-2v2-tranque-tie-exact",
+        0,
+        Phase::Finished,
+        tie_to_opener,
+    );
 }
 
 #[test]

@@ -99,19 +99,26 @@ for (const is2v2 of [true, false]) {
     for (let d = 1; d <= 9; d++) query(`${mode}-${seed}-d${d}`, start, state, [], d);
 
     // A late position: random canonical moves until few tiles remain, then
-    // every line to the end of the round.
+    // every line to the end of the round. A walk whose round ends first is
+    // retried from the start with the same rng stream, so every deal gets one.
     const rng = mulberry32(seed ^ 0x9e3779b9);
-    let s = state;
-    const path = [];
     const held = (x) => seatsOf(is2v2).reduce((n, seat) => n + x.hands[seat].length, 0);
-    while (s.phase === "playing" && (held(s) > (is2v2 ? 16 : 12) || s.boneyard.length > 4)) {
-      const moves = [...canonicalMoves(s)];
-      const [key, intent] = moves[Math.floor(rng() * moves.length)];
-      const r = capi.applyMove(s, s.currentTurn, intent);
-      path.push(key);
-      s = r.newState;
+    const early = (x) => held(x) > (is2v2 ? 16 : 12) || x.boneyard.length > 4;
+    for (let attempt = 0; ; attempt++) {
+      if (attempt === 1000) throw new Error(`${mode}-${seed}: no walk reached a late position`);
+      let s = state;
+      const path = [];
+      while (s.phase === "playing" && early(s)) {
+        const moves = [...canonicalMoves(s)];
+        const [key, intent] = moves[Math.floor(rng() * moves.length)];
+        s = capi.applyMove(s, s.currentTurn, intent).newState;
+        path.push(key);
+      }
+      if (s.phase === "playing") {
+        query(`${mode}-${seed}-late`, start, s, path, INF);
+        break;
+      }
     }
-    if (s.phase === "playing") query(`${mode}-${seed}-late`, start, s, path, INF);
   }
 }
 

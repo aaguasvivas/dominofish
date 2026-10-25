@@ -13,9 +13,10 @@ f = [f for f in json.load(open("docs/features.json")) if f["id"] == sys.argv[1]]
 print(f[0]["verify"] if f else "")' "$id")
 [ -n "$cmd" ] || { echo "ERROR unknown feature $id"; exit 1; }
 mkdir -p runs
-out=$(bash -c "$cmd" 2>&1 | tee "runs/verify-$id.log")
-code=${PIPESTATUS[0]}
-last=$(printf '%s\n' "$out" | tail -1)
+bash -c "$cmd" > "runs/verify-$id.log" 2>&1
+code=$?
+cat "runs/verify-$id.log"
+last=$(tail -1 "runs/verify-$id.log")
 if [ "$code" -ne 0 ]; then
   echo "ERROR $id verify exited $code: $last (details in runs/verify-$id.log)"
   exit 1

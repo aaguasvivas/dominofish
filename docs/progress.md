@@ -4,7 +4,7 @@
 
 - Milestone: M1 (rules parity); M0 passed 2026-10-25
 - Feature in progress: M1-99
-- Last green commit: 2466844 (M0-99)
+- Last green commit: ba6b748 (M1-10)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
 - Open questions: Q1 to Q4 in docs/PLAN.md, Decision log (sent 2026-10-25, unanswered)
@@ -42,4 +42,11 @@
 - Two test bugs found and fixed before the pass: the mirror of a move must always swap the end (a lead's orientation and equal ends included), and complete-line counts in 1v1 need a nearly empty boneyard (with 14 tiles left the tree ran for over 10 minutes).
 - M1-09 passed: crates/dominofish-core/tests/alloc.rs, a counting global allocator in a test target without the harness. Verify: M1-09: PASS alloc: games 2000 plies 262167 moves played and undone 541185 perft lines 37330 allocations 0 (hash check true) (target 0 allocations). Negative control: one Box in State::play gives 865,634 allocations and exit 1.
 - M1-10 passed: core/src/bench.rs, the dominofish-wasm cdylib (one extern C export), dominofish playout-bench, tools/wasm-bench.mjs. Verify at de3109a: checksums equal native and wasm in both modes; baseline in docs/eval/results/2026-10-25-playout-bench.md (1v1 about 1.43M native and 1.18M wasm rounds/s, 2v2 about 1.29M native and 0.93M to 1.05M wasm, load 13.94). Not a gate; rerun idle before comparing speeds.
-- Next: M1-99 (the M1 exit and the fresh-subagent milestone review).
+- M1 milestone review (2026-10-25, one fresh subagent, at ba6b748): no gap in rules fidelity (rules.rs against reducer.ts, validate.ts, and scoring.ts on reachable states), and none in core correctness or measurement validity apart from item 1. Five gaps, all fixed:
+  1. scripts/mark-pass.sh read tee's exit code (PIPESTATUS after an assignment), so it would have marked a feature whose verify failed. Every recorded evidence line reads PASS and every verify script prints PASS only when it exits 0, so no recorded pass is affected; the claim in the M1-01 entry above and in the message of commit fdcbeda was false until this fix. Fixed to use the verify's own exit code. Negative control: scripts/mark-pass.sh M1-99, with this review not yet recorded, exited 1 and left features.json unchanged.
+  2. Edge tests weaker than Capi's: flow.endgame.test.ts:547 has five ending kinds with the other side at target - 1, and :574 a plain move at 1 short. edges.mjs now builds domino, capicua, tranque won by the blocker, by the rival, and on a tie, per mode, with the other side at target - 1 (20 scenarios), and bonuses paid at 26 short and plain at 25 and 1 short at targets 100 and 200 (12 scenarios); seeded_games_produce_every_ending replays the golden traces of both modes and asserts that 1v1 pays no bonus. Now 87 scenarios and 91 tests.
+  3. Perft complete-line counts covered 14 of 20 deals. The walk now retries until each deal reaches a late position, and M1-06.sh requires, per mode, 10 deals at depth 9 and 10 complete-line queries.
+  4. M1-04.sh checked file names only. It now counts the G lines per file by mode and target (150 each), checks the four whole-suit seeds at both targets, and measures all of fixtures/ (9,432 KB).
+  5. Docs: RULES.md L7 reworded (the salida guards are plain conditions, not debug assertions); the top block's last green commit; PLAN.md lists dominofish-wasm.
+- One gap found after the review: BUILD.md M1d says legal-intent sets, but the fuzzer compared only canonical sets, so Rust accepting an intent Capi rejects went unseen (a mutation that allows a 1v1 pass with tiles in the boneyard passed the old fuzzer, because the generator offers a draw there). The stream now also carries Capi's raw accepted set mapped to moves, compared with every move Rust's is_legal accepts; the same mutation gives 1,913 mismatches in 2,000 rounds. M1-04 to M1-07 are re-marked on the fixed scripts and data.
+- Next: M1-99 (the M1 exit).
