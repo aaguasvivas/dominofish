@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-04
+- Feature in progress: M2-05
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -59,4 +59,6 @@
 - M2-03 passed: core/src/worlds.rs (Worlds, Holder), tests/worlds.rs, PLAN.md D11. Verify: M2-03: PASS deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example holds in all 2212848 worlds; leads: 399072960, 133024320, 116280, and C(20 - h, 6) after a d-d opening (d = 6, 5, 4) reproduced; oracle: 1v1 positions 150 (133 after a draw of the other seat, 150 constrained) worlds 1967; 2v2 positions 150 (87 constrained) worlds 38852; counts equal the brute force; truth: decisions 9873, the true world allowed at each.
 - Negative controls: applying a draw's void to batches acquired later, applying events after a tile was played, and dropping the round-1 exclusions each fail two of the four tests.
 - Known limit, recorded in D11 for the M4 sampler: a 1v1 round-1 no-double opening by the other seat weights worlds by hand order (1/m), which the count does not.
-- Next: M2-04 (baseline bots).
+- M2-04 passed: core/src/bots.rs, InfoSet::legal_moves and ends_after, referee::play_bots, tests/bots.rs, PLAN.md D12. Verify: M2-04: PASS criteria: decisions checked random 8527 heaviest 12711 accompanied 8977 rule (forcing plays) 456;games: 200 full games of every pairing in both modes at 100 and 200, 38507 moves, all legal, each replayed identically;legal: decisions 15332 with InfoSet moves equal to the referee's
+- Commit 2c11b62 failed check.sh (clippy: an item after the test module) and its message says "mark passing" although nothing was marked: the commit line of that step was not gated on check.sh. ce5d490 fixed it; M2-04 was marked after.
+- Next: M2-05 (never-peeks for every bot).

@@ -327,8 +327,12 @@
   "requires": [
    "M2-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-04: PASS criteria: decisions checked random 8527 heaviest 12711 accompanied 8977 rule (forcing plays) 456;games: 200 full games of every pairing in both modes at 100 and 200, 38507 moves, all legal, each replayed identically;legal: decisions 15332 with InfoSet moves equal to the referee's",
+   "log": null
+  }
  },
  {
   "id": "M2-05",
