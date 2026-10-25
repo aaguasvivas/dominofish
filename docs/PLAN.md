@@ -141,3 +141,4 @@ Questions sent to the owner on 2026-10-25 (answers go here word for word, dated)
 - Q2. Which license?
 - Q3. May long runs use more than 4 threads while I am away, and in which hours?
 - Q4. Should a Stop hook or /goal condition enforce scripts/check.sh?
+- Q5 (added 2026-10-25 during M2). May a local git pre-commit hook (.git/hooks/pre-commit, not versioned) run scripts/check.sh before each commit? Two commits this session failed check.sh (31443cd, 2c11b62) because the commit was not gated on it.

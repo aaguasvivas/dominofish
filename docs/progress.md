@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M2 (information sets, baselines, match harness); M0 and M1 passed 2026-10-25
-- Feature in progress: M2-05
+- Feature in progress: M2-06
 - Last green commit: 877995c (M1-99 review fixes)
 - Last Bench: none (Bench starts at M3)
 - Running jobs: none
@@ -61,4 +61,7 @@
 - Known limit, recorded in D11 for the M4 sampler: a 1v1 round-1 no-double opening by the other seat weights worlds by hand order (1/m), which the count does not.
 - M2-04 passed: core/src/bots.rs, InfoSet::legal_moves and ends_after, referee::play_bots, tests/bots.rs, PLAN.md D12. Verify: M2-04: PASS criteria: decisions checked random 8527 heaviest 12711 accompanied 8977 rule (forcing plays) 456;games: 200 full games of every pairing in both modes at 100 and 200, 38507 moves, all legal, each replayed identically;legal: decisions 15332 with InfoSet moves equal to the referee's
 - Commit 2c11b62 failed check.sh (clippy: an item after the test module) and its message says "mark passing" although nothing was marked: the commit line of that step was not gated on check.sh. ce5d490 fixed it; M2-04 was marked after.
-- Next: M2-05 (never-peeks for every bot).
+- M2-05 passed: InfoSet::to_text and from_text, tests/never_peeks.rs, docs/FORMATS.md (InfoSet text). Verify: M2-05: PASS InfoSet texts 11380 round-trip; rearranged worlds with an identical public record in games of random 4715 heaviest 6379 accompanied 5352 rule 4352; byte-identical InfoSets and the same decision of every bot at a fixed seed
+- The first version of the test kept rearrangements that moved round 1's automatic tile (its view left out the opening); with the opening in the public view it passes. Negative control: one leaked hidden bit fails it.
+- Question for the batch: may I add a local git pre-commit hook (.git/hooks/pre-commit, not versioned) that runs scripts/check.sh? Two commits this session failed check.sh because a commit was not gated on it (31443cd, 2c11b62).
+- Next: M2-06 (match harness).

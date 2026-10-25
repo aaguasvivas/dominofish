@@ -343,8 +343,12 @@
   "requires": [
    "M2-04"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M2-05: PASS InfoSet texts 11380 round-trip; rearranged worlds with an identical public record in games of random 4715 heaviest 6379 accompanied 5352 rule 4352; byte-identical InfoSets and the same decision of every bot at a fixed seed",
+   "log": null
+  }
  },
  {
   "id": "M2-06",
