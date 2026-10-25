@@ -90,3 +90,66 @@ mod tests {
         assert_eq!(referee.state().board.count_ones(), 2);
     }
 }
+
+/// Plays one game of bots in process (`bots[seat]`), giving each bot only
+/// the InfoSet this referee builds for its seat from the record so far.
+/// Round r deals with derive(deal_seed, r); a seat's bot draws its
+/// tie-breaks from derive(derive(deal_seed, r), 100 + seat), keyed by the
+/// deal and the seat, so the same bot in the same seat of the same deal
+/// makes the same choices.
+pub fn play_bots(
+    mode: crate::rules::Mode,
+    target: u16,
+    bots: [crate::bots::Bot; 4],
+    deal_seed: u64,
+) -> crate::record::GameRecord {
+    use crate::infoset::InfoSet;
+    use crate::record::{GameRecord, RoundRecord};
+    use crate::rng::{Rng, derive};
+
+    let deal_for = |r: u64| Deal::shuffled(&mut Rng::new(derive(deal_seed, r)));
+    let rngs_for = |r: u64| {
+        core::array::from_fn::<Rng, 4, _>(|s| {
+            Rng::new(derive(derive(deal_seed, r), 100 + s as u64))
+        })
+    };
+    let mut record = GameRecord {
+        mode,
+        target,
+        rounds: vec![RoundRecord {
+            deal: deal_for(0),
+            moves: vec![],
+        }],
+    };
+    let (mut state, _) = State::first_round(mode, target, &record.rounds[0].deal);
+    let mut rngs = rngs_for(0);
+    loop {
+        match state.phase {
+            Phase::Finished => return record,
+            Phase::RoundOver => {
+                let r = record.rounds.len();
+                let deal = deal_for(r as u64);
+                state = state.next_round(&deal);
+                record.rounds.push(RoundRecord {
+                    deal,
+                    moves: vec![],
+                });
+                rngs = rngs_for(r as u64);
+            }
+            Phase::Playing => {
+                let r = record.rounds.len() - 1;
+                let seat = state.turn;
+                let ply = record.rounds[r].moves.len();
+                let info = InfoSet::new(&record, r, ply, seat).expect("the record so far is valid");
+                let mv = bots[seat as usize].decide(&info, &mut rngs[seat as usize]);
+                assert!(
+                    state.is_legal(mv),
+                    "{:?} chose an illegal move {mv:?}",
+                    bots[seat as usize]
+                );
+                state.play(mv);
+                record.rounds[r].moves.push(mv);
+            }
+        }
+    }
+}

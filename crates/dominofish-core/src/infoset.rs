@@ -229,3 +229,60 @@ fn opening_exclusions(opener: u8, tile: Tile) -> [u32; 4] {
     }
     out
 }
+
+impl InfoSet {
+    /// The seat's canonical legal moves when it is on turn, from its own hand
+    /// and the public facts alone (the same set as State::legal_moves).
+    pub fn legal_moves(&self, out: &mut crate::rules::MoveList) {
+        out.clear();
+        if self.phase != Phase::Playing || self.turn != self.seat {
+            return;
+        }
+        if self.board == 0 {
+            for tile in tiles(self.hand) {
+                out.push(Move::Play {
+                    tile,
+                    end: End::Left,
+                });
+            }
+            return;
+        }
+        let fit_left = self.hand & crate::tile::SUIT[self.left as usize];
+        let fit_right = if self.left == self.right {
+            0
+        } else {
+            self.hand & crate::tile::SUIT[self.right as usize]
+        };
+        for tile in tiles(fit_left | fit_right) {
+            if fit_left & tile.bit() != 0 {
+                out.push(Move::Play {
+                    tile,
+                    end: End::Left,
+                });
+            }
+            if fit_right & tile.bit() != 0 {
+                out.push(Move::Play {
+                    tile,
+                    end: End::Right,
+                });
+            }
+        }
+        if out.is_empty() {
+            out.push(if self.boneyard_count > 0 {
+                Move::Draw
+            } else {
+                Move::Pass
+            });
+        }
+    }
+
+    /// The ends after `mv`, a play of this seat.
+    pub fn ends_after(&self, tile: Tile, end: End) -> (u8, u8) {
+        match (self.board == 0, end) {
+            (true, End::Left) => (tile.low(), tile.high()),
+            (true, End::Right) => (tile.high(), tile.low()),
+            (false, End::Left) => (tile.other(self.left), self.right),
+            (false, End::Right) => (self.left, tile.other(self.right)),
+        }
+    }
+}

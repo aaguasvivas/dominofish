@@ -169,9 +169,13 @@ impl MoveList {
         }
     }
 
-    fn push(&mut self, mv: Move) {
+    pub fn push(&mut self, mv: Move) {
         self.moves[self.len as usize] = mv;
         self.len += 1;
+    }
+
+    pub fn clear(&mut self) {
+        self.len = 0;
     }
 
     pub fn as_slice(&self) -> &[Move] {
