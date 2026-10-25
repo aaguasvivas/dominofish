@@ -89,8 +89,12 @@
   "requires": [
    "M0-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M1-01: PASS R1-R28 and L1-L9 present; 76 cites, 76 anchors found in range at 1d8868a; 36 rule paths (14 from Capi's fuzz)",
+   "log": null
+  }
  },
  {
   "id": "M1-02",
