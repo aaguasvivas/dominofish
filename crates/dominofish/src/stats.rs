@@ -51,6 +51,9 @@ pub struct Sprt {
     n: usize,
     sum: f64,
     sumsq: f64,
+    /// The first decision and the pair count at which it came, kept when a
+    /// run plays on past it (a fixed-size table run).
+    first: Option<(Decision, usize)>,
 }
 
 impl Sprt {
@@ -65,6 +68,7 @@ impl Sprt {
             n: 0,
             sum: 0.0,
             sumsq: 0.0,
+            first: None,
         }
     }
 
@@ -72,6 +76,14 @@ impl Sprt {
         self.n += 1;
         self.sum += x;
         self.sumsq += x * x;
+        if self.first.is_none() {
+            self.first = self.decision().map(|d| (d, self.n));
+        }
+    }
+
+    /// The sequential test's outcome: its first decision, if any.
+    pub fn first_decision(&self) -> Option<(Decision, usize)> {
+        self.first
     }
 
     pub fn n(&self) -> usize {

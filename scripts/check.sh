@@ -27,6 +27,7 @@ step rustfmt cargo fmt --all --check
 step clippy cargo clippy --workspace --all-targets -- -D warnings
 step tests env RUST_TEST_THREADS=4 cargo test --workspace
 step wasm32 cargo build -p dominofish-core --target wasm32-unknown-unknown
+step report cargo run -q -p dominofish -- report --check
 
 if grep -rIn "$(printf '\342\200\224')" --exclude-dir=target --exclude-dir=.git --exclude-dir=runs .; then
   echo "ERROR em dash found"

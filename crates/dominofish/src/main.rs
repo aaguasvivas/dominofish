@@ -3,6 +3,7 @@
 mod capi_fuzz;
 mod engine;
 mod harness;
+mod report;
 mod stats;
 
 use std::fmt::Write as _;
@@ -17,7 +18,8 @@ const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--targe
        dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
        dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N
        dominofish engine --bot random|heaviest|accompanied|rule [--salt N]
-       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --a CMD --b CMD --out FILE [--timeout-ms N]";
+       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --a CMD --b CMD --out FILE [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
+       dominofish report [--results DIR] [--out FILE] [--check]";
 
 fn main() -> ExitCode {
     match run() {
@@ -110,6 +112,7 @@ fn run() -> Result<(String, bool), String> {
                 (None, None, None, None, None);
             let (mut a, mut b, mut out, mut timeout_ms) = (None, None, None, 10_000u64);
             let mut sprt: Option<stats::Sprt> = None;
+            let mut track = false;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
@@ -127,6 +130,7 @@ fn run() -> Result<(String, bool), String> {
                     Long("b") => b = Some(harness::Side::new(&value(&mut parser)?)?),
                     Long("out") => out = Some(value(&mut parser)?),
                     Long("timeout-ms") => timeout_ms = parse_num(&value(&mut parser)?)?,
+                    Long("sprt-track") => track = true,
                     Long("sprt") => {
                         let v = value(&mut parser)?;
                         let (h0, h1) = v.split_once(',').ok_or("--sprt takes mu0,mu1")?;
@@ -155,14 +159,35 @@ fn run() -> Result<(String, bool), String> {
             };
             let out = out.ok_or("--out is required")?;
             // The SPRT runs on each pair's margin and stops the match at a
-            // decision; --pairs is then the maximum.
+            // decision; --pairs is then the maximum. With --sprt-track the
+            // match plays every pair and the outcome is the first decision.
             let report = harness::run(&spec, &mut |pair| {
                 sprt.as_mut().is_some_and(|t| {
                     t.push(f64::from(pair.margin()));
-                    t.decision().is_some()
+                    !track && t.decision().is_some()
                 })
             });
             Ok(write_match(&spec, &report, sprt.as_ref(), &out)?)
+        }
+        "report" => {
+            let (mut results, mut out, mut check) = (
+                "docs/eval/results".to_string(),
+                "docs/eval/REPORT.md".to_string(),
+                false,
+            );
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("results") => results = value(&mut parser)?,
+                    Long("out") => out = value(&mut parser)?,
+                    Long("check") => check = true,
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            Ok(report::run(
+                std::path::Path::new(&results),
+                std::path::Path::new(&out),
+                check,
+            )?)
         }
         "capi-fuzz" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -394,20 +419,20 @@ fn write_match(
     }
     if let Some(t) = sprt {
         let (lower, upper) = t.bounds();
-        let outcome = match t.decision() {
-            Some(stats::Decision::H0) => "H0",
-            Some(stats::Decision::H1) => "H1",
-            None => "inconclusive",
+        let (outcome, at) = match t.first_decision() {
+            Some((stats::Decision::H0, n)) => ("H0", n),
+            Some((stats::Decision::H1, n)) => ("H1", n),
+            None => ("inconclusive", t.n()),
         };
         let _ = write!(
             lines,
-            "; sprt on the pair margin, H0 {} H1 {}, alpha 0.05 beta 0.05: {outcome} after {} pairs, llr {:.3} in [{:.3}, {:.3}]",
+            "; sprt on the pair margin, H0 {} H1 {}, alpha 0.05 beta 0.05: {outcome} after {at} pairs, llr {:.3} in [{:.3}, {:.3}] after {} pairs",
             t.mu0,
             t.mu1,
-            t.n(),
             t.llr(),
             lower,
-            upper
+            upper,
+            t.n()
         );
     }
     let _ = writeln!(text, "# summary {lines}");
