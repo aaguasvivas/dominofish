@@ -3,7 +3,10 @@
 //! Positions: every position of the first two rounds of seeded random games
 //! in each mode, the second round led on an empty board. Near-target
 //! variants put the same position under scores where a later bonus pays or
-//! not (R25). The light test runs in every cargo test; the full check is
+//! not (R25); salida variants do it at 27 tiles left in 2v2, where a pase
+//! de salida can pay. The solver keeps one table per round across every
+//! position and variant, as the omniscient bot does, so a key that dropped
+//! or miscounted the score state would reuse a wrong entry and fail here. The light test runs in every cargo test; the full check is
 //! ignored by default and run by scripts/verify/M3-01.sh in release mode,
 //! with SOLVER_GAMES games per mode.
 
@@ -27,8 +30,11 @@ const VARIANTS: [(u16, [u16; 2]); 7] = [
     (200, [150, 199]),
 ];
 
-/// Every position of the first two rounds of game `seed`.
-fn positions(mode: Mode, seed: u64) -> Vec<State> {
+/// Salida variants: 74 + 25 < 100 pays the pase de salida, 75 does not.
+const SALIDA_VARIANTS: [(u16, [u16; 2]); 3] = [(100, [74, 74]), (100, [75, 75]), (100, [74, 75])];
+
+/// Every position of the first two rounds of game `seed`, with its round.
+fn positions(mode: Mode, seed: u64) -> Vec<(u32, State)> {
     let mut rng = Rng::new(seed);
     let mut moves = MoveList::new();
     let (mut state, _) = State::first_round(mode, 100, &Deal::shuffled(&mut rng));
@@ -43,7 +49,7 @@ fn positions(mode: Mode, seed: u64) -> Vec<State> {
                 rounds += 1;
             }
             Phase::Playing => {
-                out.push(state);
+                out.push((rounds, state));
                 state.legal_moves(&mut moves);
                 let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
                 state.play(mv);
@@ -67,6 +73,8 @@ struct Tally {
     variants: u64,
     /// Variants where naive minimax did not finish.
     variants_beyond: u64,
+    /// Salida variants at 27 tiles left (2v2).
+    salida: u64,
     deeper: u64,
     mismatches: Vec<String>,
 }
@@ -93,14 +101,21 @@ impl Tally {
 fn check(state: &State, table: &mut Table, variant_left: u32, tally: &mut Tally, tag: &str) {
     let left = tiles_left(state);
     let mut cases = vec![*state];
+    let salida = state.mode == Mode::TwoVsTwo && left >= 27;
     if left <= variant_left {
         cases.extend(VARIANTS.iter().map(|&(t, s)| with_scores(state, t, s)));
+    } else if salida {
+        cases.extend(
+            SALIDA_VARIANTS
+                .iter()
+                .map(|&(t, s)| with_scores(state, t, s)),
+        );
     }
     for (i, case) in cases.iter().enumerate() {
         let mut s = *case;
         let mut n = 0;
         let naive = solver::minimax(&mut s, NAIVE_CAP, &mut n);
-        table.clear();
+        // The table stays warm across the round (the caller clears it).
         let on = solver::solve(&mut s, Some(table), NO_CAP);
         let off = solver::solve(&mut s, None, NO_CAP);
         assert_eq!(s, *case, "the solver must leave the state unchanged");
@@ -108,12 +123,14 @@ fn check(state: &State, table: &mut Table, variant_left: u32, tally: &mut Tally,
             let e = tally.by_left.entry(left).or_default();
             e.0 += 1;
             e.1 += u64::from(naive.is_some());
+        } else if salida {
+            tally.salida += 1;
         } else {
             tally.variants += 1;
         }
         if naive.is_none() {
             tally.deeper += 1;
-            tally.variants_beyond += u64::from(i > 0);
+            tally.variants_beyond += u64::from(i > 0 && !salida);
         } else if i == 0 {
             tally.naive += 1;
         }
@@ -135,7 +152,12 @@ fn run(games: u64, max_left: u32, variant_left: u32) -> [(Mode, Tally); 2] {
         let mut tally = Tally::default();
         for g in 0..games {
             let seed = 30_000 + g;
-            for state in positions(mode, seed) {
+            let mut round = 0;
+            for (r, state) in positions(mode, seed) {
+                if r != round {
+                    table.clear();
+                    round = r;
+                }
                 if tiles_left(&state) <= max_left {
                     check(
                         &state,
@@ -175,13 +197,14 @@ fn solver_equals_naive_minimax_and_table_off() {
     let mut mismatches = Vec::new();
     for (mode, tally) in run(games, 28, 18) {
         line.push_str(&format!(
-            " [{} games {games}: naive positions {} (finished at every position from {} to {} tiles left), near-target variants {} ({} beyond naive), deeper positions table on and off {}, mismatches {}]",
+            " [{} games {games}: naive positions {} (finished at every position from {} to {} tiles left), near-target variants {} ({} beyond naive), salida variants at 27 tiles left {}, deeper positions table on and off {}, warm table per round, mismatches {}]",
             if mode == Mode::OneVsOne { "1v1" } else { "2v2" },
             tally.naive,
             tally.naive_range().0,
             tally.naive_range().1,
             tally.variants,
             tally.variants_beyond,
+            tally.salida,
             tally.deeper,
             tally.mismatches.len()
         ));
@@ -201,7 +224,7 @@ fn solver_equals_naive_minimax_and_table_off() {
 fn the_capped_fallback_plays_a_legal_greedy_move() {
     let mut checked = 0;
     for mode in [Mode::TwoVsTwo, Mode::OneVsOne] {
-        for state in positions(mode, 40_000).into_iter().take(12) {
+        for (_, state) in positions(mode, 40_000).into_iter().take(12) {
             let mut s = state;
             let sol = solver::solve(&mut s, None, 5);
             assert_eq!(s, state);
