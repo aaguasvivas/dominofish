@@ -362,8 +362,8 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
-   "result": "M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/dcc99b0/dominofish, 18032 moves, illegal 0, crashes 0, timeouts 0, header echoed with each side's settings and no seed; engine seeds equal under two deal seed bases; identical bots 0 in every duplicate pair (4 configurations); 14 of 14 fault matches (7 engines, both modes) stopped with their fault; target/ refused",
+   "date": "2026-10-26",
+   "result": "M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/c6dc485/dominofish, 18032 moves, illegal 0, crashes 0, timeouts 0, header echoed with each side's settings and no seed; engine seeds equal under two deal seed bases; identical bots 0 in every duplicate pair (4 configurations); 14 of 14 fault matches (7 engines, both modes) stopped with their fault; target/ refused",
    "log": null
   }
  },
@@ -378,7 +378,7 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
+   "date": "2026-10-26",
    "result": "M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.39, H1 5.24): false H1 0.0488, false H0 0.0495; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported",
    "log": null
   }
@@ -412,8 +412,8 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
-   "result": "M2-09: PASS REPORT.md current with 72 rows for 72 result files, every claim-format field present; README.md has the three decided lines, its sections, and 6 numbers found in REPORT.md; readme-fast: PASS 4 rows reproduce docs/eval/results/2026-10-25-baselines-r2-fast.txt; no license, publish = false",
+   "date": "2026-10-26",
+   "result": "M2-09: PASS REPORT.md current with 88 rows for 88 result files, every claim-format field present; README.md has the three decided lines, its sections, and 13 numbers found in REPORT.md; readme-fast: PASS 8 rows reproduce docs/eval/results/2026-10-25-baselines-r2-fast.txt and docs/eval/results/2026-10-25-omniscient-r3-fast.txt; no license, publish = false",
    "log": null
   }
  },
@@ -560,8 +560,8 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
-   "result": "M3-01: PASS [2v2 games 30: naive positions 1486 (finished at every position from 4 to 26 tiles left), near-target variants 6503 (0 beyond naive), deeper positions table on and off 36, mismatches 0] [1v1 games 30: naive positions 1226 (finished at every position from 2 to 20 tiles left), near-target variants 4802 (0 beyond naive), deeper positions table on and off 80, mismatches 0]; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; games 2000 plies 262167 moves played and undone 541185 perft lines 37330 solver nodes 2675209 (capped solves 7193) allocations 0 (hash check true)",
+   "date": "2026-10-26",
+   "result": "M3-01: PASS [2v2 games 30: naive positions 1486 (finished at every position from 4 to 26 tiles left), near-target variants 6503 (0 beyond naive), salida variants at 27 tiles left 273, deeper positions table on and off 144, warm table per round, mismatches 0] [1v1 games 30: naive positions 1226 (finished at every position from 2 to 20 tiles left), near-target variants 4802 (0 beyond naive), salida variants at 27 tiles left 0, deeper positions table on and off 80, warm table per round, mismatches 0]; negative control: a key without the score state gives 92 mismatches; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; games 2000 plies 262167 moves played and undone 541185 perft lines 37330 solver nodes 2675209 (capped solves 7193) allocations 0 (hash check true)",
    "log": null
   }
  },
@@ -592,8 +592,8 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
-   "result": "M3-03: PASS mode 2v2 solves 25159 capped 0 (0.00%); round starts (27 or 28 tiles left) 1582, capped 0 (0.00%); wall 48.6 s; mode 1v1 solves 44081 capped 0 (0.00%); round starts (27 or 28 tiles left) 3176, capped 0 (0.00%); wall 16.2 s; slowest 1v1 solve 158.525 ms; record docs/eval/results/2026-10-25-solve-stats.md",
+   "date": "2026-10-26",
+   "result": "M3-03: PASS mode 2v2 solves 25159 capped 0 (0.00%); round starts (the first position of each round) 996, capped 0 (0.00%); wall 59.7 s; mode 1v1 solves 44081 capped 0 (0.00%); round starts (the first position of each round) 2000, capped 0 (0.00%); wall 18.4 s; node counts identical on two runs per mode; slowest 1v1 solve 471.69 ms and 324.94 ms; record docs/eval/results/2026-10-25-solve-stats.md",
    "log": null
   }
  },
@@ -608,7 +608,7 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
+   "date": "2026-10-26",
    "result": "M3-04: PASS 16 matches of the omniscient bot against every baseline (1v1 and 2v2, rounds and games), 6967 moves, illegal 0, crashes 0, timeouts 0; header view=omniscient with Bench: 6121081; state lines: omniscient 68 for 68 moves, baseline 0 for 69 moves; report marks it cheating",
    "log": null
   }
@@ -625,7 +625,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M3-05: PASS R3: the omniscient bot (cheating upper bound) accepts H1 against every baseline in 16 of 16 rows (1v1 and 2v2, rounds and games to 100), 260 pairs, no fault; REPORT.md current",
+   "result": "M3-05: PASS R3 as registered: the omniscient bot (cheating upper bound) accepts H1 against every baseline in 16 of 16 rows (1v1 and 2v2, rounds and games to 100), 260 pairs, seeds, bounds, maximums, and commit as registered, no fault; replayed with runs/bin/c6dc485/dominofish: every pair line equal, 0 capped omniscient solves; REPORT.md current",
    "log": null
   }
  },
