@@ -3,7 +3,9 @@
 mod capi_fuzz;
 mod engine;
 mod harness;
+mod help;
 mod report;
+mod selfplay;
 mod stats;
 
 use std::fmt::Write as _;
@@ -11,17 +13,35 @@ use std::process::ExitCode;
 
 use lexopt::ValueExt;
 
-use dominofish_core::rng::{Rng, derive};
-use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, State};
-
-const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
-       dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
-       dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N
-       dominofish engine --bot random|heaviest|accompanied|rule [--salt N]
-       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
-       dominofish report [--results DIR] [--out FILE] [--check]";
+use dominofish_core::rules::Mode;
 
 fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let first = args.first().map(String::as_str);
+    match first {
+        None => {
+            eprint!("{}", help::overview());
+            return ExitCode::from(2);
+        }
+        Some("help" | "--help" | "-h") => {
+            match args.get(1).and_then(|c| help::find(c)) {
+                Some(c) => print!("{}", help::command(c)),
+                None => print!("{}", help::overview()),
+            }
+            return ExitCode::SUCCESS;
+        }
+        Some("version" | "--version" | "-V") => {
+            println!("DominoFish {}", env!("CARGO_PKG_VERSION"));
+            return ExitCode::SUCCESS;
+        }
+        Some(cmd) if args.iter().any(|a| a == "--help" || a == "-h") => {
+            if let Some(c) = help::find(cmd) {
+                print!("{}", help::command(c));
+                return ExitCode::SUCCESS;
+            }
+        }
+        _ => {}
+    }
     match run() {
         Ok((out, passed)) => {
             print!("{out}");
@@ -33,7 +53,13 @@ fn main() -> ExitCode {
         }
         Err(e) => {
             eprintln!("ERROR {e}");
-            eprintln!("{USAGE}");
+            match first.and_then(help::find) {
+                Some(c) => eprintln!(
+                    "\nUsage: {}\nRun \"dominofish {} --help\" for its options.",
+                    c.usage, c.name
+                ),
+                None => eprint!("\n{}", help::overview()),
+            }
             ExitCode::from(2)
         }
     }
@@ -60,7 +86,7 @@ fn run() -> Result<(String, bool), String> {
             }
             let mode = mode.ok_or("--mode is required")?;
             let seed = seed.ok_or("--seed is required")?;
-            Ok((selfplay(mode, seed, target), true))
+            Ok((selfplay::run(mode, seed, target), true))
         }
         "playout-bench" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -248,132 +274,11 @@ fn parse_target(s: &str) -> Result<u16, String> {
     }
 }
 
-/// Plays one game of uniformly random canonical legal moves and returns the
-/// move log. Round r's deal uses the stream derive(seed, r); moves use
-/// derive(seed, 0).
-fn selfplay(mode: Mode, seed: u64, target: u16) -> String {
-    let mut out = String::new();
-    let _ = writeln!(
-        out,
-        "selfplay mode {} seed {seed} target {target}",
-        mode_name(mode)
-    );
-    let mut moves_rng = Rng::new(derive(seed, 0));
-    let mut round = 1u64;
-    let deal = Deal::shuffled(&mut Rng::new(derive(seed, round)));
-    write_deal(&mut out, mode, round, &deal);
-    let (mut state, opening) = State::first_round(mode, target, &deal);
-    let _ = writeln!(out, "{} auto {opening}", mode.seat_name(state.starter));
-    let mut moves = MoveList::new();
-    let mut count = 0u32;
-    loop {
-        match state.phase {
-            Phase::Finished => break,
-            Phase::RoundOver => {
-                round += 1;
-                let deal = Deal::shuffled(&mut Rng::new(derive(seed, round)));
-                write_deal(&mut out, mode, round, &deal);
-                state = state.next_round(&deal);
-                let _ = writeln!(out, "{} leads", mode.seat_name(state.starter));
-            }
-            Phase::Playing => {
-                state.legal_moves(&mut moves);
-                let mv = moves.as_slice()[moves_rng.below(moves.len() as u32) as usize];
-                let seat = state.turn;
-                let pile_before = state.boneyard().len();
-                let event = state.play(mv).event;
-                count += 1;
-                let mut line = format!("{} ", mode.seat_name(seat));
-                match mv {
-                    Move::Play { tile, end } => {
-                        let side = match end {
-                            End::Left => "left",
-                            End::Right => "right",
-                        };
-                        let _ = write!(line, "play {tile} {side}");
-                    }
-                    Move::Draw => {
-                        let _ = write!(line, "draw {}", pile_before - state.boneyard().len());
-                    }
-                    Move::Pass => line.push_str("pass"),
-                }
-                if let Some(e) = event {
-                    line.push_str(" | ");
-                    write_event(&mut line, mode, &e);
-                    let _ = write!(
-                        line,
-                        " | scores {} {} {} {}",
-                        mode.team_name(0),
-                        state.scores[0],
-                        mode.team_name(1),
-                        state.scores[1]
-                    );
-                }
-                out.push_str(&line);
-                out.push('\n');
-            }
-        }
-    }
-    let winner = if state.scores[0] >= target { 0 } else { 1 };
-    let _ = writeln!(
-        out,
-        "final {} {} {} {} winner {} rounds {round} moves {count}",
-        mode.team_name(0),
-        state.scores[0],
-        mode.team_name(1),
-        state.scores[1],
-        mode.team_name(winner)
-    );
-    out
-}
-
 fn mode_name(mode: Mode) -> &'static str {
     match mode {
         Mode::OneVsOne => "1v1",
         Mode::TwoVsTwo => "2v2",
     }
-}
-
-fn write_deal(out: &mut String, mode: Mode, round: u64, deal: &Deal) {
-    let _ = write!(out, "round {round} deal");
-    for seat in 0..mode.seats() {
-        let _ = write!(out, " {}", mode.seat_name(seat));
-        for t in deal.hand(seat) {
-            let _ = write!(out, " {t}");
-        }
-    }
-    let pile = deal.boneyard(mode);
-    if !pile.is_empty() {
-        out.push_str(" boneyard");
-        for t in pile {
-            let _ = write!(out, " {t}");
-        }
-    }
-    out.push('\n');
-}
-
-fn write_event(out: &mut String, mode: Mode, event: &Event) {
-    let seat = |s: u8| mode.seat_name(s);
-    let _ = match *event {
-        Event::PaseSalida { team } => write!(out, "pase de salida +25 {}", mode.team_name(team)),
-        Event::PaseCorrido { team } => write!(out, "pase corrido +25 {}", mode.team_name(team)),
-        Event::Domino { seat: s, points } => write!(out, "domino {} +{points}", seat(s)),
-        Event::Capicua { seat: s, points } => write!(out, "capicua {} +{points}", seat(s)),
-        Event::Tranque {
-            blocker,
-            rival,
-            blocker_pips,
-            rival_pips,
-            winner,
-            points,
-        } => write!(
-            out,
-            "tranque blocker {} {blocker_pips} rival {} {rival_pips} winner {} +{points}",
-            seat(blocker),
-            seat(rival),
-            seat(winner)
-        ),
-    };
 }
 
 /// Writes a match's per-pair results to `out` and returns the summary lines

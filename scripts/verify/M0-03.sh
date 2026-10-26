@@ -19,9 +19,9 @@ for mode in 2v2 1v1; do
     fail=1
   fi
   last=$(printf '%s\n' "$a" | tail -1)
-  # final <team> <score> <team> <score> winner <team> rounds R moves M
-  read -r word _ s0 _ s1 _ _ _ rounds _ moves <<< "$last"
-  if [ "$word" != final ] || { [ "$s0" -lt 100 ] && [ "$s1" -lt 100 ]; }; then
+  # Final <TEAM> <score> <TEAM> <score> <TEAM> wins in R rounds, M moves
+  read -r word _ s0 _ s1 _ _ _ rounds _ moves _ <<< "$last"
+  if [ "$word" != Final ] || { [ "$s0" -lt 100 ] && [ "$s1" -lt 100 ]; }; then
     echo "ERROR selfplay $mode seed 1 did not finish at target 100: $last"
     fail=1
   fi

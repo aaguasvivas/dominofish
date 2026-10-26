@@ -22,9 +22,9 @@ fn selfplay_is_deterministic_and_finishes_in_both_modes() {
         let first = selfplay(mode, "1");
         assert_eq!(first, selfplay(mode, "1"), "two runs of {mode} differ");
         let last = first.lines().last().expect("output");
-        assert!(last.starts_with("final "), "{mode}: {last}");
-        // "final <team> <score> <team> <score> winner ..."
-        let fields: Vec<&str> = last.split(' ').collect();
+        assert!(last.starts_with("Final "), "{mode}: {last}");
+        // "Final <team> <score> <team> <score> <team> wins in ..."
+        let fields: Vec<&str> = last.split_whitespace().collect();
         let scores = [fields[2], fields[4]].map(|v| v.parse::<u16>().expect("score"));
         assert!(scores.iter().any(|&s| s >= 100), "{mode}: {last}");
     }
