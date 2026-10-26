@@ -590,8 +590,12 @@
   "requires": [
    "M3-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M3-03: PASS mode 2v2 solves 25159 capped 0 (0.00%); round starts (27 or 28 tiles left) 1582, capped 0 (0.00%); wall 48.6 s; mode 1v1 solves 44081 capped 0 (0.00%); round starts (27 or 28 tiles left) 3176, capped 0 (0.00%); wall 16.2 s; slowest 1v1 solve 158.525 ms; record docs/eval/results/2026-10-25-solve-stats.md",
+   "log": null
+  }
  },
  {
   "id": "M3-04",
@@ -602,8 +606,12 @@
   "requires": [
    "M3-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-25",
+   "result": "M3-04: PASS 16 matches of the omniscient bot against every baseline (1v1 and 2v2, rounds and games), 6967 moves, illegal 0, crashes 0, timeouts 0; header view=omniscient with Bench: 6121081; state lines: omniscient 68 for 68 moves, baseline 0 for 69 moves; report marks it cheating",
+   "log": null
+  }
  },
  {
   "id": "M3-05",
@@ -614,8 +622,12 @@
   "requires": [
    "M3-04"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M3-05: PASS R3: the omniscient bot (cheating upper bound) accepts H1 against every baseline in 16 of 16 rows (1v1 and 2v2, rounds and games to 100), 260 pairs, no fault; REPORT.md current",
+   "log": null
+  }
  },
  {
   "id": "M11-01",

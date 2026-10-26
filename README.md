@@ -102,7 +102,7 @@ open web/dist/index.html
 - **Rules.** It plays Capi's rules as Capi's engine implements them: the automatic first tile (the 6-6 when someone holds it), draws in 1v1, pase corrido and pase de salida with their cap, capicúa, and tranque with ties to the opener. [docs/RULES.md](docs/RULES.md) cites every rule to Capi's source.
 - **Information sets.** It builds what one seat knows: its hand, the public moves, hand sizes, voids from passes, the 1v1 draw history, and round-1 deductions. It counts exactly the ways to place the unseen tiles that agree with that knowledge (one known limit, for the 1v1 opening without a double, is in docs/PLAN.md D11).
 - **Baseline bots.** Random, heaviest tile (bota gorda), most-accompanied tile (la más acompañada), and a rule bot that reads pass voids.
-- **Exact solver.** For a known deal it finds the rest of the round's exact margin with alpha-beta search and a transposition table whose key covers the bonus cap. It is the base of the omniscient bot (M3) and of the sampling engine (M4).
+- **Exact solver.** For a known deal it finds the rest of the round's exact margin with alpha-beta search and a transposition table whose key covers the bonus cap. It drives the omniscient bot, a cheating upper bound, and will drive the sampling engine (M4).
 - **Match harness.** It plays duplicate pairs: one deal played twice, with the sides swapping seats. Every seat runs as its own process and gets only its own information; engine seeds come from a base apart from the deal seeds, and no engine sees a deal seed. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
 
 ## Results
@@ -118,13 +118,28 @@ The rule bot against the random bot, from run R2 on held-out deals (commit d2768
 
 These rows compare bots with bots. They measure nothing against human players.
 
-To reproduce the first pairs of each row (10 to 30 pairs, the same seeds, under a minute), run:
+### The omniscient upper bound
+
+The omniscient bot sees every hand and plays the exact solver's move. It cheats on purpose: it marks the ceiling that a fair engine can approach, and it is never a goal. In run R3 (commit f77e9c2, pre-registered) it beats every baseline by SPRT in all 16 rows and wins every full game. Against the rule bot:
+
+| Mode | Unit | Pairs | Points per round [95% CI] | Game-win rate [95% CI] | SPRT (H0 0, H1 4) |
+|---|---|---|---|---|---|
+| 1v1 | round | 16 | 26.25 [21.27, 31.23] | - | H1 at pair 16 |
+| 1v1 | game to 100 | 16 | 31.39 [27.79, 34.99] | 1.000 [1.000, 1.000] | H1 at pair 16 |
+| 2v2 | round | 16 | 54.47 [47.25, 61.69] | - | H1 at pair 16 |
+| 2v2 | game to 100 | 16 | 62.52 [56.13, 68.92] | 1.000 [1.000, 1.000] | H1 at pair 16 |
+
+R3 stops each row at its SPRT decision, so these intervals rest on 16 pairs each.
+
+### Reproduce
+
+To reproduce the first pairs of every README row (8 to 30 pairs, the same seeds, about a minute), run:
 
 ```bash
 scripts/readme-fast.sh --check
 ```
 
-It builds commit d276826 and compares four summary lines with [docs/eval/results/2026-10-25-baselines-r2-fast.txt](docs/eval/results/2026-10-25-baselines-r2-fast.txt). To rerun the whole table and its report:
+It builds commits d276826 (R2) and f77e9c2 (R3) and compares eight summary lines with [docs/eval/results/2026-10-25-baselines-r2-fast.txt](docs/eval/results/2026-10-25-baselines-r2-fast.txt) and [docs/eval/results/2026-10-25-omniscient-r3-fast.txt](docs/eval/results/2026-10-25-omniscient-r3-fast.txt). To rerun the whole baseline table and its report:
 
 ```bash
 scripts/run-baselines.sh
@@ -163,7 +178,7 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 | M0 | Toolchain, checks, random selfplay | passed |
 | M1 | Rules parity with Capi | passed |
 | M2 | Information sets, baseline bots, match harness | passed |
-| M3 | Exact perfect-information solver | in progress (solver and Bench done) |
+| M3 | Exact perfect-information solver, omniscient bot | exit review in progress |
 | M4 | Sampling over hidden hands, each world solved exactly | next |
 | M5 | Variance reduction for smaller measured gains | planned |
 | M6 | Game equity and a calibrated win probability | planned |
@@ -178,4 +193,4 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 - No human benchmark yet: no result here involves a person.
 - Self-play results are relative to these bots.
 - 2v2 is a team game, and DominoFish makes no equilibrium claim for it.
-- The bots are fixed heuristics. The exact solver sees every hand, so no bot uses it yet; the engine that plays from one seat's information arrives in M4.
+- The baseline bots are fixed heuristics. The exact solver sees every hand, so only the omniscient bot, which cheats, uses it; the engine that plays from one seat's information arrives in M4.
