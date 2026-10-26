@@ -146,11 +146,16 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
     let mut moves = MoveList::new();
     // Per tiles left: (nanoseconds, nodes, capped).
     let mut by_left: BTreeMap<u32, Vec<(u64, u64, bool)>> = BTreeMap::new();
+    // Round starts: (solves, capped).
+    let mut starts = (0u64, 0u64);
     let start = Instant::now();
     for g in 0..games {
         let mut rng = Rng::new(derive(seed, g));
         let (mut state, _) = State::first_round(mode, 100, &Deal::shuffled(&mut rng));
         let mut rounds = 1;
+        // The first position of each round: round 1 after its automatic
+        // tile, round 2 at its lead.
+        let mut first = true;
         loop {
             match state.phase {
                 Phase::Finished => break,
@@ -158,6 +163,7 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
                 Phase::RoundOver => {
                     state = state.next_round(&Deal::shuffled(&mut rng));
                     rounds += 1;
+                    first = true;
                 }
                 Phase::Playing => {
                     table.clear();
@@ -168,6 +174,11 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
                         .entry(tiles_left(&state))
                         .or_default()
                         .push((ns, s.nodes, s.capped));
+                    if first {
+                        starts.0 += 1;
+                        starts.1 += u64::from(s.capped);
+                        first = false;
+                    }
                     state.legal_moves(&mut moves);
                     let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
                     state.play(mv);
@@ -182,7 +193,7 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
         table.bytes() >> 20
     );
     out.push_str("| Tiles left | Solves | Time ms median | p90 | max | Nodes median | p90 | max | Capped |\n|---|---|---|---|---|---|---|---|---|\n");
-    let (mut solves, mut round_starts, mut round_start_capped, mut capped_all) = (0, 0, 0, 0);
+    let (mut solves, mut capped_all) = (0, 0);
     for (left, v) in &by_left {
         let mut ns: Vec<u64> = v.iter().map(|x| x.0).collect();
         let mut nodes: Vec<u64> = v.iter().map(|x| x.1).collect();
@@ -191,10 +202,6 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
         let capped = v.iter().filter(|x| x.2).count();
         solves += v.len();
         capped_all += capped;
-        if *left >= 27 {
-            round_starts += v.len();
-            round_start_capped += capped;
-        }
         let ms = |x: u64| format!("{:.3}", x as f64 / 1e6);
         let _ = writeln!(
             out,
@@ -210,10 +217,12 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
     }
     let _ = write!(
         out,
-        "\nsolve-stats: mode {} solves {solves} capped {capped_all} ({:.2}%); round starts (27 or 28 tiles left) {round_starts}, capped {round_start_capped} ({:.2}%); wall {:.1} s\n",
+        "\nsolve-stats: mode {} solves {solves} capped {capped_all} ({:.2}%); round starts (the first position of each round) {}, capped {} ({:.2}%); wall {:.1} s\n",
         mode.name(),
         100.0 * capped_all as f64 / solves.max(1) as f64,
-        100.0 * round_start_capped as f64 / round_starts.max(1) as f64,
+        starts.0,
+        starts.1,
+        100.0 * starts.1 as f64 / starts.0.max(1) as f64,
         start.elapsed().as_secs_f64()
     );
     out

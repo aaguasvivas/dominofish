@@ -34,7 +34,7 @@ DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under
 | **Speed** | About 1.4 million random 1v1 rounds and 1.3 million 2v2 rounds per second on one core (commit de3109a, load average 13.9), with 0 heap allocations in move generation, play, and undo |
 | **Solver** | Exact for a known deal: 0 mismatches against naive minimax on every position checked; `dominofish bench` solves 32 full rounds in under 1.1 s on one core (Bench 6,121,081 nodes) |
 | **Information** | Every engine runs as its own process and sees only its own seat's information |
-| **Best baseline** | The rule bot beats the other baselines by SPRT in 16 of 18 R2 rows and gains 11.99 [10.69, 13.28] points per round on the random bot in 1v1 rounds |
+| **Best baseline** | The rule bot beats the other baselines by SPRT in 16 of 18 R2 rows and gains 11.99 [10.69, 13.29] points per round on the random bot in 1v1 rounds |
 
 ## Build and run
 
@@ -111,10 +111,10 @@ The rule bot against the random bot, from run R2 on held-out deals (commit d2768
 
 | Mode | Unit | Pairs | Points per round [95% CI] | Game-win rate [95% CI] | SPRT (H0 0, H1 4) |
 |---|---|---|---|---|---|
-| 1v1 | round | 1,000 | 11.99 [10.69, 13.28] | - | H1 at pair 56 |
-| 1v1 | game to 100 | 300 | 14.84 [13.61, 16.07] | 0.870 [0.843, 0.897] | H1 at pair 38 |
+| 1v1 | round | 1,000 | 11.99 [10.69, 13.29] | - | H1 at pair 56 |
+| 1v1 | game to 100 | 300 | 14.84 [13.60, 16.08] | 0.870 [0.841, 0.895] | H1 at pair 38 |
 | 2v2 | round | 1,000 | 12.22 [10.45, 13.99] | - | H1 at pair 100 |
-| 2v2 | game to 100 | 300 | 16.92 [14.85, 19.00] | 0.758 [0.726, 0.791] | H1 at pair 84 |
+| 2v2 | game to 100 | 300 | 16.92 [14.84, 19.00] | 0.758 [0.723, 0.791] | H1 at pair 84 |
 
 These rows compare bots with bots. They measure nothing against human players.
 
@@ -124,10 +124,10 @@ The omniscient bot sees every hand and plays the exact solver's move. It cheats 
 
 | Mode | Unit | Pairs | Points per round [95% CI] | Game-win rate [95% CI] | SPRT (H0 0, H1 4) |
 |---|---|---|---|---|---|
-| 1v1 | round | 16 | 26.25 [21.27, 31.23] | - | H1 at pair 16 |
-| 1v1 | game to 100 | 16 | 31.39 [27.79, 34.99] | 1.000 [1.000, 1.000] | H1 at pair 16 |
-| 2v2 | round | 16 | 54.47 [47.25, 61.69] | - | H1 at pair 16 |
-| 2v2 | game to 100 | 16 | 62.52 [56.13, 68.92] | 1.000 [1.000, 1.000] | H1 at pair 16 |
+| 1v1 | round | 16 | 26.25 [20.84, 31.66] | - | H1 at pair 16 |
+| 1v1 | game to 100 | 16 | 31.39 [27.47, 35.31] | 1.000 [0.893, 1.000] | H1 at pair 16 |
+| 2v2 | round | 16 | 54.47 [46.62, 62.32] | - | H1 at pair 16 |
+| 2v2 | game to 100 | 16 | 62.52 [55.57, 69.48] | 1.000 [0.893, 1.000] | H1 at pair 16 |
 
 R3 stops each row at its SPRT decision, so these intervals rest on 16 pairs each.
 

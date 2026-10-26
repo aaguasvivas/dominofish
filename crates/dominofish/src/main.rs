@@ -423,10 +423,11 @@ fn write_match(
             .map(|p| f64::from(p.wins(spec.target)) / 2.0)
             .collect();
         let w = stats::summary(&wins);
+        let (w_lo, w_hi) = stats::wilson(w.mean * 2.0 * w.n as f64, 2.0 * w.n as f64);
         let _ = write!(
             lines,
             "; game-win rate of A {:.3} 95% CI [{:.3}, {:.3}]",
-            w.mean, w.lo, w.hi
+            w.mean, w_lo, w_hi
         );
     }
     if let Some(t) = sprt {
@@ -448,6 +449,11 @@ fn write_match(
         );
     }
     let _ = writeln!(text, "# summary {lines}");
+    let _ = writeln!(
+        text,
+        "# capped a={} b={}",
+        report.capped[0], report.capped[1]
+    );
     if let Some((kind, detail)) = &report.fault {
         let _ = writeln!(text, "# fault {kind:?}: {detail}");
     }

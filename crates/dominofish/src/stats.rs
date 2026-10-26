@@ -13,6 +13,48 @@ pub struct Summary {
     pub hi: f64,
 }
 
+/// The 97.5% quantile of Student's t with `df` degrees of freedom: the
+/// published values up to df = 6, then the Cornish-Fisher expansion in 1/df,
+/// within 0.001 of the exact value from df = 7 on.
+pub fn t975(df: usize) -> f64 {
+    const Z: f64 = 1.959_963_985;
+    const EXACT: [f64; 6] = [
+        12.706_204_736,
+        4.302_652_730,
+        3.182_446_305,
+        2.776_445_105,
+        2.570_581_836,
+        2.446_911_851,
+    ];
+    match df {
+        0 => f64::INFINITY,
+        1..=6 => EXACT[df - 1],
+        _ => {
+            let d = df as f64;
+            let (z3, z5, z7) = (Z.powi(3), Z.powi(5), Z.powi(7));
+            Z + (z3 + Z) / (4.0 * d)
+                + (5.0 * z5 + 16.0 * z3 + 3.0 * Z) / (96.0 * d * d)
+                + (3.0 * z7 + 19.0 * z5 + 17.0 * z3 - 15.0 * Z) / (384.0 * d * d * d)
+        }
+    }
+}
+
+/// The 95% Wilson score interval of `wins` out of `n` trials. Used for the
+/// game-win rate over the 2n games of n pairs: unlike a normal interval
+/// over pairs, it does not collapse when one side wins every game.
+pub fn wilson(wins: f64, n: f64) -> (f64, f64) {
+    const Z: f64 = 1.959_963_985;
+    if n <= 0.0 {
+        return (0.0, 1.0);
+    }
+    let p = wins / n;
+    let z2 = Z * Z;
+    let center = (p + z2 / (2.0 * n)) / (1.0 + z2 / n);
+    let half = Z * (p * (1.0 - p) / n + z2 / (4.0 * n * n)).sqrt() / (1.0 + z2 / n);
+    ((center - half).max(0.0), (center + half).min(1.0))
+}
+
+/// Mean, sample SD, and the 95% t interval of the mean.
 pub fn summary(xs: &[f64]) -> Summary {
     let n = xs.len();
     let mean = xs.iter().sum::<f64>() / (n.max(1) as f64);
@@ -22,7 +64,11 @@ pub fn summary(xs: &[f64]) -> Summary {
         0.0
     };
     let sd = var.sqrt();
-    let half = 1.96 * sd / (n.max(1) as f64).sqrt();
+    let half = if n > 1 {
+        t975(n - 1) * sd / (n as f64).sqrt()
+    } else {
+        0.0
+    };
     Summary {
         n,
         mean,
@@ -142,9 +188,36 @@ mod tests {
         assert!((s.mean - 5.0).abs() < 1e-12);
         let sd = (32.0f64 / 7.0).sqrt();
         assert!((s.sd - sd).abs() < 1e-12);
-        assert!((s.lo - (5.0 - 1.96 * sd / 8f64.sqrt())).abs() < 1e-12);
+        assert!((s.lo - (5.0 - t975(7) * sd / 8f64.sqrt())).abs() < 1e-12);
         let c = summary(&[3.0; 10]);
         assert_eq!((c.lo, c.hi), (3.0, 3.0));
+        // t quantiles against published values.
+        for (df, t) in [
+            (1, 12.7062),
+            (2, 4.3027),
+            (3, 3.1824),
+            (7, 2.3646),
+            (15, 2.1314),
+            (30, 2.0423),
+            (1000, 1.9623),
+        ] {
+            assert!(
+                (t975(df) - t).abs() < 1e-3,
+                "df {df}: {} against {t}",
+                t975(df)
+            );
+        }
+        // Wilson: 32 wins of 32 games, and 16 of 32.
+        let (lo, hi) = wilson(32.0, 32.0);
+        assert!(
+            (lo - 32.0 / (32.0 + 1.959_963_985f64.powi(2))).abs() < 1e-9
+                && (hi - 1.0).abs() < 1e-12
+        );
+        let (lo, hi) = wilson(16.0, 32.0);
+        assert!(
+            (lo - 0.3361).abs() < 1e-3 && (hi - 0.6639).abs() < 1e-3,
+            "{lo} {hi}"
+        );
     }
 
     #[test]

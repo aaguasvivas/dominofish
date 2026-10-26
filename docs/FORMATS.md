@@ -128,7 +128,7 @@ Referee to engine, in game order:
 - `roundover scores=<s0>,<s1>` and `gameover scores=<s0>,<s1>`: a round or the game ended.
 - `quit`: exit.
 
-An engine may also write `info <text>` lines at any time; the referee ignores them. Any other line must be a reply to the message before it: before each `go` the referee reads the lines already waiting, and a line other than `info` there is a protocol fault. Each reply has one deadline (--timeout-ms), and `info` lines do not extend it.
+An engine may also write `info <text>` lines at any time; the referee ignores them, except that it counts `info capped` (a search that reached its node cap) for the result file. Any other line must be a reply to the message before it: before each `go` the referee reads the lines already waiting, and a line other than `info` there is a protocol fault. Each reply has one deadline (--timeout-ms), and `info` lines do not extend it.
 
 ## InfoSet text
 
@@ -157,6 +157,7 @@ runs/bin/<commit>/dominofish match --mode 2v2 --unit round --target 100 --pairs 
 - `pair <i> seed <deal seed> game1 <A>-<B> game2 <A>-<B> rounds <r1>,<r2> margin <m> wins <w>`: one duplicate pair; r1 and r2 are the rounds each game lasted. Pair i plays deal seed (--seed) + i twice, side A on team 0's seats first, then on team 1's. Round r of either game deals with derive(deal seed, r); in both games of pair i, the engine at seat s gets the seed derive(derive(engine seed base, i), 100 + s), keyed by pair and seat and apart from the deals. Files written before this rule (R1) have no seeds line and hold the deal seeds and one budgets, threads, and tables for both sides in the header; their seat seeds were derive(deal seed, 100 + seat). The scores are each side's team total at the end of the game (unit game) or of round 1 (unit round), bonuses included; margin is A minus B summed over both games; wins counts the games A finished at the target.
 - `# summary <text>`: side A's points per round (each pair's margin divided by its rounds) with mean, SD, and 95% CI over pairs; for unit game also A's game-win rate (each pair's wins / 2) with its 95% CI; with `--sprt <mu0>,<mu1>`, the SPRT on the pair margin (H0 mean mu0 against H1 mean mu1, alpha = beta = 0.05; docs/PLAN.md D14): H0, H1, or inconclusive, after how many pairs, and the LLR with its bounds. With --sprt the match stops at a decision, and --pairs is the maximum; a run that reaches it is inconclusive. The summary text is also printed.
 - `# fault <kind>: <detail>`: the match stopped at an illegal move, crash, timeout (--timeout-ms, default 10,000, one deadline per reply, a safety limit, not a budget), protocol error (an unreadable line, a wrong reply, a line out of turn, or settings that differ within a side), or header echo that differs; the match is void and the command exits 1.
+- `# capped a=<n> b=<n>`: each side's searches that reached their node cap, counted from the engines' `info capped` lines (only an engine that searches sends them).
 - `# run run=<id> row=<k> command=<the match command, spaces as +> wall_s=<s> peak_rss_kb=<kb> load=<1-minute load average> date=<YYYY-MM-DD>`: added by a pre-registered run's script (scripts/run-baselines.sh) after the match; peak RSS is what /usr/bin/time -l reports for the match command.
 
 ## State text

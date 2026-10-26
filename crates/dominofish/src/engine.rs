@@ -104,7 +104,12 @@ pub fn run(player: Player, salt: Option<u64>) -> Result<(), String> {
                         if s.turn != i.seat || s.hands[i.seat as usize] != i.hand {
                             return Err("the state does not match the infoset".into());
                         }
-                        solver::solve(&mut s, table.as_mut(), *nodes).best
+                        let sol = solver::solve(&mut s, table.as_mut(), *nodes);
+                        if sol.capped {
+                            // The referee counts these in the result file.
+                            reply(&mut out, FromEngine::Info("capped".into()))?;
+                        }
+                        sol.best
                     }
                 };
                 reply(&mut out, FromEngine::Move(mv))?;

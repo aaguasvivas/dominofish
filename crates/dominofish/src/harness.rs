@@ -92,6 +92,8 @@ struct Engine {
     /// What the engine sees, from its ready line: only an omniscient engine
     /// (the cheating upper bound) is also sent the full state.
     view: View,
+    /// `info capped` lines: searches that reached their node cap.
+    capped: u64,
 }
 
 /// Bytes of an engine's stderr kept for a crash report.
@@ -154,6 +156,7 @@ impl Engine {
             lines,
             stderr,
             view: View::InfoSet,
+            capped: 0,
         })
     }
 
@@ -182,7 +185,10 @@ impl Engine {
                 }
             };
             match FromEngine::parse(&line) {
-                Some(FromEngine::Info(_)) => continue,
+                Some(FromEngine::Info(text)) => {
+                    self.capped += u64::from(text == "capped");
+                    continue;
+                }
                 Some(msg) => return Ok(msg),
                 None => {
                     return Err((
@@ -289,6 +295,8 @@ pub struct Report {
     pub pairs: Vec<PairResult>,
     pub moves: u64,
     pub fault: Option<(Fault, String)>,
+    /// Each side's searches that reached their node cap (`info capped`).
+    pub capped: [u64; 2],
 }
 
 /// An engine's own settings, from its ready line.
@@ -372,6 +380,7 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
         pairs: Vec::new(),
         moves: 0,
         fault: None,
+        capped: [0, 0],
     };
     let per_side = (spec.mode.seats() / 2) as usize;
     let mut engines: Vec<Engine> = Vec::new();
@@ -428,6 +437,9 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
     });
     if let Err(f) = result {
         report.fault = Some(f);
+    }
+    for (k, e) in engines.iter().enumerate() {
+        report.capped[k / per_side] += e.capped;
     }
     engines.into_iter().for_each(Engine::stop);
     report
