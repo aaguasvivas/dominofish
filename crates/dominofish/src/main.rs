@@ -141,7 +141,7 @@ fn run() -> Result<(String, bool), Failure> {
             }
             let seed = seed.ok_or("--seed is required")?;
             let limits = dominofish_core::pimc::Limits {
-                worlds: worlds.ok_or("--worlds is required")?,
+                worlds: worlds.unwrap_or(solve::PIMC_WORLDS),
                 nodes,
                 table_bits: bits,
             };
@@ -185,7 +185,7 @@ fn run() -> Result<(String, bool), Failure> {
             let round = round.ok_or("--round is required")?;
             let ply = ply.ok_or("--ply is required")?;
             let limits = dominofish_core::pimc::Limits {
-                worlds: worlds.ok_or("--worlds is required")?,
+                worlds: worlds.unwrap_or(solve::PIMC_WORLDS),
                 nodes,
                 table_bits: bits,
             };
@@ -243,7 +243,7 @@ fn run() -> Result<(String, bool), Failure> {
                 }
             } else if name == "pimc" {
                 engine::Player::Pimc(dominofish_core::pimc::Limits {
-                    worlds: worlds.ok_or("--bot pimc needs --worlds")?,
+                    worlds: worlds.unwrap_or(solve::PIMC_WORLDS),
                     nodes,
                     table_bits: bits.unwrap_or(solve::PIMC_TABLE_BITS),
                 })
@@ -556,6 +556,20 @@ fn write_match(
         text,
         "# capped a={} b={}",
         report.capped[0], report.capped[1]
+    );
+    let think = |t: &harness::Think| {
+        format!(
+            "{:.1},{:.1},{}",
+            t.total_ns as f64 / 1e6 / t.moves.max(1) as f64,
+            t.max_ns as f64 / 1e6,
+            t.moves
+        )
+    };
+    let _ = writeln!(
+        text,
+        "# time a={} b={}",
+        think(&report.think[0]),
+        think(&report.think[1])
     );
     if let Some((kind, detail)) = &report.fault {
         let _ = writeln!(text, "# fault {kind:?}: {detail}");

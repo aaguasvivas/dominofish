@@ -7,7 +7,7 @@
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q7 (push after each commit?), batched in docs/PLAN.md
+- Open questions: none (Q7 answered 2026-10-26: push after each commit)
 - Stashes: none
 
 ## 2026-10-25
@@ -133,4 +133,8 @@
 - M4-04 passed: never-peeks for PIMC (tests/never_peeks.rs, pimc_never_peeks): 250 (1v1) and 197 (2v2) rearranged worlds with an identical public record give byte-identical InfoSets and the same Analysis, node counts included.
 - M4-05 passed: `dominofish analyze --record FILE --round R --ply K --worlds N` (crates/dominofish/src/analyze.rs) and `selfplay --record FILE`. M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1 4 moves and 2v2 3 moves ranked at ply 4 of seed 5 records; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, a missing --worlds, and a malformed record exit 2 with an ERROR line.
 - M4-06 passed: `dominofish world-stats` and docs/eval/results/2026-10-26-world-stats.md. M4-06: PASS 300 games per mode, 77,686 decisions; 2v2 median worlds 11,550 at 13 board tiles (research 7,350) and 24 at 20 (research 22), reference only; the committed record equals a fresh run.
+- Q7 answered ("Yes lets push"): main pushed to GitHub at 3d52328 (git ls-remote equal to HEAD); from now on each passing commit is pushed.
+- M4-07 calibration (D18 rule, committed in 3d52328 before the runs; runs/bin/3d52328, one thread, load 1.8 to 4.9): 32 worlds p90 369.0 and 372.8 ms (2v2), 121.9 and 121.4 ms (1v1); 64 worlds 714.2 and 709.5 ms (2v2), 250.3 and 237.7 ms (1v1); 128 worlds 1,422.1 and 1,422.8 ms (2v2), so 128 fails. Default: 64 worlds per move (PIMC_WORLDS; engine, analyze, and pimc-stats now default to it). Record: docs/eval/results/2026-10-26-pimc-calibration.md. The slowest moves at 64 worlds took 5.0 s (2v2) and 8.6 s (1v1), so PIMC matches use --timeout-ms 120,000.
+- The harness now writes `# time a=<mean>,<max>,<moves> b=...` (reply time from go to move, a record, not a budget), and the report shows side A's mean and slowest ms per move as a last column ("-" for earlier runs); PIMC sides are labeled "pimc (W worlds)". REPORT.md regenerated (the new column only).
+- R4, R5, and R6 pre-registered in docs/PLAN.md (scripts/run-pimc.sh); M4-05's verify now uses --worlds 0 as its malformed-request case, since --worlds has a default.
 

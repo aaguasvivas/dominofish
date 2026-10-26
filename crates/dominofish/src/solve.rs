@@ -27,6 +27,11 @@ pub const MAX_TABLE_BITS: u32 = 24;
 /// cache (docs/eval/results/2026-10-26-solver-profile.md; D18).
 pub const PIMC_TABLE_BITS: u32 = 16;
 
+/// PIMC's default worlds per move, chosen by the D18 rule: the largest of
+/// 32, 64, and 128 whose p90 time per move stays within 1 second
+/// (docs/eval/results/2026-10-26-pimc-calibration.md).
+pub const PIMC_WORLDS: u32 = 64;
+
 pub fn thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();

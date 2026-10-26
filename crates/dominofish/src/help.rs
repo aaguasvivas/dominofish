@@ -26,13 +26,14 @@ pub const COMMANDS: &[Command] = &[
         name: "analyze",
         group: "Play",
         summary: "Rank the legal moves at one point of a game record (PIMC)",
-        usage: "dominofish analyze --record FILE --round R --ply K --worlds N
+        usage: "dominofish analyze --record FILE --round R --ply K [--worlds N]
            [--seed N] [--nodes N] [--table-bits B]",
         options: "  --record FILE       A game record (docs/FORMATS.md, Game records)
   --round R           The round, from 1
   --ply K             Moves already played in that round; the seat on turn
                       after them is analyzed, from what it can see
   --worlds N          Worlds sampled from that seat's information, 1 to 4096
+                      (default 64)
   --seed N            Seed of the sampling (default 1)
   --nodes N           Node cap per solve (default 10000000)
   --table-bits B      Table of 2^B entries (default 16, at most 24)
@@ -52,7 +53,7 @@ pub const COMMANDS: &[Command] = &[
                       solves each world), or omniscient: it sees every hand
                       and plays the exact solver's move, an upper bound that
                       cheats on purpose
-  --worlds N          PIMC: worlds per move, 1 to 4096 (required)
+  --worlds N          PIMC: worlds per move, 1 to 4096 (default 64)
   --nodes N           PIMC and omniscient: node cap per solve (default
                       10000000)
   --table-bits B      PIMC and omniscient: table of 2^B entries (default 16
@@ -109,13 +110,13 @@ pub const COMMANDS: &[Command] = &[
         name: "pimc-stats",
         group: "Measure",
         summary: "PIMC time per move and nodes by tiles left",
-        usage: "dominofish pimc-stats --mode 1v1|2v2 --games N --seed N --worlds N
+        usage: "dominofish pimc-stats --mode 1v1|2v2 --games N --seed N [--worlds N]
            [--nodes N] [--table-bits B]",
         options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
   --games N           Random games (the selfplay games of seeds N to N+games-1);
                       every decision with more than one legal move is timed
   --seed N            First selfplay seed
-  --worlds N          Worlds per move, 1 to 4096
+  --worlds N          Worlds per move, 1 to 4096 (default 64)
   --nodes N           Node cap per solve (default 10000000)
   --table-bits B      Table of 2^B entries (default 16, at most 24)",
     },

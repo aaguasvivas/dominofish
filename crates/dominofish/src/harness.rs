@@ -97,6 +97,26 @@ struct Engine {
     view: View,
     /// `info capped` lines: searches that reached their node cap.
     capped: u64,
+    /// Time from each `go` to its move: total and slowest, in nanoseconds,
+    /// and the number of moves.
+    think: Think,
+}
+
+/// Reply times to `go`: a record, not a budget (budgets are nodes or
+/// worlds, BUILD.md hard constraint 7).
+#[derive(Clone, Copy, Default)]
+pub struct Think {
+    pub total_ns: u64,
+    pub max_ns: u64,
+    pub moves: u64,
+}
+
+impl Think {
+    fn add(&mut self, other: Think) {
+        self.total_ns += other.total_ns;
+        self.max_ns = self.max_ns.max(other.max_ns);
+        self.moves += other.moves;
+    }
 }
 
 /// Bytes of an engine's stderr kept for a crash report.
@@ -160,6 +180,7 @@ impl Engine {
             stderr,
             view: View::InfoSet,
             capped: 0,
+            think: Think::default(),
         })
     }
 
@@ -306,6 +327,8 @@ pub struct Report {
     pub fault: Option<(Fault, String)>,
     /// Each side's searches that reached their node cap (`info capped`).
     pub capped: [u64; 2],
+    /// Each side's reply times to `go`.
+    pub think: [Think; 2],
 }
 
 /// An engine's own settings, from its ready line.
@@ -391,6 +414,7 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
         moves: 0,
         fault: None,
         capped: [0, 0],
+        think: [Think::default(); 2],
     };
     let per_side = (spec.mode.seats() / 2) as usize;
     let mut engines: Vec<Engine> = Vec::new();
@@ -450,6 +474,7 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
     }
     for (k, e) in engines.iter().enumerate() {
         report.capped[k / per_side] += e.capped;
+        report.think[k / per_side].add(e.think);
     }
     engines.into_iter().for_each(Engine::stop);
     report
@@ -581,7 +606,15 @@ fn play_game(
                 engines[e].send(&ToEngine::State(Box::new(state)).to_line(mode))?;
             }
             engines[e].send(&ToEngine::Go.to_line(mode))?;
-            let mv = match engines[e].recv(spec.timeout)? {
+            let asked = Instant::now();
+            let reply = engines[e].recv(spec.timeout)?;
+            let ns = asked.elapsed().as_nanos() as u64;
+            engines[e].think.add(Think {
+                total_ns: ns,
+                max_ns: ns,
+                moves: 1,
+            });
+            let mv = match reply {
                 FromEngine::Move(mv) => mv,
                 other => {
                     return Err((
