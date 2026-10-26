@@ -7,7 +7,7 @@
 - Last green commit: d56468f (check.sh passes; M4-99 passed on it; regress passes 39 of 39 after the M0-04 fix in the next commit)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q9 (make the repository public now, given what the history check found), batched in docs/PLAN.md
+- Open questions: none (Q9 answered 2026-10-26: the repository is public)
 - Stashes: none
 
 ## 2026-10-25
@@ -161,4 +161,5 @@
 - M4-99 passed (M4 exit): M4-99: PASS M2-03 ok; M4-01 ok; M4-02 ok; M4-03 ok; M4-04 ok; M4-05 ok; M4-06 ok; M4-07 ok; M4-08 ok; M4-09 ok; M4-10 ok; M4-11 ok; M4 milestone review recorded in docs/progress.md. Report: docs/reports/2026-10-26-m4-exit.md.
 - History check before making the repository public (Q1: public at the M4 exit): 88 commits, 15.2 MB of history, no secret pattern, no work name; 131 lines with /Users/Adelson paths (25 files at HEAD), the author email on every commit, and 48 lines of notes on Capi's plans. Asked as Q9; the repository stays private until the owner answers.
 - Next: M5 (variance reduction). Follow-ups from M4: bound PIMC's 1v1 time per move (single moves up to 119 s); move generation and ordering take 35% of the solver's time with the small table.
+- Q9 answered ("Q9: make the repository public now, with the history as it is."): `gh repo edit aaguasvivas/dominofish --visibility public` at 996954a; gh reports PUBLIC, and anonymous requests for https://github.com/aaguasvivas/dominofish and the raw README return 200. Checked on GitHub in the browser: the README renders with its logo and board image loaded, and GitHub detects both licenses (MIT and Apache-2.0).
 

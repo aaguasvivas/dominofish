@@ -151,7 +151,7 @@ Each item waits on an owner decision (BUILD.md, Out of scope):
 - Capi integration (bots and analysis in Capi): the server endpoint and Vercel plan (Hobby is non-commercial; Capi has ads and in-app purchases), deal-log storage while Capi's repo and game reads are public, per-seat masking of game_state, the PLAYBOOK.md:104 rule against claiming AI opponents, the store line "there are no computer opponents", wasm packaging and npm names, any on-device engine.
 - Human benchmark: players, consent, a platform, and logging.
 - Research tier (sequence-form LP or CFR endgames for 1v1, ReBeL or Student of Games search, team CFR for 2v2 endgames): a go-ahead and a compute budget.
-- Publishing: decided (Q1, Q2): a private GitHub repository now, public at the M4 exit; license MIT OR Apache-2.0. crates.io and npm publishing still need the owner's yes; every crate keeps publish = false.
+- Publishing: decided (Q1, Q2, Q9): github.com/aaguasvivas/dominofish, public since 2026-10-26 (the M4 exit); license MIT OR Apache-2.0. crates.io and npm publishing still need the owner's yes; every crate keeps publish = false.
 
 ## Decision log
 
@@ -175,7 +175,7 @@ Questions sent to the owner on 2026-10-25 (answers go here word for word, dated)
 - Q6 (answered; added 2026-10-25 at the M2 exit). The M2 review found that T1's code seeds differ from T1's text (7,000,000 + 1,000,000 c + 100,000 h + k, against 7,000,000 + k), and its fixes changed one input of each pre-registered test: T1's configuration (b) now uses the fixed accompanied bot, and T2 now needs an engine seed base (5,000,000,081). The amendments are in the T1 and T2 entries, committed before the reruns. Do you accept the amended entries, or do you want new tests stated instead?
 - Q7 (answered; added 2026-10-26 at the start of M4). The repository is on GitHub (private). May I push main after each commit, or only when you ask? My recommendation: push after each commit that passes check.sh, so the remote stays a current backup.
 - Q8 (answered; added 2026-10-26 after R5 and R6). M2-09's check requires an SPRT outcome in every REPORT.md row, but R5 (the worlds curve) and R6 (the omniscient gap) were registered as fixed 500-pair runs with no SPRT, so their 16 rows show - and M2-09 now fails. Either (a) M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary, every other field still required; or (b) R5 and R6 are amended to report an SPRT, H0 0 and H1 4 in tracking mode, replayed from their committed pair lines (the play does not change; the test is added after seeing the results). Both weaken a check or change registered runs, so both need your yes. My recommendation: (a), since it reports the runs as registered and adds no test after the fact.
-- Q9 (added 2026-10-26 at the M4 exit). Q1's answer makes the repository public at the M4 exit after a check for secrets and private data. The check of all 88 commits (15.2 MB of history) found no secret pattern and no work name, but three things you may count as private: (1) 131 lines with local paths holding your first name (/Users/Adelson/..., in 25 files at HEAD: CLAUDE.md, BUILD.md, PLAN.md, scripts); (2) your personal email as the author of every commit; (3) 48 lines of notes on Capi's plans (the Vercel plan, ads and in-app purchases, the store listing's "no computer opponents" line, docs/research/). History cannot be rewritten (hard constraint 12), so all three would become public as they are. Make it public now, or keep it private? The repository stays private until you answer.
+- Q9 (answered; added 2026-10-26 at the M4 exit). Q1's answer makes the repository public at the M4 exit after a check for secrets and private data. The check of all 88 commits (15.2 MB of history) found no secret pattern and no work name, but three things you may count as private: (1) 131 lines with local paths holding your first name (/Users/Adelson/..., in 25 files at HEAD: CLAUDE.md, BUILD.md, PLAN.md, scripts); (2) your personal email as the author of every commit; (3) 48 lines of notes on Capi's plans (the Vercel plan, ads and in-app purchases, the store listing's "no computer opponents" line, docs/research/). History cannot be rewritten (hard constraint 12), so all three would become public as they are. Make it public now, or keep it private? The repository stays private until you answer.
 
 Answers to Q1 to Q6, word for word.
 
@@ -200,4 +200,10 @@ Answer to Q8, 2026-10-26, from the owner in this session, word for word:
 > Q8: (a). M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary; every other field stays required.
 
 Applied 2026-10-26: scripts/verify/M2-09.sh lists the result files whose `# summary` line has no SPRT and accepts exactly - in the SPRT column for their rows; every other row still needs its SPRT bounds and outcome, and every row its other claim-format fields.
+
+Answer to Q9, 2026-10-26, from the owner in this session, word for word:
+
+> Q9: make the repository public now, with the history as it is.
+
+Applied 2026-10-26: the repository's visibility changed from private to public with `gh repo edit --visibility public`, with the history as it is.
 
