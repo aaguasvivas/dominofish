@@ -13,18 +13,18 @@ DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under
 - Plays Capi's rules as Capi's engine implements them: the automatic 6-6, draws in 1v1, pase corrido and pase de salida with their cap, capicua, and tranque with ties to the opener. [docs/RULES.md](docs/RULES.md) cites every rule to Capi's source.
 - Builds what one seat knows: its hand, the public moves, hand sizes, voids from passes, the 1v1 draw history, and round-1 deductions. It counts exactly the ways to place the unseen tiles that agree with that knowledge (one known limit, for the 1v1 opening without a double, is in docs/PLAN.md D11).
 - Includes four baseline bots: random, heaviest tile (bota gorda), most-accompanied tile (la mas acompanada), and a rule bot that reads pass voids.
-- Runs matches of duplicate pairs, one deal played twice with the sides swapping seats. Every seat runs as its own process and gets only its own information. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
+- Runs matches of duplicate pairs, one deal played twice with the sides swapping seats. Every seat runs as its own process and gets only its own information; engine seeds come from a base apart from the deal seeds, and no engine sees a deal seed. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
 
 ## Results
 
-The rule bot against the random bot, from run R1 on held-out deals (commit a3e108a, pre-registered in docs/PLAN.md). [docs/eval/REPORT.md](docs/eval/REPORT.md) holds all 36 rows, with every pairing of the four bots.
+The rule bot against the random bot, from run R2 on held-out deals (commit d276826, pre-registered in docs/PLAN.md). [docs/eval/REPORT.md](docs/eval/REPORT.md) holds all 36 rows of R2, with every pairing of the four bots, and the 36 rows of the first run, R1. R1's rows with the accompanied bot measured a version with a scoring error, fixed before R2.
 
 | Mode | Unit | Pairs | Rule bot points per round, mean [95% CI] | Rule bot game-win rate [95% CI] | SPRT, H0 0 against H1 4 points per pair |
 |---|---|---|---|---|---|
-| 1v1 | round | 1,000 | 10.77 [9.55, 11.98] | - | H1 at pair 54 |
-| 1v1 | game to 100 | 300 | 14.63 [13.43, 15.83] | 0.873 [0.847, 0.900] | H1 at pair 26 |
-| 2v2 | round | 1,000 | 9.78 [8.04, 11.52] | - | H1 at pair 143 |
-| 2v2 | game to 100 | 300 | 16.47 [14.20, 18.75] | 0.763 [0.730, 0.796] | H1 at pair 57 |
+| 1v1 | round | 1,000 | 11.99 [10.69, 13.28] | - | H1 at pair 56 |
+| 1v1 | game to 100 | 300 | 14.84 [13.61, 16.07] | 0.870 [0.843, 0.897] | H1 at pair 38 |
+| 2v2 | round | 1,000 | 12.22 [10.45, 13.99] | - | H1 at pair 100 |
+| 2v2 | game to 100 | 300 | 16.92 [14.85, 19.00] | 0.758 [0.726, 0.791] | H1 at pair 84 |
 
 These rows compare bots with bots. They measure nothing against human players.
 
@@ -34,7 +34,7 @@ To reproduce the first pairs of each row (10 to 30 pairs, the same seeds, under 
 scripts/readme-fast.sh --check
 ```
 
-It builds commit a3e108a and compares four summary lines with [docs/eval/results/2026-10-25-baselines-fast.txt](docs/eval/results/2026-10-25-baselines-fast.txt). To rerun the whole table and its report:
+It builds commit d276826 and compares four summary lines with [docs/eval/results/2026-10-25-baselines-r2-fast.txt](docs/eval/results/2026-10-25-baselines-r2-fast.txt). To rerun the whole table and its report:
 
 ```bash
 scripts/run-baselines.sh

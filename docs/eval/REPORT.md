@@ -48,3 +48,48 @@ Note, added 2026-10-25 after the M2 milestone review. In this run's binary (comm
 | 2v2 | game | 200 | rule | accompanied | 300 | 3.99 [2.51, 5.46] | 0.590 [0.552, 0.628] | inconclusive (0, 4) | 4.05 | 3.8 | 2003500000..2003500299 | row-35-2v2-game-200-rule-accompanied.txt |
 
 Command of each row: `runs/bin/a3e108a/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2000000000 --sprt 0,4 --sprt-track --a "runs/bin/a3e108a/dominofish engine --bot heaviest" --b "runs/bin/a3e108a/dominofish engine --bot random" --out docs/eval/results/2026-10-25-baselines/row-0-1v1-round-100-heaviest-random.txt`, with the row's options; the files hold every pair.
+
+## 2026-10-25-baselines-r2 (R2)
+
+Pre-registered as R2 in docs/PLAN.md. Side A: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Side B: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Engine seed base: 5000100000. Measured 2026-10-25 at a 1-minute load average of 10.22 to 25.24.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | heaviest | random | 1000 | 1.28 [0.24, 2.31] | - | inconclusive (0, 4) | 1.61 | 4.8 | 2000000000..2000000999 | row-0-1v1-round-100-heaviest-random.txt |
+| 1v1 | game | 100 | heaviest | random | 300 | 2.17 [1.38, 2.97] | 0.598 [0.560, 0.636] | H1 at 250 (0, 4) | 3.20 | 3.9 | 2000100000..2000100299 | row-1-1v1-game-100-heaviest-random.txt |
+| 1v1 | game | 200 | heaviest | random | 300 | 2.81 [2.21, 3.40] | 0.658 [0.621, 0.695] | H1 at 181 (0, 4) | 8.30 | 3.7 | 2000200000..2000200299 | row-2-1v1-game-200-heaviest-random.txt |
+| 2v2 | round | 100 | heaviest | random | 1000 | 0.79 [-0.69, 2.27] | - | inconclusive (0, 4) | 2.04 | 3.7 | 2000300000..2000300999 | row-3-2v2-round-100-heaviest-random.txt |
+| 2v2 | game | 100 | heaviest | random | 300 | 2.46 [0.75, 4.17] | 0.557 [0.517, 0.596] | inconclusive (0, 4) | 2.53 | 3.6 | 2000400000..2000400299 | row-4-2v2-game-100-heaviest-random.txt |
+| 2v2 | game | 200 | heaviest | random | 300 | 3.59 [2.45, 4.72] | 0.622 [0.584, 0.660] | inconclusive (0, 4) | 5.85 | 3.9 | 2000500000..2000500299 | row-5-2v2-game-200-heaviest-random.txt |
+| 1v1 | round | 100 | accompanied | random | 1000 | 5.03 [3.93, 6.13] | - | H1 at 75 (0, 4) | 1.53 | 3.6 | 2000600000..2000600999 | row-6-1v1-round-100-accompanied-random.txt |
+| 1v1 | game | 100 | accompanied | random | 300 | 7.68 [6.68, 8.68] | 0.757 [0.723, 0.791] | H1 at 81 (0, 4) | 3.30 | 3.6 | 2000700000..2000700299 | row-7-1v1-game-100-accompanied-random.txt |
+| 1v1 | game | 200 | accompanied | random | 300 | 7.15 [6.45, 7.85] | 0.807 [0.776, 0.838] | H1 at 58 (0, 4) | 5.80 | 3.8 | 2000800000..2000800299 | row-8-1v1-game-200-accompanied-random.txt |
+| 2v2 | round | 100 | accompanied | random | 1000 | 7.07 [5.49, 8.66] | - | H1 at 176 (0, 4) | 1.97 | 3.8 | 2000900000..2000900999 | row-9-2v2-round-100-accompanied-random.txt |
+| 2v2 | game | 100 | accompanied | random | 300 | 10.10 [8.27, 11.94] | 0.700 [0.664, 0.736] | H1 at 103 (0, 4) | 2.53 | 3.8 | 2001000000..2001000299 | row-10-2v2-game-100-accompanied-random.txt |
+| 2v2 | game | 200 | accompanied | random | 300 | 11.75 [10.35, 13.14] | 0.775 [0.743, 0.807] | H1 at 113 (0, 4) | 5.31 | 3.7 | 2001100000..2001100299 | row-11-2v2-game-200-accompanied-random.txt |
+| 1v1 | round | 100 | rule | random | 1000 | 11.99 [10.69, 13.28] | - | H1 at 56 (0, 4) | 1.50 | 3.8 | 2001200000..2001200999 | row-12-1v1-round-100-rule-random.txt |
+| 1v1 | game | 100 | rule | random | 300 | 14.84 [13.61, 16.07] | 0.870 [0.843, 0.897] | H1 at 38 (0, 4) | 2.32 | 3.9 | 2001300000..2001300299 | row-13-1v1-game-100-rule-random.txt |
+| 1v1 | game | 200 | rule | random | 300 | 15.63 [14.73, 16.52] | 0.953 [0.937, 0.970] | H1 at 41 (0, 4) | 3.96 | 3.7 | 2001400000..2001400299 | row-14-1v1-game-200-rule-random.txt |
+| 2v2 | round | 100 | rule | random | 1000 | 12.22 [10.45, 13.99] | - | H1 at 100 (0, 4) | 1.71 | 3.6 | 2001500000..2001500999 | row-15-2v2-round-100-rule-random.txt |
+| 2v2 | game | 100 | rule | random | 300 | 16.92 [14.85, 19.00] | 0.758 [0.726, 0.791] | H1 at 84 (0, 4) | 2.28 | 3.8 | 2001600000..2001600299 | row-16-2v2-game-100-rule-random.txt |
+| 2v2 | game | 200 | rule | random | 300 | 17.35 [15.71, 18.98] | 0.830 [0.801, 0.859] | H1 at 97 (0, 4) | 4.18 | 3.9 | 2001700000..2001700299 | row-17-2v2-game-200-rule-random.txt |
+| 1v1 | round | 100 | accompanied | heaviest | 1000 | 3.80 [2.79, 4.80] | - | H1 at 128 (0, 4) | 1.53 | 3.8 | 2001800000..2001800999 | row-18-1v1-round-100-accompanied-heaviest.txt |
+| 1v1 | game | 100 | accompanied | heaviest | 300 | 3.60 [2.74, 4.46] | 0.657 [0.620, 0.693] | H1 at 169 (0, 4) | 3.19 | 3.9 | 2001900000..2001900299 | row-19-1v1-game-100-accompanied-heaviest.txt |
+| 1v1 | game | 200 | accompanied | heaviest | 300 | 3.61 [3.02, 4.20] | 0.712 [0.677, 0.746] | H1 at 130 (0, 4) | 7.00 | 3.9 | 2002000000..2002000299 | row-20-1v1-game-200-accompanied-heaviest.txt |
+| 2v2 | round | 100 | accompanied | heaviest | 1000 | 4.80 [3.45, 6.16] | - | H1 at 106 (0, 4) | 2.02 | 3.8 | 2002100000..2002100999 | row-21-2v2-round-100-accompanied-heaviest.txt |
+| 2v2 | game | 100 | accompanied | heaviest | 300 | 6.41 [4.89, 7.92] | 0.647 [0.609, 0.684] | H1 at 123 (0, 4) | 3.44 | 3.8 | 2002200000..2002200299 | row-22-2v2-game-100-accompanied-heaviest.txt |
+| 2v2 | game | 200 | accompanied | heaviest | 300 | 6.14 [5.02, 7.26] | 0.712 [0.675, 0.748] | H1 at 202 (0, 4) | 6.15 | 3.8 | 2002300000..2002300299 | row-23-2v2-game-200-accompanied-heaviest.txt |
+| 1v1 | round | 100 | rule | heaviest | 1000 | 9.24 [8.15, 10.34] | - | H1 at 20 (0, 4) | 1.38 | 3.6 | 2002400000..2002400999 | row-24-1v1-round-100-rule-heaviest.txt |
+| 1v1 | game | 100 | rule | heaviest | 300 | 10.69 [9.75, 11.64] | 0.842 [0.814, 0.869] | H1 at 25 (0, 4) | 3.01 | 3.6 | 2002500000..2002500299 | row-25-1v1-game-100-rule-heaviest.txt |
+| 1v1 | game | 200 | rule | heaviest | 300 | 10.92 [10.22, 11.62] | 0.922 [0.901, 0.943] | H1 at 22 (0, 4) | 5.19 | 3.6 | 2002600000..2002600299 | row-26-1v1-game-200-rule-heaviest.txt |
+| 2v2 | round | 100 | rule | heaviest | 1000 | 8.41 [6.80, 10.02] | - | H1 at 116 (0, 4) | 1.79 | 3.7 | 2002700000..2002700999 | row-27-2v2-round-100-rule-heaviest.txt |
+| 2v2 | game | 100 | rule | heaviest | 300 | 11.76 [9.88, 13.63] | 0.697 [0.661, 0.733] | H1 at 127 (0, 4) | 2.45 | 3.8 | 2002800000..2002800299 | row-28-2v2-game-100-rule-heaviest.txt |
+| 2v2 | game | 200 | rule | heaviest | 300 | 11.95 [10.73, 13.17] | 0.780 [0.748, 0.812] | H1 at 95 (0, 4) | 5.15 | 3.6 | 2002900000..2002900299 | row-29-2v2-game-200-rule-heaviest.txt |
+| 1v1 | round | 100 | rule | accompanied | 1000 | 6.40 [5.26, 7.54] | - | H1 at 118 (0, 4) | 1.19 | 3.8 | 2003000000..2003000999 | row-30-1v1-round-100-rule-accompanied.txt |
+| 1v1 | game | 100 | rule | accompanied | 300 | 7.81 [6.77, 8.86] | 0.735 [0.704, 0.766] | H1 at 103 (0, 4) | 2.39 | 3.9 | 2003100000..2003100299 | row-31-1v1-game-100-rule-accompanied.txt |
+| 1v1 | game | 200 | rule | accompanied | 300 | 7.67 [6.92, 8.42] | 0.800 [0.770, 0.830] | H1 at 66 (0, 4) | 4.85 | 3.9 | 2003200000..2003200299 | row-32-1v1-game-200-rule-accompanied.txt |
+| 2v2 | round | 100 | rule | accompanied | 1000 | 3.47 [1.78, 5.17] | - | H1 at 313 (0, 4) | 1.87 | 3.9 | 2003300000..2003300999 | row-33-2v2-round-100-rule-accompanied.txt |
+| 2v2 | game | 100 | rule | accompanied | 300 | 4.89 [2.97, 6.80] | 0.573 [0.537, 0.610] | inconclusive (0, 4) | 2.05 | 3.6 | 2003400000..2003400299 | row-34-2v2-game-100-rule-accompanied.txt |
+| 2v2 | game | 200 | rule | accompanied | 300 | 4.01 [2.46, 5.57] | 0.583 [0.546, 0.620] | inconclusive (0, 4) | 4.30 | 3.8 | 2003500000..2003500299 | row-35-2v2-game-200-rule-accompanied.txt |
+
+Command of each row: `runs/bin/d276826/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2000000000 --engine-seed 5000100000 --sprt 0,4 --sprt-track --a "runs/bin/d276826/dominofish engine --bot heaviest" --b "runs/bin/d276826/dominofish engine --bot random" --out docs/eval/results/2026-10-25-baselines-r2/row-0-1v1-round-100-heaviest-random.txt`, with the row's options; the files hold every pair.
