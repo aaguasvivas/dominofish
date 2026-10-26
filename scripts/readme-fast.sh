@@ -15,20 +15,24 @@ mkdir -p runs/readme-fast
 fail=0
 total=0
 
-# run <commit> <file> <deal base> <engine base> <sprt flags> <a bot> <b bot> <specs...>
+# run <commit> <file> <deal base> <engine base> <match flags> <a bot> <b bot> <specs...>
+# A spec is "<row> <mode> <unit> <target> <pairs> [<deal seed>]": the deal
+# seed defaults to deal base + 100,000 * row. A bot may carry its options
+# ("pimc --worlds 64").
 run() {
   local commit=$1 file=$2 deal=$3 eng=$4 sprt=$5 a=$6 b=$7
   shift 7
   local bin
   bin=$(scripts/build-bin.sh "$commit" | tail -1)
   [ -x "$bin" ] || { echo "ERROR build of $commit failed"; fail=1; return; }
-  local lines="" spec row mode unit target pairs out
+  local lines="" spec row mode unit target pairs seed out
   for spec in "$@"; do
-    read -r row mode unit target pairs <<< "$spec"
+    read -r row mode unit target pairs seed <<< "$spec"
+    seed=${seed:-$((deal + 100000 * row))}
     # shellcheck disable=SC2086
     out=$("$bin" match --mode "$mode" --unit "$unit" --target "$target" --pairs "$pairs" \
-      --seed $((deal + 100000 * row)) --engine-seed $((eng + row)) $sprt \
-      --a "$bin engine --bot $a" --b "$bin engine --bot $b" --out "runs/readme-fast/$commit-row-$row.txt" | head -1)
+      --seed "$seed" --engine-seed $((eng + row)) $sprt \
+      --a "$bin engine --bot $a" --b "$bin engine --bot $b" --out "runs/readme-fast/$(basename "$file" .txt)-row-$row.txt" | head -1)
     lines="${lines}row $row ($mode $unit $target, first $pairs pairs): $out
 "
     total=$((total + 1))

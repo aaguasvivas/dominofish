@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-07 (pimc-stats and the worlds budget)
+- Feature in progress: M4-08 (run R4)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
@@ -137,4 +137,5 @@
 - M4-07 calibration (D18 rule, committed in 3d52328 before the runs; runs/bin/3d52328, one thread, load 1.8 to 4.9): 32 worlds p90 369.0 and 372.8 ms (2v2), 121.9 and 121.4 ms (1v1); 64 worlds 714.2 and 709.5 ms (2v2), 250.3 and 237.7 ms (1v1); 128 worlds 1,422.1 and 1,422.8 ms (2v2), so 128 fails. Default: 64 worlds per move (PIMC_WORLDS; engine, analyze, and pimc-stats now default to it). Record: docs/eval/results/2026-10-26-pimc-calibration.md. The slowest moves at 64 worlds took 5.0 s (2v2) and 8.6 s (1v1), so PIMC matches use --timeout-ms 120,000.
 - The harness now writes `# time a=<mean>,<max>,<moves> b=...` (reply time from go to move, a record, not a budget), and the report shows side A's mean and slowest ms per move as a last column ("-" for earlier runs); PIMC sides are labeled "pimc (W worlds)". REPORT.md regenerated (the new column only).
 - R4, R5, and R6 pre-registered in docs/PLAN.md (scripts/run-pimc.sh); M4-05's verify now uses --worlds 0 as its malformed-request case, since --worlds has a default.
+- M4-07 passed (second full run; the first failed on the verify's own glob, which counted the two match result files as engine memory reports: 5 files for 3 engines). M4-07: PASS default 64 worlds per move by the D18 rule; two runs per mode with equal node counts: 2v2 1,116 decisions, p90 780.3 ms, max 6,461.3 ms, 0 capped, 0 inconsistent, 0 fallback; 1v1 1,268 decisions, p90 273.2 ms, max 8,849.3 ms, 27 capped solves, 0 inconsistent, 0 fallback; peak RSS of 3 PIMC engine processes 3.4 MB (target under 256 MB). The committed record, docs/eval/results/2026-10-26-pimc-stats.md, is the first full run (load 7.20 at its start): 2v2 p90 754.7 and 732.3 ms, 1v1 238.6 and 253.6 ms.
 

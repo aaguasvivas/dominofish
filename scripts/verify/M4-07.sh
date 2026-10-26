@@ -78,10 +78,10 @@ rm -f runs/M4-07/rss-*
 for m in 1v1 2v2; do
   "$bin" match --mode "$m" --unit round --target 100 --pairs 2 --seed 65000 --engine-seed 5000000407 --timeout-ms 120000 \
     --a "scripts/test-engines/rss.sh runs/M4-07/rss-$m $bin engine --bot pimc --worlds $worlds" \
-    --b "$bin engine --bot rule" --out "runs/M4-07/rss-$m.txt" > /dev/null || err "the $m memory match failed"
+    --b "$bin engine --bot rule" --out "runs/M4-07/memory-$m.txt" > /dev/null || err "the $m memory match failed"
 done
-peak=$(cat runs/M4-07/rss-1v1.* runs/M4-07/rss-2v2.* 2>/dev/null | awk '/maximum resident set size/ {if ($1 > m) m = $1} END {print m + 0}')
-procs=$(ls runs/M4-07/rss-1v1.* runs/M4-07/rss-2v2.* 2>/dev/null | wc -l | tr -d ' ')
+peak=$(cat runs/M4-07/rss-1v1.[0-9]* runs/M4-07/rss-2v2.[0-9]* 2>/dev/null | awk '/maximum resident set size/ {if ($1 > m) m = $1} END {print m + 0}')
+procs=$(ls runs/M4-07/rss-1v1.[0-9]* runs/M4-07/rss-2v2.[0-9]* 2>/dev/null | wc -l | tr -d ' ')
 [ "$procs" -eq 3 ] || err "$procs engine reports, 3 expected (1 in 1v1, 2 in 2v2)"
 [ "$peak" -gt 0 ] && [ "$peak" -lt 268435456 ] || err "peak RSS $peak bytes (target under 256 MB)"
 mb=$(awk -v b="$peak" 'BEGIN {printf "%.1f", b / 1048576}')

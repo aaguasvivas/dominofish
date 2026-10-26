@@ -725,7 +725,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1: 4 moves ranked; 2v2: 3 moves ranked; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, a missing --worlds, and a malformed record exit 2 with an ERROR line",
+   "result": "M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1: 4 moves ranked; 2v2: 3 moves ranked; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, --worlds 0, and a malformed record exit 2 with an ERROR line",
    "log": null
   }
  },
@@ -754,8 +754,12 @@
   "requires": [
    "M4-03"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-07: PASS default 64 worlds per move by the D18 rule (docs/eval/results/2026-10-26-pimc-calibration.md); two runs per mode, equal node counts: [mode 2v2 worlds 64 decisions 1116 (forced moves skipped 818); time ms median 8.4 p90 780.3 max 6461.3; capped solves 0; inconsistent 0; fallback 0; wall 380.3 s] [mode 1v1 worlds 64 decisions 1268 (forced moves skipped 1599); time ms median 8.3 p90 273.2 max 8849.3; capped solves 27; inconsistent 0; fallback 0; wall 144.6 s]; peak RSS of 3 PIMC engine processes 3.4 MB (target under 256 MB)",
+   "log": null
+  }
  },
  {
   "id": "M4-08",
