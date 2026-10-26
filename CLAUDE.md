@@ -10,6 +10,8 @@ Before engine work, read the docs/progress.md top block, docs/PLAN.md, and docs/
 - Feature verify: the "verify" command of its docs/features.json entry, from the repo root.
 - Parity fuzzer against Capi: target/release/dominofish capi-fuzz --mode 2v2 --rounds 10000 --seed 1 (needs CAPI_DIR with the pinned commit; exit 1 on SKIP or a mismatch)
 - Match: scripts/build-bin.sh <commit> prints runs/bin/<commit>/dominofish; then <that binary> match --mode 2v2 --unit round|game --target 100 --pairs N --seed S --engine-seed E --a "<bin> engine --bot X" --b "<bin> engine --bot Y" --out runs/<name>.txt (docs/FORMATS.md, Match results; never target/release)
+- Bench: target/release/dominofish bench (last line Bench: <nodes>; check.sh runs it twice)
+- Web board: scripts/build-web.sh, then open web/dist/index.html; verify scripts/verify/M11-01.sh
 - Git: /usr/bin/git only. Disk: df -g /Users/Adelson before builds and long runs.
 
 ## Hard constraints (BUILD.md numbers)

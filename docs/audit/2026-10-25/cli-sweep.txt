@@ -1,0 +1,260 @@
+# CLI sweep, HEAD 746d622, 2026-10-25 23:08, binary target/release/dominofish
+
+$ dominofish 
+DominoFish 0.1.0
+The Stockfish of Dominican Dominoes.
+
+Usage: dominofish <command> [options]
+
+Play
+  selfplay       Play a game of random legal moves and print every hand and move
+  engine         Run a bot that speaks the engine protocol on stdin and stdout
+
+Measure
+  match          Play duplicate pairs between two engines, with an optional SPRT
+  bench          Solve the bench positions on one thread and print Bench: <nodes>
+  solve-stats    Solve every position of seeded games; time and nodes by tiles left
+  bench-positionsPrint full-round positions of seeded games as state text
+... (21 lines)
+[exit 2, widest line 83]
+
+$ dominofish --help
+DominoFish 0.1.0
+The Stockfish of Dominican Dominoes.
+
+Usage: dominofish <command> [options]
+
+Play
+  selfplay       Play a game of random legal moves and print every hand and move
+  engine         Run a bot that speaks the engine protocol on stdin and stdout
+
+Measure
+  match          Play duplicate pairs between two engines, with an optional SPRT
+  bench          Solve the bench positions on one thread and print Bench: <nodes>
+  solve-stats    Solve every position of seeded games; time and nodes by tiles left
+  bench-positionsPrint full-round positions of seeded games as state text
+... (21 lines)
+[exit 0, widest line 83]
+
+$ dominofish help
+DominoFish 0.1.0
+The Stockfish of Dominican Dominoes.
+
+Usage: dominofish <command> [options]
+
+Play
+  selfplay       Play a game of random legal moves and print every hand and move
+  engine         Run a bot that speaks the engine protocol on stdin and stdout
+
+Measure
+  match          Play duplicate pairs between two engines, with an optional SPRT
+  bench          Solve the bench positions on one thread and print Bench: <nodes>
+  solve-stats    Solve every position of seeded games; time and nodes by tiles left
+  bench-positionsPrint full-round positions of seeded games as state text
+... (21 lines)
+[exit 0, widest line 83]
+
+$ dominofish help match
+Play duplicate pairs between two engines, with an optional SPRT
+
+Usage: dominofish match --mode 1v1|2v2 --unit round|game --target 100|200
+           --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE
+           [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
+
+Options:
+  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --unit round|game   Score round 1 of each game, or play to the target
+  --target 100|200    Points that win the game
+  --pairs N           Duplicate pairs: one deal played twice, sides swapped
+                      (the maximum when --sprt is set)
+  --seed N            Pair i plays deal seed N + i
+  --engine-seed N     Base of the engines' own seeds, apart from the deals
+... (20 lines)
+[exit 0, widest line 82]
+
+$ dominofish --version
+DominoFish 0.1.0
+[exit 0, widest line 16]
+
+$ dominofish selfplay --help
+Play a game of random legal moves and print every hand and move
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+
+Options:
+  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --seed N            Seed of the deals and the moves
+  --target 100|200    Points that win the game (default 100)
+[exit 0, widest line 69]
+
+$ dominofish nosuch
+ERROR unknown command nosuch
+
+DominoFish 0.1.0
+The Stockfish of Dominican Dominoes.
+
+Usage: dominofish <command> [options]
+
+Play
+  selfplay       Play a game of random legal moves and print every hand and move
+  engine         Run a bot that speaks the engine protocol on stdin and stdout
+
+Measure
+  match          Play duplicate pairs between two engines, with an optional SPRT
+  bench          Solve the bench positions on one thread and print Bench: <nodes>
+... (23 lines)
+[exit 2, widest line 83]
+
+$ dominofish selfplay --mode 3v3 --seed 1
+ERROR --mode must be 1v1 or 2v2, got 3v3
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+Run "dominofish selfplay --help" for its options.
+[exit 2, widest line 69]
+
+$ dominofish selfplay --mode 1v1 --seed x
+ERROR not a number: x
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+Run "dominofish selfplay --help" for its options.
+[exit 2, widest line 69]
+
+$ dominofish selfplay --mode 1v1
+ERROR --seed is required
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+Run "dominofish selfplay --help" for its options.
+[exit 2, widest line 69]
+
+$ dominofish selfplay --mode 1v1 --seed 1 --target 150
+ERROR --target must be 100 or 200, got 150
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+Run "dominofish selfplay --help" for its options.
+[exit 2, widest line 69]
+
+$ dominofish selfplay --bogus
+ERROR invalid option '--bogus'
+
+Usage: dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+Run "dominofish selfplay --help" for its options.
+[exit 2, widest line 69]
+
+$ dominofish selfplay --mode 1v1 --seed 1 --target 200
+DominoFish selfplay   mode 1v1   seed 1   target 200
+
+Round 1
+  Hands     n  [0|6] [0|4] [0|0] [5|6] [1|5] [2|6] [0|1]
+            s  [5|5] [6|6] [3|6] [4|6] [2|5] [2|4] [3|3]
+  Boneyard     [1|4] [1|1] [4|5] [0|3] [0|5] [2|3] [4|4] [1|3] [1|2] [3|4]
+               [0|2] [2|2] [1|6] [3|5]
+  s   opens   [6|6]
+  n   plays   [0|6] left
+  s   plays   [3|6] right
+  n   plays   [0|1] left
+  s   plays   [3|3] right
+  n   plays   [1|5] left
+  s   plays   [5|5] left
+... (509 lines)
+[exit 0, widest line 80]
+
+$ dominofish match --mode 2v2
+ERROR --unit is required
+
+Usage: dominofish match --mode 1v1|2v2 --unit round|game --target 100|200
+           --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE
+           [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
+Run "dominofish match --help" for its options.
+[exit 2, widest line 73]
+
+$ dominofish report --results /nonexistent
+ERROR /nonexistent: No such file or directory (os error 2)
+
+Usage: dominofish report [--results DIR] [--out FILE] [--check]
+Run "dominofish report --help" for its options.
+[exit 2, widest line 63]
+
+$ dominofish report --check
+report: docs/eval/REPORT.md is current
+[exit 0, widest line 38]
+
+$ dominofish bench --positions /nonexistent
+ERROR /nonexistent: No such file or directory (os error 2)
+
+Usage: dominofish bench [--positions FILE] [--nodes N] [--table-bits B]
+Run "dominofish bench --help" for its options.
+[exit 2, widest line 71]
+
+$ dominofish bench --table-bits 30
+ERROR --table-bits must be 10 to 24 (at most 256 MB), got 30
+
+Usage: dominofish bench [--positions FILE] [--nodes N] [--table-bits B]
+Run "dominofish bench --help" for its options.
+[exit 2, widest line 71]
+
+$ dominofish bench --nodes 1000
+DominoFish 0.1.0 bench   32 positions   node cap 1,000 per solve   table 16 MB
+
+   #  mode  tiles left  value         nodes
+   1  2v2           27    +19         1,000  capped
+   2  2v2           28    -56         1,000  capped
+   3  2v2           27    -16         1,000  capped
+   4  2v2           28    -46         1,000  capped
+   5  2v2           27    +23         1,000  capped
+   6  2v2           28    -52         1,000  capped
+   7  2v2           27    +30         1,000  capped
+   8  2v2           28    -39         1,000  capped
+   9  2v2           27    -16         1,000  capped
+  10  2v2           28    +31         1,000  capped
+  11  2v2           27     -6         1,000  capped
+... (42 lines)
+[exit 0, widest line 78]
+
+$ dominofish solve-stats --mode 1v1 --games 2 --seed 1
+DominoFish solve-stats   mode 1v1   games 2   seed 1   node cap 10,000,000   table 16 MB   one thread
+
+| Tiles left | Solves | Time ms median | p90 | max | Nodes median | p90 | max | Capped |
+|---|---|---|---|---|---|---|---|---|
+| 2 | 1 | 0.000 | 0.000 | 0.000 | 1 | 1 | 1 | 0 |
+| 3 | 1 | 0.000 | 0.000 | 0.000 | 2 | 2 | 2 | 0 |
+| 4 | 3 | 0.000 | 0.000 | 0.000 | 4 | 5 | 5 | 0 |
+| 5 | 2 | 0.000 | 0.000 | 0.000 | 11 | 11 | 11 | 0 |
+| 6 | 2 | 0.001 | 0.001 | 0.001 | 26 | 26 | 26 | 0 |
+| 7 | 3 | 0.001 | 0.002 | 0.002 | 28 | 65 | 65 | 0 |
+| 8 | 3 | 0.002 | 0.003 | 0.003 | 66 | 67 | 67 | 0 |
+| 9 | 3 | 0.002 | 0.003 | 0.003 | 68 | 69 | 69 | 0 |
+| 10 | 4 | 0.003 | 0.003 | 0.003 | 70 | 71 | 71 | 0 |
+| 11 | 3 | 0.001 | 0.027 | 0.027 | 34 | 72 | 72 | 0 |
+... (33 lines)
+[exit 0, widest line 108]
+
+$ dominofish playout-bench --mode 2v2 --rounds 1000 --seed 1
+native playouts: mode 2v2 rounds 1000 seed 1 checksum 9e5f3220d66bfefd plies 25495 seconds 0.001 rounds/s 1179825
+[exit 0, widest line 113]
+
+$ dominofish engine --bot nosuch
+ERROR unknown bot nosuch
+
+Usage: dominofish engine --bot random|heaviest|accompanied|rule [--salt N]
+Run "dominofish engine --help" for its options.
+[exit 2, widest line 74]
+
+$ dominofish capi-fuzz --mode 2v2 --rounds 200 --seed 1
+ERROR capi-fuzz rule path tranque-tie not reached in 2v2
+ERROR capi-fuzz rule path tranque-tie-opener-not-compared not reached in 2v2
+ERROR capi-fuzz rule path salida-cancelled-then-corrido not reached in 2v2
+ERROR capi-fuzz rule path pase-corrido-twice not reached in 2v2
+ERROR capi-fuzz rule path bonus-26-short not reached in 2v2
+ERROR capi-fuzz rule path bonus-25-short not reached in 2v2
+ERROR capi-fuzz rule path game-ends-exactly-at-target not reached in 2v2
+capi-fuzz: FAIL mode 2v2 seed 1 rounds 200 moves 5085 mismatches 0; rule paths 22 of 29 above zero (fewest bonus-25-short 0)
+[exit 1, widest line 124]
+
+$ dominofish bench-positions --games 1 --seed 1
+# DominoFish bench positions: dominofish bench-positions --games 1 --seed 1
+# Round 1 after its automatic tile and round 2 at its lead, per game and mode (state text, docs/FORMATS.md).
+v=1 mode=2v2 target=100 scores=0,0 hands=0-2,0-3,2-2,2-6,3-4,4-6,5-6/0-1,1-2,1-4,1-6,2-5,3-3,3-5/0-4,0-6,2-4,3-6,4-5,5-5/0-0,0-5,1-1,1-3,1-5,2-3,4-4 board=8000000 ends=66 turn=w starter=s last=s passes=0 phase=P winner=- pile=-
+v=1 mode=2v2 target=100 scores=55,0 hands=0-6,1-2,1-5,2-5,3-3,3-5,6-6/0-0,0-2,1-3,2-3,2-4,3-6,5-6/0-3,0-5,1-6,2-6,3-4,4-6,5-5/0-1,0-4,1-1,1-4,2-2,4-4,4-5 board=0 ends=-- turn=n starter=n last=- passes=0 phase=P winner=- pile=-
+v=1 mode=1v1 target=100 scores=0,0 hands=0-3,1-1,1-3,1-5,2-6,5-6/0-1,1-2,2-2,2-5,3-3,4-4,4-5 board=2000000 ends=55 turn=s starter=n last=n passes=0 phase=P winner=- pile=0-6,1-4,3-4,2-4,0-0,0-4,0-5,3-5,2-3,3-6,1-6,0-2,6-6,4-6
+v=1 mode=1v1 target=100 scores=6,0 hands=0-1,0-2,0-3,3-6,4-5,4-6,5-5/0-4,2-2,2-3,2-4,2-5,4-4,5-6 board=0 ends=-- turn=n starter=n last=- passes=0 phase=P winner=- pile=3-5,2-6,0-6,1-4,1-5,1-2,1-3,0-5,3-3,3-4,1-1,1-6,0-0,6-6
+[exit 0, widest line 227]

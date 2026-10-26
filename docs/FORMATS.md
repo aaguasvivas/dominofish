@@ -141,18 +141,33 @@ InfoSet::to_text writes what one seat knows as one line of space-separated key=v
 
 ## Match results
 
-`dominofish match` writes one file per match (the --out path, under runs/) and prints one summary line. Build an engine binary first with `scripts/build-bin.sh <commit>`, which prints runs/bin/<commit>/dominofish; the harness refuses a binary under target/.
+`dominofish match` writes one file per match (the --out path: runs/ for scratch matches, docs/eval/results/ for committed runs) and prints one summary line. Build an engine binary first with `scripts/build-bin.sh <commit>`, which prints runs/bin/<commit>/dominofish; the harness refuses a binary under target/.
 
 ```bash
 scripts/build-bin.sh HEAD
 ```
 
 ```bash
-runs/bin/<commit>/dominofish match --mode 2v2 --unit round --target 100 --pairs 20 --seed 4000 --a "runs/bin/<commit>/dominofish engine --bot accompanied" --b "runs/bin/<commit>/dominofish engine --bot rule" --out runs/m.txt
+runs/bin/<commit>/dominofish match --mode 2v2 --unit round --target 100 --pairs 20 --seed 4000 --engine-seed 5000000000 --a "runs/bin/<commit>/dominofish engine --bot accompanied" --b "runs/bin/<commit>/dominofish engine --bot rule" --out runs/m.txt
 ```
 
-- `# header <text>`: the match header every engine echoed: for each side its command (spaces as +), commit (the runs/bin directory, - otherwise), Bench (- until M3), binary hash (FNV-1a 64 of the file), and the budgets, threads, and tables its engines reported; then mode, unit, target, and pairs.
+- `# header <text>`: the match header every engine echoed: for each side its command (spaces as +), commit (the runs/bin directory, - otherwise), Bench (- for every engine so far: the harness does not read it yet), binary hash (FNV-1a 64 of the file), and the budgets, threads, and tables its engines reported; then mode, unit, target, and pairs.
 - `# seeds deals=<first>..<last> engines=<base>`: the deal seeds (--seed + i for pair i) and the engine seed base (--engine-seed). The referee keeps both from the engines.
 - `pair <i> seed <deal seed> game1 <A>-<B> game2 <A>-<B> rounds <r1>,<r2> margin <m> wins <w>`: one duplicate pair; r1 and r2 are the rounds each game lasted. Pair i plays deal seed (--seed) + i twice, side A on team 0's seats first, then on team 1's. Round r of either game deals with derive(deal seed, r); in both games of pair i, the engine at seat s gets the seed derive(derive(engine seed base, i), 100 + s), keyed by pair and seat and apart from the deals. Files written before this rule (R1) have no seeds line and hold the deal seeds and one budgets, threads, and tables for both sides in the header; their seat seeds were derive(deal seed, 100 + seat). The scores are each side's team total at the end of the game (unit game) or of round 1 (unit round), bonuses included; margin is A minus B summed over both games; wins counts the games A finished at the target.
 - `# summary <text>`: side A's points per round (each pair's margin divided by its rounds) with mean, SD, and 95% CI over pairs; for unit game also A's game-win rate (each pair's wins / 2) with its 95% CI; with `--sprt <mu0>,<mu1>`, the SPRT on the pair margin (H0 mean mu0 against H1 mean mu1, alpha = beta = 0.05; docs/PLAN.md D14): H0, H1, or inconclusive, after how many pairs, and the LLR with its bounds. With --sprt the match stops at a decision, and --pairs is the maximum; a run that reaches it is inconclusive. The summary text is also printed.
 - `# fault <kind>: <detail>`: the match stopped at an illegal move, crash, timeout (--timeout-ms, default 10,000, one deadline per reply, a safety limit, not a budget), protocol error (an unreadable line, a wrong reply, a line out of turn, or settings that differ within a side), or header echo that differs; the match is void and the command exits 1.
+- `# run run=<id> row=<k> command=<the match command, spaces as +> wall_s=<s> peak_rss_kb=<kb> load=<1-minute load average> date=<YYYY-MM-DD>`: added by a pre-registered run's script (scripts/run-baselines.sh) after the match; peak RSS is what /usr/bin/time -l reports for the match command.
+
+## State text
+
+core/src/position.rs. One line that holds a full state, every hand and the boneyard order included: the bench positions (fixtures/bench.txt, one per line, # for comments) and, from M3-04, the omniscient bot's view. Nothing that sees only an InfoSet reads it.
+
+```text
+v=1 mode=<1v1|2v2> target=<t> scores=<s0>,<s1> hands=<n>/<e>/<s>/<w> board=<hex> ends=<LR|--> turn=<seat> starter=<seat> last=<seat|-> passes=<k> phase=<P|R|F> winner=<seat|-> pile=<tiles|->
+```
+
+Each hand is a comma-separated tile list (`-` when empty); 1v1 has two hands. board is the board mask in hex (bit i is tile index i). pile is the boneyard in order, the last tile drawn first. A parser rejects any field out of range and any set of tiles that is not a partition of the 28 tiles into the hands, the board, and the boneyard.
+
+## Board requests
+
+crates/dominofish-wasm/src/board.rs, the interface of the web board (web/). The page keeps the game record (Game records, above) and sends one request per call: a command line, a newline, and the record text. The reply is `ok`, a newline, and a body, or `error <reason>`. Commands: `new <1v1|2v2> <100|200> <seed>` (a new record; no record follows), `view` (JSON of the position after the last move: scores, phase, turn, every hand, the line of play with each tile oriented as it lies, the open ends, the boneyard count, the legal moves, the round's history with events, and the round's result), `play <move>` (the record with the move appended; the move must be legal), `undo` (the record without the current round's last move), `next <seed>` (the record with the next round dealt), `bot <name> <seed>` (the move a baseline bot makes from the InfoSet of the seat on turn), and `analyze` (perfect-information analysis: the exact rest-of-round margin, team 0 minus team 1, after each legal move, the best line, and whether a solve hit its node cap).

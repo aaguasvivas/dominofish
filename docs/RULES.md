@@ -99,7 +99,7 @@ Canonical map (legal-set comparison, perft): the replay move, then Play { tile, 
 
 ## Canonical state
 
-The state compared with Capi after every move: phase; scores; target; the turn; starterThisRound; lastPlayedBy; the pass counter; each seat's hand as a set; the board's tile set with its left and right ends; the boneyard in order; and, at a round end, the event with its points and the next leader. Capi's board array is determined by the moves and these ends, so it is not compared tile by tile.
+The state compared with Capi after every move: phase; scores; target; the turn; starterThisRound; lastPlayedBy; the pass counter; each seat's hand as a set; the board's tile set with its left and right ends; the boneyard in order; and, at a round end, the event with its points and the next leader. Capi's board array is determined by the moves and these ends, so it is not compared tile by tile. The golden-trace state line (docs/FORMATS.md, Golden traces) has 15 fields: the target is in the trace's header and constant within a game, and the boneyard appears as its length, because its order is fixed by the round's deal line.
 
 ## Rule paths
 
