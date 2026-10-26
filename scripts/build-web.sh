@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds the web board (web/src) into one self-contained page,
-# web/dist/index.html: the CSS, the scripts, the logo, and the
+# web/dist/index.html (and web/dist/artifact.html, the same page without
+# document tags, for publishing as an artifact): the CSS, the scripts, the logo, and the
 # dominofish-wasm module (base64) inline, so it opens from disk with no
 # server. Prints the page's path and size.
 set -u
@@ -25,5 +26,11 @@ for key, value in [("__STYLE__", open(src + "style.css").read()), ("__LOGO__", l
     assert page.count(key) == 1, key
     page = page.replace(key, value)
 open("web/dist/index.html", "w").write(page)
+# The artifact version: the same page without its own document tags, which
+# the artifact host adds (docs/FORMATS.md has no claim on it; it is a copy).
+head = page[page.index("<head>") + 6:page.index("</head>")]
+head = re.sub(r'<meta charset="utf-8">\s*|<meta name="viewport"[^>]*>\s*', "", head)
+body = page[page.index("<body>") + 6:page.rindex("</body>")]
+open("web/dist/artifact.html", "w").write(head.strip() + "\n" + body.strip() + "\n")
 PY
 echo "web/dist/index.html $(wc -c < web/dist/index.html | tr -d ' ') bytes"

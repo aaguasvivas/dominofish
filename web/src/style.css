@@ -1,10 +1,14 @@
-/* DominoFish Board. Colors come from the logo: ivory tiles, navy pips,
-   Dominican red; the table is green felt. Light tokens first, dark below. */
+/* DominoFish Board. Layout: a felt table with your hand docked below it
+   and the engine's panel beside it (stacked on narrow screens). Colors come
+   from the logo: ivory tiles, navy pips, Dominican red; the table is green
+   felt; the light ground is a cool grey tinted toward the navy. Type:
+   Archivo for the wordmark and headings, IBM Plex Sans for text, IBM Plex
+   Mono for scores and values. Light tokens first, dark below. */
 :root {
-  --bg: #f4f1ea;
+  --bg: #eef1f5;
   --surface: #ffffff;
-  --surface-2: #f7f5f0;
-  --border: #e3ddd1;
+  --surface-2: #f3f5f8;
+  --border: #d9dfe7;
   --text: #0b1f3a;
   --muted: #4b5a6e;
   --navy: #0b1f3a;
@@ -25,7 +29,11 @@
   --pip: #0b1f3a;
   --shadow: 0 1px 2px rgba(11, 31, 58, 0.08), 0 8px 24px rgba(11, 31, 58, 0.08);
   --radius: 14px;
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --display: "Archivo", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -90,13 +98,16 @@ svg { display: block; }
 /* Top bar */
 .topbar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
-  position: sticky; top: 0; z-index: 20;
+  padding-block: 10px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
 }
+/* Paints the band above the sticky bar on phones with a top inset. */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
 .brand { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-width: 0; }
 .brand .logo { width: 52px; height: auto; flex: none; }
 .brand-text { display: flex; flex-direction: column; min-width: 0; }
-.brand-name { font-weight: 800; font-size: 19px; letter-spacing: -0.01em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-name { font-family: var(--display); font-weight: 800; font-size: 19px; letter-spacing: -0.01em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand-tag { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top-actions { display: flex; gap: 8px; align-items: center; flex: none; }
 
@@ -123,7 +134,8 @@ svg { display: block; }
 
 /* Layout */
 .layout {
-  flex: 1; width: 100%; max-width: 1360px; margin: 0 auto; padding: 20px;
+  flex: 1; width: 100%; max-width: 1360px; margin: 0 auto;
+  padding-block: 20px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
   display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start;
 }
 .table-wrap { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
@@ -140,7 +152,7 @@ svg { display: block; }
 .team-line { display: flex; align-items: baseline; gap: 8px; }
 .team.right .team-line { flex-direction: row-reverse; }
 .team-name { font-weight: 600; font-size: 13.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.team-score { font-weight: 800; font-size: 26px; line-height: 1; }
+.team-score { font-family: var(--mono); font-weight: 600; font-size: 26px; line-height: 1; }
 .team.us .team-score { color: var(--ns); }
 .team.them .team-score { color: var(--ew); }
 .meter { width: 100%; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
@@ -232,7 +244,7 @@ button.tile-btn.hinted { transform: translateY(-8px); }
 
 /* Panel cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
-.card h2 { margin: 0; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.card h2 { margin: 0; font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
 .card p { margin: 0 0 8px; }
 .hint-out { min-height: 24px; font-weight: 600; margin: 0; }
@@ -252,14 +264,14 @@ button.tile-btn.hinted { transform: translateY(-8px); }
 /* Analysis */
 .evalbar { position: relative; height: 34px; border-radius: 10px; overflow: hidden; background: var(--ew); margin: 4px 0 10px; }
 .evalbar .fill { position: absolute; inset: 0 auto 0 0; background: var(--ns); transition: width 0.4s; }
-.evalbar .label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; font-size: 15px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55); }
+.evalbar .label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 600; color: #fff; font-size: 15px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55); }
 .mv-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .mv-item {
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 6px 10px;
   border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2);
 }
 .mv-item.best { border-color: var(--gold); background: var(--gold-soft); }
-.mv-item .val { font-weight: 800; font-size: 15px; }
+.mv-item .val { font-family: var(--mono); font-weight: 600; font-size: 15px; }
 .mv-item .val.pos { color: var(--good); }
 .mv-item .val.neg { color: var(--bad); }
 .mv-desc { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -291,7 +303,7 @@ button.tile-btn.hinted { transform: translateY(-8px); }
 .modal { border: 0; padding: 0; border-radius: 18px; background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); width: min(92vw, 460px); max-height: 92vh; }
 .modal::backdrop { background: rgba(6, 12, 24, 0.55); backdrop-filter: blur(2px); }
 .modal-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
-.modal h2 { margin: 0; font-size: 20px; }
+.modal h2 { margin: 0; font-family: var(--display); font-size: 20px; text-wrap: balance; }
 fieldset { border: 0; padding: 0; margin: 0; }
 legend { font-weight: 600; font-size: 13.5px; color: var(--muted); margin-bottom: 6px; padding: 0; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -311,7 +323,7 @@ legend { font-weight: 600; font-size: 13.5px; color: var(--muted); margin-bottom
 .round-hands .rh { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
 .round-hands .rh .mini-hand { justify-content: flex-start; max-width: none; }
 
-.footer { text-align: center; padding: 18px 20px 26px; color: var(--muted); font-size: 12.5px; }
+.footer { text-align: center; padding-block: 18px 26px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); color: var(--muted); font-size: 12.5px; }
 
 /* Narrow screens */
 @media (max-width: 1080px) {
@@ -319,12 +331,12 @@ legend { font-weight: 600; font-size: 13.5px; color: var(--muted); margin-bottom
   .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 }
 @media (max-width: 640px) {
-  .topbar { padding: 8px 12px; }
+  .topbar { padding-block: 8px; }
   .brand .logo { width: 44px; }
   .brand-tag { display: none; }
   .btn-primary span { display: none; }
   .btn-primary { width: 44px; padding: 0; }
-  .layout { padding: 12px; gap: 12px; }
+  .layout { padding-block: 12px; gap: 12px; }
   .panel { grid-template-columns: minmax(0, 1fr); }
   .table { padding: 10px; min-height: 340px; border-radius: 18px; grid-template-rows: auto minmax(180px, 1fr) auto; gap: 6px; }
   .team-score { font-size: 22px; }

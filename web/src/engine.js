@@ -2,30 +2,36 @@
 // behind text requests. It runs in a Web Worker so a long solve never
 // freezes the page; where a worker cannot start, it runs on the page.
 
-const ENGINE_CORE = `
-let exports = null;
-function call(text) {
-  const bytes = new TextEncoder().encode(text);
-  const p = exports.board_alloc(bytes.length);
-  new Uint8Array(exports.memory.buffer, p, bytes.length).set(bytes);
-  const r = BigInt.asUintN(64, exports.board_request(p, bytes.length));
-  const rp = Number(r >> 32n), rl = Number(r & 0xffffffffn);
-  const out = new TextDecoder().decode(new Uint8Array(exports.memory.buffer, rp, rl).slice());
-  exports.board_free(rp, rl);
-  return out;
+// The engine core: load the module, then call it with a request. The worker
+// gets this function's own source, so the page and the worker run the same
+// code without eval.
+function engineCore() {
+  let exports = null;
+  return {
+    async load(bytes) {
+      const { instance } = await WebAssembly.instantiate(bytes, {});
+      exports = instance.exports;
+    },
+    call(text) {
+      const bytes = new TextEncoder().encode(text);
+      const p = exports.board_alloc(bytes.length);
+      new Uint8Array(exports.memory.buffer, p, bytes.length).set(bytes);
+      const r = BigInt.asUintN(64, exports.board_request(p, bytes.length));
+      const rp = Number(r >> 32n), rl = Number(r & 0xffffffffn);
+      const out = new TextDecoder().decode(new Uint8Array(exports.memory.buffer, rp, rl).slice());
+      exports.board_free(rp, rl);
+      return out;
+    },
+  };
 }
-async function load(bytes) {
-  const { instance } = await WebAssembly.instantiate(bytes, {});
-  exports = instance.exports;
-}
-`;
 
-const WORKER_SRC = ENGINE_CORE + `
+const WORKER_SRC = `${engineCore.toString()}
+const core = engineCore();
 self.onmessage = async (e) => {
   const { id, init, text } = e.data;
   try {
-    if (init) { await load(init); self.postMessage({ id, out: "ok" }); return; }
-    self.postMessage({ id, out: call(text) });
+    if (init) { await core.load(init); self.postMessage({ id, out: "ok" }); return; }
+    self.postMessage({ id, out: core.call(text) });
   } catch (err) {
     self.postMessage({ id, out: "error " + err });
   }
@@ -65,7 +71,7 @@ class Engine {
     } catch (err) {
       if (this.worker) this.worker.terminate();
       this.worker = null;
-      this.local = new Function(ENGINE_CORE + "return { load, call };")();
+      this.local = engineCore();
       await this.local.load(bytes);
     }
   }
