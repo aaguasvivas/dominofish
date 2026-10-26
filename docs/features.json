@@ -562,7 +562,7 @@
   "requires": [
    "M2-99"
   ],
-  "passes": true,
+  "passes": false,
   "evidence": {
    "date": "2026-10-26",
    "result": "M3-01: PASS [2v2 games 30: naive positions 1486 (finished at every position from 4 to 26 tiles left), near-target variants 6503 (0 beyond naive), salida variants at 27 tiles left 273, deeper positions table on and off 144, warm table per round, mismatches 0] [1v1 games 30: naive positions 1226 (finished at every position from 2 to 20 tiles left), near-target variants 4802 (0 beyond naive), salida variants at 27 tiles left 0, deeper positions table on and off 80, warm table per round, mismatches 0]; negative control: a key without the score state gives 92 mismatches; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; games 2000 plies 262167 moves played and undone 541185 perft lines 37330 solver nodes 2675209 (capped solves 7193) allocations 0 (hash check true)",

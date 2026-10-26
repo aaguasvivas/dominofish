@@ -71,7 +71,8 @@ fi
 cargo test -q -p dominofish-core --lib position > runs/M3-01/position.log 2>&1 || err "state text tests failed (runs/M3-01/position.log)"
 grep -q 'test result: ok. 3 passed' runs/M3-01/position.log || err "the 3 state text tests did not all run"
 alloc=$(cargo test -q -p dominofish-core --test alloc 2>&1 | grep -o 'alloc: .*')
-case "$alloc" in *"solver nodes "[1-9]*"(capped solves "[1-9]*") allocations 0 (hash check true)") ;; *) err "allocation test: $alloc" ;; esac
+# M4-01 added "sampled worlds N" before the allocation count.
+case "$alloc" in *"solver nodes "[1-9]*"(capped solves "[1-9]*")"*" allocations 0 (hash check true)") ;; *) err "allocation test: $alloc" ;; esac
 if [ "$fail" -eq 0 ]; then
   echo "M3-01: PASS ${line#solver: }; negative control: $control; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; ${alloc#alloc: }"
 else

@@ -9,6 +9,9 @@
 //! (c) Every sampled world, rebuilt into a deal, replays the round's public
 //! record, the seat's hand, and the scores, and its state equals the
 //! replayed one.
+//!
+//! Test T4 (T4_FULL=1) adds what T3 cannot see: the 1v1 boneyard order, and
+//! the 1/m weight after a no-double opening by the other 1v1 seat.
 
 mod common;
 
@@ -25,6 +28,10 @@ use dominofish_core::worlds::Worlds;
 
 fn full() -> bool {
     std::env::var("T3_FULL").as_deref() == Ok("1")
+}
+
+fn t4_full() -> bool {
+    std::env::var("T4_FULL").as_deref() == Ok("1")
 }
 
 /// One round up to a decision, replayable from any deal of that round.
@@ -361,7 +368,7 @@ struct Set {
     inconsistent: u64,
 }
 
-fn chi_square_set(set: &mut Set, c: u64, point: &Point, info: &InfoSet) {
+fn chi_square_set(set: &mut Set, seed: u64, point: &Point, info: &InfoSet) {
     let w = Worlds::new(info).unwrap();
     let sampler = Sampler::new(info).unwrap();
     let worlds = enumerate(point, &w);
@@ -377,7 +384,7 @@ fn chi_square_set(set: &mut Set, c: u64, point: &Point, info: &InfoSet) {
         .map(|(i, (m, _))| (m.clone(), i))
         .collect();
     let mut observed = vec![0u64; worlds.len()];
-    let mut rng = Rng::new(7_000_000 + 1_000 * c + set.decisions);
+    let mut rng = Rng::new(seed);
     let k = w.groups().len();
     for _ in 0..n {
         let world = sampler.sample(&mut rng);
@@ -422,7 +429,7 @@ fn sampled_worlds_match_exact_enumeration() {
                     let info = InfoSet::new(&record, r, ply, state.turn).unwrap();
                     if qualifies(&info) {
                         let point = Point::new(&record, r, ply, info.seat);
-                        chi_square_set(set, c, &point, &info);
+                        chi_square_set(set, 7_000_000 + 1_000 * c + set.decisions, &point, &info);
                         if set.decisions == per_set {
                             break 'games;
                         }
@@ -455,7 +462,7 @@ fn sampled_worlds_match_exact_enumeration() {
             let info = InfoSet::new(&record, 0, ply, state.turn).unwrap();
             if qualifies(&info) {
                 let point = Point::new(&record, 0, ply, info.seat);
-                chi_square_set(set, 2, &point, &info);
+                chi_square_set(set, 7_000_000 + 2_000 + set.decisions, &point, &info);
             }
             state.legal_moves(&mut moves);
             let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
@@ -561,4 +568,183 @@ fn the_true_world_appears_at_the_uniform_rate() {
         },
         parts.join(" ")
     );
+}
+
+/// The rank of `order` among the orders of its tiles (lexicographic over
+/// tile indices, from 0 to k! - 1).
+fn order_rank(order: &[Tile]) -> usize {
+    let mut rest: Vec<Tile> = order.to_vec();
+    rest.sort();
+    let mut rank = 0;
+    for &t in order {
+        let i = rest.iter().position(|&x| x == t).unwrap();
+        rank = rank * rest.len() + i;
+        rest.remove(i);
+    }
+    rank
+}
+
+fn factorial(k: usize) -> usize {
+    (1..=k).product()
+}
+
+/// T4 (a): one decision's chi-square over every (assignment, boneyard
+/// order) cell.
+fn order_chi_square(set: &mut Set, seed: u64, point: &Point, info: &InfoSet) {
+    let w = Worlds::new(info).unwrap();
+    let sampler = Sampler::new(info).unwrap();
+    let worlds = enumerate(point, &w);
+    let total: u64 = worlds.iter().map(|(_, wt)| wt).sum();
+    let orders = factorial(usize::from(info.boneyard_count));
+    let p_min = worlds
+        .iter()
+        .map(|&(_, wt)| wt as f64 / (total as f64 * orders as f64))
+        .fold(1.0, f64::min);
+    let n = (10.0 / p_min).ceil() as u64;
+    let index: BTreeMap<Vec<u32>, usize> = worlds
+        .iter()
+        .enumerate()
+        .map(|(i, (m, _))| (m.clone(), i))
+        .collect();
+    let mut observed = vec![0u64; worlds.len() * orders];
+    let mut rng = Rng::new(seed);
+    let k = w.groups().len();
+    for _ in 0..n {
+        let world = sampler.sample(&mut rng);
+        if !consistent(point, &world, k) {
+            set.inconsistent += 1;
+        }
+        match index.get(&world.groups[..k]) {
+            Some(&i) => observed[i * orders + order_rank(world.state.boneyard())] += 1,
+            None => set.inconsistent += 1,
+        }
+    }
+    let mut x = 0.0;
+    for (i, &(_, wt)) in worlds.iter().enumerate() {
+        let e = n as f64 * wt as f64 / (total as f64 * orders as f64);
+        for r in 0..orders {
+            let d = observed[i * orders + r] as f64 - e;
+            x += d * d / e;
+        }
+    }
+    let df = (worlds.len() * orders) as u64 - 1;
+    set.low_p += u64::from(chi_square_p(x, df) < 0.01);
+    set.chi += x;
+    set.df += df;
+    set.samples += n;
+    set.decisions += 1;
+}
+
+fn set_text(name: &str, set: &Set) -> String {
+    format!(
+        "[{name}: decisions {} samples {} p<0.01 in {} pooled X2 {:.1} df {} p {:.4} inconsistent {}]",
+        set.decisions,
+        set.samples,
+        set.low_p,
+        set.chi,
+        set.df,
+        chi_square_p(set.chi, set.df),
+        set.inconsistent
+    )
+}
+
+#[test]
+fn t4_the_boneyard_order_is_uniform() {
+    let want = if t4_full() { 100 } else { 3 };
+    let mut set = Set::default();
+    'games: for g in 0..2_000u64 {
+        let record = common::random_record(Mode::OneVsOne, 100, 730_000 + g, true);
+        for (r, round) in record.rounds.iter().enumerate() {
+            let (mut state, _) = record.round_start(r).unwrap();
+            for ply in 0..round.moves.len() {
+                let info = InfoSet::new(&record, r, ply, state.turn).unwrap();
+                let k = usize::from(info.boneyard_count);
+                let w = Worlds::new(&info).unwrap();
+                if (2..=4).contains(&k)
+                    && w.count() as usize * factorial(k) <= 2_000
+                    && multinomial(&w) <= 100_000
+                {
+                    let point = Point::new(&record, r, ply, info.seat);
+                    let seed = 7_600_000 + set.decisions;
+                    order_chi_square(&mut set, seed, &point, &info);
+                    if set.decisions == want {
+                        break 'games;
+                    }
+                    break;
+                }
+                state.play(round.moves[ply]);
+            }
+        }
+    }
+    let line = set_text("1v1 boneyard order", &set);
+    println!(
+        "sampler order ({}): {line}",
+        if t4_full() {
+            "T4 (a) as registered"
+        } else {
+            "smoke"
+        }
+    );
+    assert_eq!(set.inconsistent, 0, "{line}");
+    if t4_full() {
+        assert_eq!(set.decisions, 100, "too few decisions: {line}");
+        assert!(set.low_p <= 5, "low p-values: {line}");
+        assert!(chi_square_p(set.chi, set.df) >= 0.001, "pooled p: {line}");
+    }
+}
+
+#[test]
+fn t4_the_one_over_m_weight() {
+    let want = if t4_full() { 30 } else { 2 };
+    let mut set = Set::default();
+    let mut g = 0u64;
+    while set.decisions < want && g < 2_000 {
+        let mut rng = Rng::new(720_000 + g);
+        g += 1;
+        let deal = no_double_deal(&mut rng);
+        let (mut state, _) = State::first_round(Mode::OneVsOne, 100, &deal);
+        let mut record = GameRecord {
+            mode: Mode::OneVsOne,
+            target: 100,
+            rounds: vec![RoundRecord {
+                deal,
+                moves: vec![],
+            }],
+        };
+        let mut moves = MoveList::new();
+        while state.phase == Phase::Playing && set.decisions < want {
+            let ply = record.rounds[0].moves.len();
+            let info = InfoSet::new(&record, 0, ply, state.turn).unwrap();
+            let other_opened =
+                matches!(info.opening, Some((s, t)) if s != info.seat && !t.is_double());
+            if other_opened && qualifies(&info) {
+                let point = Point::new(&record, 0, ply, info.seat);
+                let w = Worlds::new(&info).unwrap();
+                let worlds = enumerate(&point, &w);
+                if worlds.iter().any(|&(_, wt)| wt != worlds[0].1) {
+                    let seed = 7_700_000 + set.decisions;
+                    chi_square_set(&mut set, seed, &point, &info);
+                }
+            }
+            state.legal_moves(&mut moves);
+            let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
+            state.play(mv);
+            record.rounds[0].moves.push(mv);
+        }
+    }
+    let line = set_text("1v1 1/m weight", &set);
+    println!(
+        "sampler weight ({}): {line}",
+        if t4_full() {
+            "T4 (b) as registered"
+        } else {
+            "smoke"
+        }
+    );
+    assert_eq!(set.inconsistent, 0, "{line}");
+    if t4_full() {
+        assert_eq!(set.decisions, 30, "too few decisions: {line}");
+        assert!(set.low_p <= 2, "low p-values: {line}");
+        assert!(chi_square_p(set.chi, set.df) >= 0.001, "pooled p: {line}");
+    }
 }
