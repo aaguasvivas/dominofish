@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Every check main must pass: format, clippy, tests, the wasm32 build of the
-# core, and the em dash scan. Prints one line per check and a summary line;
+# core, the report check, Bench determinism, and the em dash scan. Prints one line per check and a summary line;
 # details go to runs/check.log. Exit 0 only when every check passes.
 set -u
 cd "$(dirname "$0")/.."
@@ -28,6 +28,16 @@ step clippy cargo clippy --workspace --all-targets -- -D warnings
 step tests env RUST_TEST_THREADS=4 cargo test --workspace
 step wasm32 cargo build -p dominofish-core --target wasm32-unknown-unknown
 step report cargo run -q -p dominofish -- report --check
+
+# M3: dominofish bench twice; the Bench lines must exist and be equal.
+bench_twice() {
+  local a b
+  a=$(cargo run -q --release -p dominofish -- bench | tail -1)
+  b=$(cargo run -q --release -p dominofish -- bench | tail -1)
+  echo "first $a, second $b"
+  [ "$a" = "$b" ] && case "$a" in "Bench: "[0-9]*) true ;; *) false ;; esac
+}
+step bench bench_twice
 
 if grep -rIn "$(printf '\342\200\224')" --exclude-dir=target --exclude-dir=.git --exclude-dir=runs .; then
   echo "ERROR em dash found"

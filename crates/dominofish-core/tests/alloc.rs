@@ -1,5 +1,6 @@
 //! M1-09: counts heap allocations, after setup, during move generation, play
-//! and undo, hashing, perft, and random playouts in both modes. It runs
+//! and undo, hashing, perft, random playouts in both modes, and (M3) solver
+//! nodes with the table and past the node cap. It runs
 //! without the test harness (Cargo.toml), so only this workload is on the
 //! process, and it exits 1 unless the count is 0.
 
@@ -9,6 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use dominofish_core::perft;
 use dominofish_core::rng::Rng;
 use dominofish_core::rules::{Deal, Mode, MoveList, Phase, State};
+use dominofish_core::solver::{self, Table};
 
 struct Counting;
 
@@ -43,6 +45,8 @@ fn main() {
     let mut rng = Rng::new(9);
     let mut moves = MoveList::new();
     let (mut games, mut plies, mut undone, mut nodes, mut hash) = (0u64, 0u64, 0u64, 0u64, 0u64);
+    let mut table = Table::new(16);
+    let (mut solver_nodes, mut capped) = (0u64, 0u64);
 
     let before = ALLOCATIONS.load(Ordering::Relaxed);
     for _ in 0..1000 {
@@ -63,6 +67,14 @@ fn main() {
                         if plies % 64 == 0 {
                             nodes += perft::lines(&mut state, 3);
                         }
+                        if plies % 16 == 0 {
+                            // A cap of 300 nodes sends some solves to the
+                            // fallback, so it is counted too.
+                            table.clear();
+                            let s = solver::solve(&mut state, Some(&mut table), 300);
+                            solver_nodes += s.nodes;
+                            capped += u64::from(s.capped);
+                        }
                         let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
                         state.play(mv);
                         plies += 1;
@@ -75,7 +87,7 @@ fn main() {
     let allocations = ALLOCATIONS.load(Ordering::Relaxed) - before;
 
     println!(
-        "alloc: games {games} plies {plies} moves played and undone {undone} perft lines {nodes} allocations {allocations} (hash check {})",
+        "alloc: games {games} plies {plies} moves played and undone {undone} perft lines {nodes} solver nodes {solver_nodes} (capped solves {capped}) allocations {allocations} (hash check {})",
         hash == 0
     );
     if allocations != 0 || hash != 0 {

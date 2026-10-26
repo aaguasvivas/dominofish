@@ -6,6 +6,7 @@ mod harness;
 mod help;
 mod report;
 mod selfplay;
+mod solve;
 mod stats;
 
 use std::fmt::Write as _;
@@ -242,6 +243,63 @@ fn run() -> Result<(String, bool), String> {
             out.push('\n');
             Ok((out, outcome.passed))
         }
+        "bench" => {
+            let (mut file, mut cap, mut bits) = (
+                "fixtures/bench.txt".to_string(),
+                solve::NODE_CAP,
+                solve::TABLE_BITS,
+            );
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("positions") => file = value(&mut parser)?,
+                    Long("nodes") => cap = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            Ok((solve::bench(&file, cap, bits)?, true))
+        }
+        "solve-stats" => {
+            let (mut mode, mut games, mut seed) = (None, None, None);
+            let (mut cap, mut bits) = (solve::NODE_CAP, solve::TABLE_BITS);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("nodes") => cap = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            Ok((
+                solve::stats(
+                    mode.ok_or("--mode is required")?,
+                    games.ok_or("--games is required")?,
+                    seed.ok_or("--seed is required")?,
+                    cap,
+                    bits,
+                ),
+                true,
+            ))
+        }
+        "bench-positions" => {
+            let (mut games, mut seed) = (None, None);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    _ => return Err(arg.unexpected().to_string()),
+                }
+            }
+            Ok((
+                solve::bench_positions(
+                    games.ok_or("--games is required")?,
+                    seed.ok_or("--seed is required")?,
+                ),
+                true,
+            ))
+        }
         other => Err(format!("unknown command {other}")),
     }
 }
@@ -264,6 +322,18 @@ fn parse_mode(s: &str) -> Result<Mode, String> {
 
 fn parse_num(s: &str) -> Result<u64, String> {
     s.parse().map_err(|_| format!("not a number: {s}"))
+}
+
+fn parse_bits(s: &str) -> Result<u32, String> {
+    let bits = parse_num(s)?;
+    if (10..=u64::from(solve::MAX_TABLE_BITS)).contains(&bits) {
+        Ok(bits as u32)
+    } else {
+        Err(format!(
+            "--table-bits must be 10 to {} (at most 256 MB), got {s}",
+            solve::MAX_TABLE_BITS
+        ))
+    }
 }
 
 fn parse_target(s: &str) -> Result<u16, String> {

@@ -548,5 +548,65 @@
   ],
   "passes": false,
   "evidence": null
+ },
+ {
+  "id": "M3-01",
+  "milestone": "M3",
+  "description": "Exact solver (core/src/solver.rs): alpha-beta over a known deal for the rest of the round's margin, a transposition table of bound entries whose key covers every tile's place, the ends, turn, opener, last player, passes, the 1v1 boneyard position, and the bonuses each team can still receive (instead of the scores); move ordering; a node cap with a greedy fallback. 0 mismatches against naive minimax on every position of the first two rounds of 30 seeded games per mode wherever naive minimax finishes within 50,000,000 nodes, with the tiles-left range where it finished at every position recorded, and on near-target score variants (74, 75, 99 at 100; 174, 175 at 200) up to 18 tiles left; equal values with the table on and off at every position where naive minimax did not finish; state text (core/src/position.rs) round-trips and rejects malformed lines; 0 allocations in solver nodes and the fallback.",
+  "verify": "scripts/verify/M3-01.sh",
+  "fast": "scripts/verify/M3-01.sh --fast",
+  "requires": [
+   "M2-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M3-02",
+  "milestone": "M3",
+  "description": "dominofish bench solves the committed position set fixtures/bench.txt (16 full-round positions per mode) with a node cap of 10,000,000 per solve and a 2^20-entry table on one thread and prints Bench: <nodes> last; two runs give the same number; check.sh runs it twice and fails on a difference.",
+  "verify": "scripts/verify/M3-02.sh",
+  "fast": "scripts/verify/M3-02.sh --fast",
+  "requires": [
+   "M3-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M3-03",
+  "milestone": "M3",
+  "description": "dominofish solve-stats: solve time (median, p90, max) and nodes by tiles left, per mode, over every position of the first two rounds of seeded games, and the share of 1v1 round-start solves that hit the node cap; the tables are written to docs/eval/results/ with commit, thread count, and load.",
+  "verify": "scripts/verify/M3-03.sh",
+  "fast": "scripts/verify/M3-03.sh --fast",
+  "requires": [
+   "M3-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M3-04",
+  "milestone": "M3",
+  "description": "The omniscient bot, labeled as cheating wherever it appears: an engine that reports view=omniscient in its ready line, receives the full state text from the referee before each go, and plays the solver's move; the header and the report label it; the other bots still receive only their InfoSet; matches against every baseline in both modes have 0 illegal moves, crashes, or timeouts.",
+  "verify": "scripts/verify/M3-04.sh",
+  "fast": "scripts/verify/M3-04.sh --fast",
+  "requires": [
+   "M3-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M3-05",
+  "milestone": "M3",
+  "description": "The omniscient bot beats every baseline by SPRT on held-out duplicate pairs in both modes (run R3, pre-registered in docs/PLAN.md before it starts), reported in docs/eval/REPORT.md.",
+  "verify": "scripts/verify/M3-05.sh",
+  "fast": "scripts/verify/M3-05.sh --fast",
+  "requires": [
+   "M3-04"
+  ],
+  "passes": false,
+  "evidence": null
  }
 ]

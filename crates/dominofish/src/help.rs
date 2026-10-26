@@ -53,6 +53,34 @@ pub const COMMANDS: &[Command] = &[
   --sprt-track        Play every pair and report the first decision",
     },
     Command {
+        name: "bench",
+        group: "Measure",
+        summary: "Solve the bench positions on one thread and print Bench: <nodes>",
+        usage: "dominofish bench [--positions FILE] [--nodes N] [--table-bits B]",
+        options: "  --positions FILE    State text lines (default fixtures/bench.txt)
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
+    },
+    Command {
+        name: "solve-stats",
+        group: "Measure",
+        summary: "Solve every position of seeded games; time and nodes by tiles left",
+        usage: "dominofish solve-stats --mode 1v1|2v2 --games N --seed N [--nodes N]
+           [--table-bits B]",
+        options: "  --games N           Games; every position of rounds 1 and 2 is solved
+  --seed N            Seed of the deals and the random moves
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
+    },
+    Command {
+        name: "bench-positions",
+        group: "Measure",
+        summary: "Print full-round positions of seeded games as state text",
+        usage: "dominofish bench-positions --games N --seed N",
+        options: "  --games N           Games per mode
+  --seed N            Seed of the deals and the random moves",
+    },
+    Command {
         name: "report",
         group: "Measure",
         summary: "Build docs/eval/REPORT.md from the match result files",

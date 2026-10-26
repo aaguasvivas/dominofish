@@ -7,6 +7,7 @@ pub mod bots;
 mod hash;
 pub mod infoset;
 pub mod perft;
+pub mod position;
 #[cfg(test)]
 mod properties;
 pub mod protocol;
@@ -14,5 +15,6 @@ pub mod record;
 pub mod referee;
 pub mod rng;
 pub mod rules;
+pub mod solver;
 pub mod tile;
 pub mod worlds;

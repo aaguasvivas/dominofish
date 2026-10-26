@@ -211,6 +211,24 @@ pub struct Undo {
     scores: [u16; 2],
 }
 
+/// Every field of a `State` but the boneyard, for `State::from_parts`.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Parts {
+    pub mode: Mode,
+    pub target: u16,
+    pub scores: [u16; 2],
+    pub hands: [u32; 4],
+    pub board: u32,
+    pub left: u8,
+    pub right: u8,
+    pub turn: u8,
+    pub starter: u8,
+    pub last_played_by: u8,
+    pub passes: u8,
+    pub phase: Phase,
+    pub round_winner: u8,
+}
+
 /// The result of `State::play`.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Played {
@@ -611,6 +629,53 @@ impl State {
             }
         }
         None
+    }
+
+    /// A Zobrist hash of every tile's place, the ends, turn, opener, last
+    /// player, passes, and the boneyard position: `hash` without the scores,
+    /// phase, and next leader. The solver adds the score state its value
+    /// depends on. The boneyard order is not hashed; it is fixed within one
+    /// deal.
+    pub fn position_hash(&self) -> u64 {
+        let mut h = self.tiles_hash
+            ^ KEYS.turn[self.turn as usize]
+            ^ KEYS.starter[self.starter as usize]
+            ^ KEYS.last[self.last_played_by as usize]
+            ^ KEYS.passes[self.passes as usize]
+            ^ KEYS.pile[self.boneyard_len as usize];
+        if self.board != 0 {
+            h ^= KEYS.left[self.left as usize] ^ KEYS.right[self.right as usize];
+        }
+        h
+    }
+
+    /// The state with these fields and boneyard (last tile drawn first), its
+    /// tile hash computed. Used by the state text (core/src/position.rs),
+    /// which checks that the tiles form a partition.
+    pub fn from_parts(p: &Parts, boneyard: &[Tile]) -> State {
+        assert!(boneyard.len() <= 14);
+        let mut pile = [Tile::from_index(0); 14];
+        pile[..boneyard.len()].copy_from_slice(boneyard);
+        let mut state = State {
+            mode: p.mode,
+            target: p.target,
+            scores: p.scores,
+            hands: p.hands,
+            board: p.board,
+            left: p.left,
+            right: p.right,
+            boneyard: pile,
+            boneyard_len: boneyard.len() as u8,
+            turn: p.turn,
+            starter: p.starter,
+            last_played_by: p.last_played_by,
+            passes: p.passes,
+            phase: p.phase,
+            round_winner: p.round_winner,
+            tiles_hash: 0,
+        };
+        state.tiles_hash = state.recomputed_hash() ^ state.scalar_hash();
+        state
     }
 
     /// A 64-bit Zobrist hash of everything a later move or score depends on:
