@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DominoFish Board</title>
+<meta name="description" content="Play Dominican dominoes against the DominoFish bots, ask for a hint, and see the exact value of every move. The engine runs in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="icon" href="data:image/svg+xml,__FAVICON__">
+<style>
+__STYLE__
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#" aria-label="DominoFish">
+    __LOGO__
+    <span class="brand-text"><span class="brand-name">DominoFish</span><span class="brand-tag" data-i18n="tagline"></span></span>
+  </a>
+  <div class="top-actions">
+    <button class="btn btn-primary" id="new-game" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="newGame"></span></button>
+    <button class="btn btn-icon" id="lang" type="button" aria-label="Language"><span id="lang-label">ES</span></button>
+    <button class="btn btn-icon" id="theme" type="button" data-i18n-label="theme"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="table-wrap" aria-labelledby="table-title">
+    <h1 class="sr-only" id="table-title" data-i18n="tableTitle"></h1>
+    <div class="scorebar" id="scorebar"></div>
+    <div class="table" id="table">
+      <div class="seat seat-top" id="seat-top"></div>
+      <div class="seat seat-left" id="seat-left"></div>
+      <div class="seat seat-right" id="seat-right"></div>
+      <div class="board" id="board" aria-live="polite"></div>
+      <div class="seat seat-bottom" id="seat-bottom"></div>
+    </div>
+    <div class="hand-bar">
+      <div class="hand" id="hand" role="group" data-i18n-label="yourHand"></div>
+      <div class="hand-actions" id="hand-actions"></div>
+    </div>
+    <p class="status" id="status" role="status"></p>
+  </section>
+
+  <aside class="panel" aria-label="Engine">
+    <div class="card">
+      <div class="card-head">
+        <h2 data-i18n="hintTitle"></h2>
+        <button class="btn btn-gold" id="hint" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="hint"></span></button>
+      </div>
+      <p class="muted small" data-i18n="hintNote"></p>
+      <p class="hint-out" id="hint-out"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2 data-i18n="analysisTitle"></h2>
+        <label class="switch"><input type="checkbox" id="analysis-on"><span class="track"><span class="thumb"></span></span><span class="sr-only" data-i18n="analysisTitle"></span></label>
+      </div>
+      <p class="muted small" data-i18n="analysisNote"></p>
+      <div id="analysis" class="analysis"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2 data-i18n="movesTitle"></h2>
+        <button class="btn btn-ghost" id="undo" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg><span data-i18n="undo"></span></button>
+      </div>
+      <label class="check"><input type="checkbox" id="reveal"><span data-i18n="reveal"></span></label>
+      <ol class="moves" id="moves"></ol>
+    </div>
+  </aside>
+</main>
+
+<footer class="footer">
+  <span id="footer-text"></span>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<dialog class="modal" id="new-dialog" aria-labelledby="new-title">
+  <form method="dialog" class="modal-body" id="new-form">
+    <h2 id="new-title" data-i18n="newGame"></h2>
+    <fieldset>
+      <legend data-i18n="mode"></legend>
+      <div class="seg">
+        <label><input type="radio" name="mode" value="2v2" checked><span data-i18n="mode2v2"></span></label>
+        <label><input type="radio" name="mode" value="1v1"><span data-i18n="mode1v1"></span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend data-i18n="target"></legend>
+      <div class="seg">
+        <label><input type="radio" name="target" value="100" checked><span>100</span></label>
+        <label><input type="radio" name="target" value="200"><span>200</span></label>
+      </div>
+    </fieldset>
+    <label class="field"><span data-i18n="opponents"></span>
+      <select name="opponents" id="opponents"></select>
+    </label>
+    <label class="field" id="partner-field"><span data-i18n="partner"></span>
+      <select name="partner" id="partner"></select>
+    </label>
+    <label class="field"><span data-i18n="dealNumber"></span>
+      <span class="inline"><input name="seed" id="seed" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off"><button class="btn btn-ghost" type="button" id="seed-random" data-i18n="random"></button></span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" value="cancel" type="submit" formnovalidate data-i18n="cancel"></button>
+      <button class="btn btn-primary" value="start" type="submit" data-i18n="start"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="modal" id="round-dialog" aria-labelledby="round-title">
+  <div class="modal-body">
+    <h2 id="round-title"></h2>
+    <p class="round-detail" id="round-detail"></p>
+    <div class="round-hands" id="round-hands"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" type="button" id="round-review" data-i18n="review"></button>
+      <button class="btn btn-primary" type="button" id="round-next"></button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+__SCRIPT__
+</script>
+</body>
+</html>

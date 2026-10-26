@@ -1,6 +1,6 @@
 [package]
 name = "dominofish-wasm"
-description = "One extern C export of the DominoFish core for wasm32, used by the playout bench (M1-10)."
+description = "The DominoFish core for wasm32: the playout bench export (M1-10) and the web board's request interface."
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
