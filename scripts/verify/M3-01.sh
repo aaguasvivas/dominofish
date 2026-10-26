@@ -59,8 +59,11 @@ assert s.count(a) == 1, "the key function changed; update the negative control"
 open(p, "w").write(s.replace(a, "    state.position_hash()\n"))
 PY
   find "$mut" -name '*.rs' -exec touch {} +
-  (cd "$mut" && SOLVER_GAMES=6 cargo test -q --release -p dominofish-core --test solver --target-dir ../../../target/old -- --ignored --nocapture) > runs/M3-01/mutant.log 2>&1
-  rm -rf "$mut"
+  # The mutant builds in its own target directory, removed after: in the
+  # shared target/old its artifacts would replace the real core's in later
+  # runs/bin builds (Cargo names path-crate artifacts by workspace place).
+  (cd "$mut" && SOLVER_GAMES=6 cargo test -q --release -p dominofish-core --test solver --target-dir ../../../target/mutant -- --ignored --nocapture) > runs/M3-01/mutant.log 2>&1
+  rm -rf "$mut" target/mutant
   caught=$(grep -o 'mismatches [0-9]*' runs/M3-01/mutant.log | awk '{s += $2} END {print s + 0}')
   [ "$caught" -gt 0 ] || err "negative control: a key without the score state passed (runs/M3-01/mutant.log)"
   control="a key without the score state gives $caught mismatches"

@@ -16,6 +16,11 @@ free=$(df -g /Users/Adelson | awk 'NR==2 {print $4}')
 [ "$free" -ge 5 ] || { echo "ERROR only ${free} GB free"; exit 1; }
 mkdir -p "runs/src/$commit" "runs/bin/$commit" &&
   /usr/bin/git archive "$commit" | tar -x -C "runs/src/$commit" &&
+  # git archive dates every file at the commit time. Cargo names path-crate
+  # artifacts by their place in the workspace, not by directory, and skips a
+  # rebuild when the sources look older than an artifact in target/old, so
+  # without this an older commit would link a newer build's code.
+  find "runs/src/$commit" -type f -exec touch {} + &&
   cargo build --release -q --manifest-path "runs/src/$commit/Cargo.toml" --target-dir target/old -p dominofish > runs/build-bin.log 2>&1 &&
   cp target/old/release/dominofish "runs/bin/$commit/" &&
   rm -rf "runs/src/$commit" || { echo "ERROR build of $commit failed (runs/build-bin.log)"; rm -rf "runs/src/$commit"; exit 1; }
