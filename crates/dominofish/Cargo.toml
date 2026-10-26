@@ -1,6 +1,6 @@
 [package]
 name = "dominofish"
-description = "The dominofish command line: selfplay, and later match, bench, analyze, and review."
+description = "The dominofish command line: selfplay, engine, match, bench, solve-stats, report, capi-fuzz, and playout-bench."
 version.workspace = true
 edition.workspace = true
 publish.workspace = true

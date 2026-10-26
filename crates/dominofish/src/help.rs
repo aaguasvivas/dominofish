@@ -13,7 +13,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "selfplay",
         group: "Play",
-        summary: "Play a game of random legal moves and print every hand and move",
+        summary: "Play a random game and print every hand, move, and score",
         usage: "dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]",
         options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
   --seed N            Seed of the deals and the moves
@@ -22,7 +22,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "engine",
         group: "Play",
-        summary: "Run a bot that speaks the engine protocol on stdin and stdout",
+        summary: "Run a bot over the engine protocol on stdin and stdout",
         usage: "dominofish engine --bot random|heaviest|accompanied|rule [--salt N]",
         options: "  --bot NAME          random, heaviest (bota gorda), accompanied (la mas
                       acompanada), or rule (counts tiles, reads pass voids)
@@ -34,7 +34,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "match",
         group: "Measure",
-        summary: "Play duplicate pairs between two engines, with an optional SPRT",
+        summary: "Play duplicate pairs between two engines; optional SPRT",
         usage: "dominofish match --mode 1v1|2v2 --unit round|game --target 100|200
            --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE
            [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]",
@@ -45,7 +45,7 @@ pub const COMMANDS: &[Command] = &[
                       (the maximum when --sprt is set)
   --seed N            Pair i plays deal seed N + i
   --engine-seed N     Base of the engines' own seeds, apart from the deals
-  --a CMD, --b CMD    Engine commands; binaries must live under runs/bin/<commit>/
+  --a CMD, --b CMD    Engine commands, run from runs/bin/<commit>/ copies
   --out FILE          Result file: header, seeds, one line per pair, summary
   --timeout-ms N      Deadline per reply (default 10000), a safety limit
   --sprt MU0,MU1      SPRT on the pair margin, alpha = beta = 0.05; stops at
@@ -55,7 +55,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "bench",
         group: "Measure",
-        summary: "Solve the bench positions on one thread and print Bench: <nodes>",
+        summary: "Solve the bench positions; prints Bench: <nodes>",
         usage: "dominofish bench [--positions FILE] [--nodes N] [--table-bits B]",
         options: "  --positions FILE    State text lines (default fixtures/bench.txt)
   --nodes N           Node cap per solve (default 10000000)
@@ -64,10 +64,11 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "solve-stats",
         group: "Measure",
-        summary: "Solve every position of seeded games; time and nodes by tiles left",
+        summary: "Time and nodes of exact solves by tiles left",
         usage: "dominofish solve-stats --mode 1v1|2v2 --games N --seed N [--nodes N]
            [--table-bits B]",
-        options: "  --games N           Games; every position of rounds 1 and 2 is solved
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --games N           Games; every position of rounds 1 and 2 is solved
   --seed N            Seed of the deals and the random moves
   --nodes N           Node cap per solve (default 10000000)
   --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
@@ -75,7 +76,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "bench-positions",
         group: "Measure",
-        summary: "Print full-round positions of seeded games as state text",
+        summary: "Print full-round positions of seeded games",
         usage: "dominofish bench-positions --games N --seed N",
         options: "  --games N           Games per mode
   --seed N            Seed of the deals and the random moves",
@@ -83,7 +84,7 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "report",
         group: "Measure",
-        summary: "Build docs/eval/REPORT.md from the match result files",
+        summary: "Build docs/eval/REPORT.md from the result files",
         usage: "dominofish report [--results DIR] [--out FILE] [--check]",
         options: "  --results DIR       Result directories (default docs/eval/results)
   --out FILE          The report (default docs/eval/REPORT.md)
@@ -92,20 +93,24 @@ pub const COMMANDS: &[Command] = &[
     Command {
         name: "capi-fuzz",
         group: "Verify",
-        summary: "Play random rounds in lockstep with Capi's engine and compare",
+        summary: "Play rounds in lockstep with Capi's engine and compare",
         usage: "dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N",
-        options: "  --rounds N          Rounds to play
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --rounds N          Rounds to play; the run fails unless every rule path
+                      is reached (the fast check plays 10000 rounds)
   --seed N            Seed of the deals and the moves
 
-  Needs CAPI_DIR to hold the pinned Capi commit; prints SKIP and exits 1
-  otherwise.",
+  Reads Capi from CAPI_DIR (default /Users/Adelson/Desktop/personal/capi),
+  which must hold the pinned commit, and runs it with the Node.js in NODE
+  (default Node v20 from nvm); prints SKIP and exits 1 without the pin.",
     },
     Command {
         name: "playout-bench",
         group: "Verify",
-        summary: "Time random playouts on one core and print their checksum",
+        summary: "Time random playouts on one core, with a checksum",
         usage: "dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N",
-        options: "  --rounds N          Rounds to play out
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --rounds N          Rounds to play out
   --seed N            Seed, at most 2^32 - 1",
     },
 ];
@@ -113,6 +118,9 @@ pub const COMMANDS: &[Command] = &[
 pub fn find(name: &str) -> Option<&'static Command> {
     COMMANDS.iter().find(|c| c.name == name)
 }
+
+/// The width of the command-name column in the overview.
+const NAME_COLUMN: usize = 17;
 
 /// The banner and the command list.
 pub fn overview() -> String {
@@ -126,7 +134,7 @@ pub fn overview() -> String {
             group = c.group;
             out.push_str(&format!("\n{group}\n"));
         }
-        out.push_str(&format!("  {:<15}{}\n", c.name, c.summary));
+        out.push_str(&format!("  {:<NAME_COLUMN$}{}\n", c.name, c.summary));
     }
     out.push_str("\nRun \"dominofish <command> --help\" for its options.\n");
     out
@@ -137,4 +145,25 @@ pub fn command(c: &Command) -> String {
         "{}\n\nUsage: {}\n\nOptions:\n{}\n",
         c.summary, c.usage, c.options
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn help_fits_80_columns() {
+        assert!(COMMANDS.iter().all(|c| c.name.len() + 2 <= NAME_COLUMN));
+        let mut texts = vec![overview()];
+        texts.extend(COMMANDS.iter().map(command));
+        for text in texts {
+            for line in text.lines() {
+                assert!(
+                    line.chars().count() <= 80,
+                    "{} columns: {line}",
+                    line.chars().count()
+                );
+            }
+        }
+    }
 }

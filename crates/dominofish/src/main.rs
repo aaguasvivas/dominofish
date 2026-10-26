@@ -52,7 +52,11 @@ fn main() -> ExitCode {
                 ExitCode::from(1)
             }
         }
-        Err(e) => {
+        Err(Failure::Run(e)) => {
+            eprintln!("ERROR {e}");
+            ExitCode::from(1)
+        }
+        Err(Failure::Usage(e)) => {
             eprintln!("ERROR {e}");
             match first.and_then(help::find) {
                 Some(c) => eprintln!(
@@ -66,8 +70,27 @@ fn main() -> ExitCode {
     }
 }
 
+/// Why a command failed: a usage error (exit 2, with the command's usage)
+/// or an error while it ran (exit 1).
+enum Failure {
+    Usage(String),
+    Run(String),
+}
+
+impl From<String> for Failure {
+    fn from(e: String) -> Failure {
+        Failure::Usage(e)
+    }
+}
+
+impl From<&str> for Failure {
+    fn from(e: &str) -> Failure {
+        Failure::Usage(e.into())
+    }
+}
+
 /// The output to print and whether the command passed.
-fn run() -> Result<(String, bool), String> {
+fn run() -> Result<(String, bool), Failure> {
     use lexopt::prelude::*;
     let mut parser = lexopt::Parser::from_env();
     let command = match parser.next().map_err(|e| e.to_string())? {
@@ -82,7 +105,7 @@ fn run() -> Result<(String, bool), String> {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
                     Long("target") => target = parse_target(&value(&mut parser)?)?,
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let mode = mode.ok_or("--mode is required")?;
@@ -96,7 +119,7 @@ fn run() -> Result<(String, bool), String> {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
                     Long("rounds") => rounds = Some(parse_num(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let mode = mode.ok_or("--mode is required")?;
@@ -110,7 +133,7 @@ fn run() -> Result<(String, bool), String> {
             Ok((
                 format!(
                     "native playouts: mode {} rounds {rounds} seed {seed} checksum {checksum:x} plies {plies} seconds {secs:.3} rounds/s {:.0}\n",
-                    mode_name(mode),
+                    mode.name(),
                     f64::from(rounds) / secs
                 ),
                 true,
@@ -128,10 +151,10 @@ fn run() -> Result<(String, bool), String> {
                         );
                     }
                     Long("salt") => salt = Some(parse_num(&value(&mut parser)?)?),
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
-            engine::run(bot.ok_or("--bot is required")?, salt)?;
+            engine::run(bot.ok_or("--bot is required")?, salt).map_err(Failure::Run)?;
             Ok((String::new(), true))
         }
         "match" => {
@@ -148,7 +171,9 @@ fn run() -> Result<(String, bool), String> {
                         unit = Some(match value(&mut parser)?.as_str() {
                             "round" => harness::Unit::Round,
                             "game" => harness::Unit::Game,
-                            u => return Err(format!("--unit must be round or game, got {u}")),
+                            u => {
+                                return Err(format!("--unit must be round or game, got {u}").into());
+                            }
                         })
                     }
                     Long("target") => target = Some(parse_target(&value(&mut parser)?)?),
@@ -168,19 +193,22 @@ fn run() -> Result<(String, bool), String> {
                                 .map_err(|_| format!("bad --sprt bound {x}"))
                         };
                         let (h0, h1) = (parse(h0)?, parse(h1)?);
-                        if h1 <= h0 {
-                            return Err("--sprt needs mu0 < mu1".into());
+                        if !(h0.is_finite() && h1.is_finite() && h1 > h0) {
+                            return Err("--sprt needs finite mu0 < mu1".into());
                         }
                         sprt = Some(stats::Sprt::new(h0, h1, 0.05, 0.05));
                     }
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let spec = harness::Spec {
                 mode: mode.ok_or("--mode is required")?,
                 unit: unit.ok_or("--unit is required")?,
                 target: target.ok_or("--target is required")?,
-                pairs: pairs.ok_or("--pairs is required")?,
+                pairs: match pairs.ok_or("--pairs is required")? {
+                    0 => return Err("--pairs must be at least 1".into()),
+                    n => n,
+                },
                 seed: seed.ok_or("--seed is required")?,
                 a: a.ok_or("--a is required")?,
                 b: b.ok_or("--b is required")?,
@@ -197,7 +225,7 @@ fn run() -> Result<(String, bool), String> {
                     !track && t.decision().is_some()
                 })
             });
-            Ok(write_match(&spec, &report, sprt.as_ref(), &out)?)
+            write_match(&spec, &report, sprt.as_ref(), &out).map_err(Failure::Run)
         }
         "report" => {
             let (mut results, mut out, mut check) = (
@@ -210,14 +238,15 @@ fn run() -> Result<(String, bool), String> {
                     Long("results") => results = value(&mut parser)?,
                     Long("out") => out = value(&mut parser)?,
                     Long("check") => check = true,
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
-            Ok(report::run(
+            report::run(
                 std::path::Path::new(&results),
                 std::path::Path::new(&out),
                 check,
-            )?)
+            )
+            .map_err(Failure::Run)
         }
         "capi-fuzz" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -226,14 +255,15 @@ fn run() -> Result<(String, bool), String> {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
                     Long("rounds") => rounds = Some(parse_num(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let outcome = capi_fuzz::run(
                 mode.ok_or("--mode is required")?,
                 rounds.ok_or("--rounds is required")?,
                 seed.ok_or("--seed is required")?,
-            )?;
+            )
+            .map_err(Failure::Run)?;
             let mut out = String::new();
             for e in &outcome.errors {
                 out.push_str(e);
@@ -254,10 +284,10 @@ fn run() -> Result<(String, bool), String> {
                     Long("positions") => file = value(&mut parser)?,
                     Long("nodes") => cap = parse_num(&value(&mut parser)?)?,
                     Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
-            Ok((solve::bench(&file, cap, bits)?, true))
+            Ok((solve::bench(&file, cap, bits).map_err(Failure::Run)?, true))
         }
         "solve-stats" => {
             let (mut mode, mut games, mut seed) = (None, None, None);
@@ -269,7 +299,7 @@ fn run() -> Result<(String, bool), String> {
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
                     Long("nodes") => cap = parse_num(&value(&mut parser)?)?,
                     Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             Ok((
@@ -289,7 +319,7 @@ fn run() -> Result<(String, bool), String> {
                 match arg {
                     Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
-                    _ => return Err(arg.unexpected().to_string()),
+                    _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             Ok((
@@ -300,7 +330,7 @@ fn run() -> Result<(String, bool), String> {
                 true,
             ))
         }
-        other => Err(format!("unknown command {other}")),
+        other => Err(format!("unknown command {other}").into()),
     }
 }
 
@@ -341,13 +371,6 @@ fn parse_target(s: &str) -> Result<u16, String> {
         "100" => Ok(100),
         "200" => Ok(200),
         _ => Err(format!("--target must be 100 or 200, got {s}")),
-    }
-}
-
-fn mode_name(mode: Mode) -> &'static str {
-    match mode {
-        Mode::OneVsOne => "1v1",
-        Mode::TwoVsTwo => "2v2",
     }
 }
 
@@ -427,7 +450,7 @@ fn write_match(
     let summary = match &report.fault {
         None => format!(
             "{lines}\nmatch: PASS mode {} unit {} target {} pairs {} moves {}; illegal 0, crashes 0, timeouts 0; results {out}\n",
-            mode_name(spec.mode),
+            spec.mode.name(),
             if spec.unit == harness::Unit::Round {
                 "round"
             } else {

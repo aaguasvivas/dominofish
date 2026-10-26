@@ -51,7 +51,7 @@ Command of each row: `runs/bin/a3e108a/dominofish match --mode 1v1 --unit round 
 
 ## 2026-10-25-baselines-r2 (R2)
 
-Pre-registered as R2 in docs/PLAN.md. Side A: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Side B: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Engine seed base: 5000100000. Measured 2026-10-25 at a 1-minute load average of 10.22 to 25.24.
+Pre-registered as R2 in docs/PLAN.md. Side A: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Side B: commit d276826, Bench -, binary hash 3b6a6b2abd3dd1cb, budgets -, threads 1, tables -. Engine seed base: 5000100000 to 5000100035 (one per row). Measured 2026-10-25 at a 1-minute load average of 10.22 to 25.24.
 
 | Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

@@ -59,18 +59,25 @@ fn read_row(path: &Path) -> Result<Row, String> {
                     w.get(8)
                         .and_then(|x| x.trim_end_matches(',').parse::<f64>().ok()),
                 );
-                row.sprt = h0.zip(h1);
+                row.sprt = h0
+                    .zip(h1)
+                    .filter(|&(a, b)| a.is_finite() && b.is_finite() && b > a);
             }
         } else if line.starts_with("pair ") {
+            let bad = || format!("{}: bad pair line: {line}", path.display());
             let w: Vec<&str> = line.split(' ').collect();
-            let margin: f64 = w[11]
-                .parse()
-                .map_err(|_| format!("{}: bad pair line", path.display()))?;
+            if w.len() != 14 || w[8] != "rounds" || w[10] != "margin" || w[12] != "wins" {
+                return Err(bad());
+            }
+            let margin: f64 = w[11].parse().map_err(|_| bad())?;
             let rounds: f64 = w[9]
                 .split(',')
-                .map(|x| x.parse::<f64>().unwrap_or(1.0))
-                .sum();
-            let wins: f64 = w[13].parse().unwrap_or(0.0);
+                .map(|x| x.parse::<f64>().map_err(|_| bad()))
+                .sum::<Result<f64, String>>()?;
+            let wins: f64 = w[13].parse().map_err(|_| bad())?;
+            if rounds <= 0.0 {
+                return Err(bad());
+            }
             row.margins.push(margin);
             row.per_round.push(margin / rounds);
             row.wins.push(wins / 2.0);
@@ -82,8 +89,15 @@ fn read_row(path: &Path) -> Result<Row, String> {
     Ok(row)
 }
 
+/// The bot of an engine command: the word after --bot.
 fn bot_of(cmd: &str) -> &str {
-    cmd.rsplit('+').next().unwrap_or(cmd)
+    let words: Vec<&str> = cmd.split('+').collect();
+    words
+        .iter()
+        .position(|&w| w == "--bot")
+        .and_then(|i| words.get(i + 1))
+        .copied()
+        .unwrap_or(cmd)
 }
 
 /// One side's identity and settings. R1's committed files predate per-side
@@ -141,15 +155,30 @@ pub fn build(results: &Path) -> Result<String, String> {
             .iter()
             .filter_map(|r| field(&r.run, "load")?.parse().ok())
             .collect();
+        let load = if loads.is_empty() {
+            "-".to_string()
+        } else {
+            format!(
+                "{} to {}",
+                loads.iter().copied().fold(f64::INFINITY, f64::min),
+                loads.iter().copied().fold(f64::NEG_INFINITY, f64::max)
+            )
+        };
+        let bases: Vec<u64> = rows
+            .iter()
+            .filter_map(|r| field(&r.seeds, "engines")?.parse().ok())
+            .collect();
+        let engine_seeds = match (bases.iter().min(), bases.iter().max()) {
+            (Some(lo), Some(hi)) if lo == hi => lo.to_string(),
+            (Some(lo), Some(hi)) => format!("{lo} to {hi} (one per row)"),
+            _ => "- (seat seeds keyed by deal and seat)".to_string(),
+        };
         let _ = write!(
             out,
-            "\n## {name} ({run_id})\n\nPre-registered as {run_id} in docs/PLAN.md. Side A: {}. Side B: {}. Engine seed base: {}. Measured {} at a 1-minute load average of {} to {}.\n\n",
+            "\n## {name} ({run_id})\n\nPre-registered as {run_id} in docs/PLAN.md. Side A: {}. Side B: {}. Engine seed base: {engine_seeds}. Measured {} at a 1-minute load average of {load}.\n\n",
             side_text(&first.header, "a"),
             side_text(&first.header, "b"),
-            field(&first.seeds, "engines").unwrap_or("- (seat seeds keyed by deal and seat)"),
             field(&first.run, "date").unwrap_or("-"),
-            loads.iter().copied().fold(f64::INFINITY, f64::min),
-            loads.iter().copied().fold(f64::NEG_INFINITY, f64::max),
         );
         // note.md in a run directory: a later finding about that run, added
         // beside its committed result files instead of editing them.

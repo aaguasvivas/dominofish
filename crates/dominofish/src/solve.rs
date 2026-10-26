@@ -20,13 +20,6 @@ pub const TABLE_BITS: u32 = 20;
 /// constraint 10): 2^24 entries.
 pub const MAX_TABLE_BITS: u32 = 24;
 
-fn mode_name(mode: Mode) -> &'static str {
-    match mode {
-        Mode::OneVsOne => "1v1",
-        Mode::TwoVsTwo => "2v2",
-    }
-}
-
 fn thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
@@ -83,7 +76,7 @@ pub fn bench(path: &str, cap: u64, bits: u32) -> Result<String, String> {
             out,
             "  {:>2}  {}   {:>10}  {:>+5}  {:>12}{}",
             i + 1,
-            mode_name(state.mode),
+            state.mode.name(),
             tiles_left(&state),
             s.value,
             thousands(s.nodes),
@@ -172,7 +165,7 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
     }
     let mut out = format!(
         "DominoFish solve-stats   mode {}   games {games}   seed {seed}   node cap {}   table {} MB   one thread\n\n",
-        mode_name(mode),
+        mode.name(),
         thousands(cap),
         table.bytes() >> 20
     );
@@ -206,7 +199,7 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
     let _ = write!(
         out,
         "\nsolve-stats: mode {} solves {solves} capped {capped_all}; round starts (27 or 28 tiles left) {round_starts}, capped {round_start_capped} ({:.2}%); wall {:.1} s\n",
-        mode_name(mode),
+        mode.name(),
         100.0 * round_start_capped as f64 / round_starts.max(1) as f64,
         start.elapsed().as_secs_f64()
     );

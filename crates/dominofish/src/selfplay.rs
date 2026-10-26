@@ -139,10 +139,7 @@ pub fn run(mode: Mode, seed: u64, target: u16) -> String {
     let _ = writeln!(
         out,
         "DominoFish selfplay   mode {}   seed {seed}   target {target}",
-        match mode {
-            Mode::OneVsOne => "1v1",
-            Mode::TwoVsTwo => "2v2",
-        }
+        mode.name()
     );
     let mut moves_rng = Rng::new(derive(seed, 0));
     let mut round = 1u64;

@@ -13,6 +13,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use dominofish_core::infoset::{Action, InfoSet};
@@ -86,7 +87,12 @@ struct Engine {
     child: Child,
     stdin: ChildStdin,
     lines: Receiver<String>,
+    /// The end of what the engine wrote to stderr, for a crash report.
+    stderr: Arc<Mutex<String>>,
 }
+
+/// Bytes of an engine's stderr kept for a crash report.
+const STDERR_TAIL: usize = 2000;
 
 impl Engine {
     fn spawn(side: &Side, name: String) -> Result<Engine, String> {
@@ -94,18 +100,48 @@ impl Engine {
             .args(&side.command[1..])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| format!("{name}: {e}"))?;
         let stdin = child.stdin.take().expect("piped stdin");
         let stdout = child.stdout.take().expect("piped stdout");
+        let err_pipe = child.stderr.take().expect("piped stderr");
         let (tx, lines) = channel();
+        // A line that is not UTF-8 arrives lossily converted, so it fails to
+        // parse as a protocol fault instead of ending the stream.
         std::thread::spawn(move || {
-            for line in BufReader::new(stdout).lines() {
-                let Ok(line) = line else { break };
-                if tx.send(line).is_err() {
-                    break;
+            let mut reader = BufReader::new(stdout);
+            let mut buf = Vec::new();
+            loop {
+                buf.clear();
+                match reader.read_until(b'\n', &mut buf) {
+                    Ok(0) | Err(_) => break,
+                    Ok(_) => {
+                        let line = String::from_utf8_lossy(&buf);
+                        let line = line.trim_end_matches(['\n', '\r']).to_string();
+                        if tx.send(line).is_err() {
+                            break;
+                        }
+                    }
                 }
+            }
+        });
+        let stderr = Arc::new(Mutex::new(String::new()));
+        let tail = Arc::clone(&stderr);
+        std::thread::spawn(move || {
+            let mut reader = BufReader::new(err_pipe);
+            let mut buf = Vec::new();
+            while matches!(reader.read_until(b'\n', &mut buf), Ok(n) if n > 0) {
+                let mut t = tail.lock().expect("stderr lock");
+                t.push_str(&String::from_utf8_lossy(&buf));
+                if t.len() > STDERR_TAIL {
+                    let cut = t.len() - STDERR_TAIL;
+                    let cut = (cut..t.len())
+                        .find(|&i| t.is_char_boundary(i))
+                        .unwrap_or(t.len());
+                    t.drain(..cut);
+                }
+                buf.clear();
             }
         });
         Ok(Engine {
@@ -113,6 +149,7 @@ impl Engine {
             child,
             stdin,
             lines,
+            stderr,
         })
     }
 
@@ -137,7 +174,7 @@ impl Engine {
                     ));
                 }
                 Err(RecvTimeoutError::Disconnected) => {
-                    return Err((Fault::Crash, format!("{}: exited", self.name)));
+                    return Err((Fault::Crash, self.exited()));
                 }
             };
             match FromEngine::parse(&line) {
@@ -150,6 +187,23 @@ impl Engine {
                     ));
                 }
             }
+        }
+    }
+
+    /// A crash report: the engine exited, with the end of its stderr.
+    fn exited(&self) -> String {
+        // The stderr reader may still be draining the pipe.
+        std::thread::sleep(Duration::from_millis(50));
+        let tail = self.stderr.lock().expect("stderr lock");
+        let tail = tail.trim();
+        if tail.is_empty() {
+            format!("{}: exited", self.name)
+        } else {
+            format!(
+                "{}: exited; stderr: {}",
+                self.name,
+                tail.replace('\n', " | ")
+            )
         }
     }
 
@@ -262,11 +316,7 @@ impl Spec {
             "{} {} mode={} unit={} target={} pairs={}",
             side("a", &self.a, &settings[0]),
             side("b", &self.b, &settings[1]),
-            if self.mode == Mode::OneVsOne {
-                "1v1"
-            } else {
-                "2v2"
-            },
+            self.mode.name(),
             if self.unit == Unit::Round {
                 "round"
             } else {

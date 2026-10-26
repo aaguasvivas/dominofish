@@ -34,7 +34,7 @@ while IFS=$'\t' read -r id cmd; do
   total=$((total + 1))
   t0=$(date +%s)
   echo "== $id: $cmd" >> "$log"
-  out=$(bash -c "$cmd" 2>&1)
+  out=$(bash -c "$cmd" < /dev/null 2>&1)
   code=$?
   printf '%s\n' "$out" >> "$log"
   last=$(printf '%s\n' "$out" | tail -1)

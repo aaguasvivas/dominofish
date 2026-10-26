@@ -56,6 +56,9 @@ pub fn run(bot: Bot, salt: Option<u64>) -> Result<(), String> {
             ToEngine::InfoSet(i) => info = Some(*i),
             ToEngine::Go => {
                 let i = info.take().ok_or("go without an infoset")?;
+                if i.turn != i.seat {
+                    return Err("go for a seat that is not on turn".into());
+                }
                 reply(&mut out, FromEngine::Move(bot.decide(&i, &mut rng)))?;
             }
             ToEngine::Quit => return Ok(()),

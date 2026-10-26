@@ -14,6 +14,8 @@ use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, Stat
 use dominofish_core::tile::Tile;
 
 pub const PIN: &str = "1d8868a26ce930f478f98e64060c06b1d1a2c1f4";
+/// The Node.js that runs the oracle (BUILD.md: Node v20 through nvm);
+/// the NODE variable overrides it.
 const NODE: &str = "/Users/Adelson/.nvm/versions/node/v20.20.0/bin/node";
 
 /// The outcome: a summary line, and whether it passed. A missing Capi
@@ -162,10 +164,7 @@ fn required_paths(mode: Mode) -> Result<Vec<String>, String> {
         .split("## Rule paths")
         .nth(1)
         .ok_or("docs/RULES.md has no Rule paths section")?;
-    let want = match mode {
-        Mode::OneVsOne => "1v1",
-        Mode::TwoVsTwo => "2v2",
-    };
+    let want = mode.name();
     Ok(table
         .lines()
         .take_while(|l| !l.starts_with("## "))
@@ -213,11 +212,8 @@ pub fn run(mode: Mode, rounds: u64, seed: u64) -> Result<Outcome, String> {
     if !Path::new("tools/capi-oracle/fuzz.mjs").exists() {
         return Err("run capi-fuzz from the repository root".into());
     }
-    let mode_arg = match mode {
-        Mode::OneVsOne => "1v1",
-        Mode::TwoVsTwo => "2v2",
-    };
-    let mut child = Command::new(NODE)
+    let mode_arg = mode.name();
+    let mut child = Command::new(std::env::var("NODE").unwrap_or_else(|_| NODE.into()))
         .args([
             "tools/capi-oracle/fuzz.mjs",
             mode_arg,
