@@ -45,7 +45,7 @@ for ci in $(grep -o '[0-9.]* \[[0-9.]*, [0-9.]*\]' README.md | tr ' ' '_'); do
   nums=$((nums + 1))
 done
 [ "$nums" -ge 4 ] || err "README.md holds only $nums result numbers"
-fast=$(scripts/readme-fast.sh --check 2>&1 | tail -1)
+fast=$(scripts/readme-fast.sh --check R2 R3 2>&1 | tail -1)
 case "$fast" in "readme-fast: PASS"*) ;; *) err "$fast" ;; esac
 [ -s LICENSE-MIT ] && grep -q '^Permission is hereby granted, free of charge' LICENSE-MIT || err "LICENSE-MIT is missing or not the MIT text"
 [ -s LICENSE-APACHE ] && grep -q 'Apache License' LICENSE-APACHE && grep -q 'Version 2.0, January 2004' LICENSE-APACHE || err "LICENSE-APACHE is missing or not the Apache 2.0 text"

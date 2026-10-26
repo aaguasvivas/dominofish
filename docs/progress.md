@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-09 (run R5), then M4-10 (run R6)
+- Feature in progress: M4-99 (M4 exit: milestone review); M2-09 fails and waits on Q8
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q7 answered 2026-10-26: push after each commit)
+- Open questions: Q8 (M2-09 and the SPRT column of R5 and R6), batched in docs/PLAN.md
 - Stashes: none
 
 ## 2026-10-25
@@ -140,4 +140,8 @@
 - M4-07 passed (second full run; the first failed on the verify's own glob, which counted the two match result files as engine memory reports: 5 files for 3 engines). M4-07: PASS default 64 worlds per move by the D18 rule; two runs per mode with equal node counts: 2v2 1,116 decisions, p90 780.3 ms, max 6,461.3 ms, 0 capped, 0 inconsistent, 0 fallback; 1v1 1,268 decisions, p90 273.2 ms, max 8,849.3 ms, 27 capped solves, 0 inconsistent, 0 fallback; peak RSS of 3 PIMC engine processes 3.4 MB (target under 256 MB). The committed record, docs/eval/results/2026-10-26-pimc-stats.md, is the first full run (load 7.20 at its start): 2v2 p90 754.7 and 732.3 ms, 1v1 238.6 and 253.6 ms.
 - M4-08 passed: R4 as registered, commit ebaa5fd, 64 worlds, 13:23 to 14:27 (4 rows at once). M4-08: PASS PIMC accepts H1 against every baseline in 16 of 16 rows, 908 pairs, no fault. Against the rule bot: 1v1 rounds 4.94 [1.77, 8.12] points per round (H1 at 181 pairs); 1v1 games to 100 8.76 [6.36, 11.16], game-win rate 0.743 [0.667, 0.807] (H1 at 74); 2v2 rounds 8.98 [4.43, 13.54] (H1 at 129); 2v2 games 18.47 [13.80, 23.14], 0.771 [0.695, 0.833] (H1 at 70). Peak RSS of the match command 18.1 to 18.2 MB.
 - Finding: PIMC's slowest moves in R4 took 119.0 s (row 4, 1v1 rounds against the heaviest bot), 71.8 s (row 13), and 54.9 s (row 9), against the 120 s safety limit. Cause: in some 1v1 positions many of the 64 worlds x legal moves solves reach the 10,000,000-node cap (about 1.3 s each). R5 and R6 run as registered with the same limit; a timeout would void its row (then a question for the owner). Follow-up for M5 or later: bound PIMC's 1v1 time per move (a per-move node budget, or a lower per-solve cap in 1v1), measured by SPRT.
+- M4-09 passed: R5 as registered, commit e3f9a4f, 14:32 to about 15:05, 500 round pairs per point against the rule bot, 0 faults. Points per round [95% CI] by worlds per move, 1v1: 1 -1.08 [-2.96, 0.81]; 2 2.31 [0.50, 4.12]; 4 1.85 [0.10, 3.59]; 8 3.80 [2.11, 5.48]; 16 4.88 [3.21, 6.55]; 32 6.01 [4.28, 7.74]; 64 6.75 [5.00, 8.49]. 2v2: 1 0.99 [-1.76, 3.75]; 2 3.97 [1.27, 6.67]; 4 5.13 [2.57, 7.70]; 8 8.40 [5.87, 10.94]; 16 8.92 [6.41, 11.42]; 32 12.71 [10.25, 15.17]; 64 10.41 [7.87, 12.94]. The 2v2 intervals at 32 and 64 overlap. The slowest 1v1 move at 64 worlds took 103.7 s, again under the 120 s limit.
+- M4-10 passed: R6 as registered, commit e3f9a4f, 500 round pairs per mode, 0 faults: the omniscient bot (cheating) minus PIMC at 64 worlds, 24.22 [22.92, 25.52] points per round in 1v1 and 48.04 [46.34, 49.74] in 2v2.
+- M4-11 passed: README.md has the PIMC section (R4 against the rule bot, the R5 curve, the R6 gap) and the M4 updates (summary table, What it does now, analyze example, Testing, Limitations). scripts/readme-fast.sh adds 20 fast reproductions (R4 rows 12 to 15 with 4 round or 2 game pairs, every R5 point and both R6 rows with 4 pairs) and takes run ids, so M2-09 checks R2 and R3 and M4-11 checks R4 to R6; each of the 20 replays the first pairs of its full run exactly (pair lines compared).
+- M2-09 fails (scripts/verify/M2-09.sh, no seed): "ERROR 16 REPORT.md rows lack a claim-format field". Its check wants an SPRT outcome in every row; R5 and R6 were registered without an SPRT. passes set to false; the fix waits on Q8 (docs/PLAN.md).
 

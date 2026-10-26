@@ -119,6 +119,40 @@ Pre-registered as R3 in docs/PLAN.md. Side A: commit f77e9c2, Bench 6121081, bin
 
 Command of each row: `runs/bin/f77e9c2/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2010000000 --engine-seed 5000300000 --sprt 0,4 --a "runs/bin/f77e9c2/dominofish engine --bot omniscient" --b "runs/bin/f77e9c2/dominofish engine --bot random" --out docs/eval/results/2026-10-25-omniscient-r3/row-0-1v1-round-100-omniscient-random.txt`, with the row's options; the files hold every pair.
 
+## 2026-10-26-pimc-curve-r5 (R5)
+
+Pre-registered as R5 in docs/PLAN.md. Side A: commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:1,nodes:10000000, threads 1, tables 1MB. Side B: commit e3f9a4f, Bench -, binary hash f14485ac51db0b38, budgets -, threads 1, tables -. Engine seed base: 5000500000 to 5000500013 (one per row). Measured 2026-10-26 at a 1-minute load average of 5.15 to 26.85.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | pimc (1 worlds) | rule | 500 | -1.08 [-2.96, 0.81] | - | - | 18.30 | 18.1 | 2030000000..2030000499 | row-0-1v1-round-100-pimc1-rule.txt | 1.4 / 2453.7 |
+| 1v1 | round | 100 | pimc (2 worlds) | rule | 500 | 2.31 [0.50, 4.12] | - | - | 34.43 | 18.1 | 2030000000..2030000499 | row-1-1v1-round-100-pimc2-rule.txt | 2.8 / 5087.1 |
+| 1v1 | round | 100 | pimc (4 worlds) | rule | 500 | 1.85 [0.10, 3.59] | - | - | 50.33 | 18.2 | 2030000000..2030000499 | row-2-1v1-round-100-pimc4-rule.txt | 4.1 / 5954.9 |
+| 1v1 | round | 100 | pimc (8 worlds) | rule | 500 | 3.80 [2.11, 5.48] | - | - | 94.66 | 18.1 | 2030000000..2030000499 | row-3-1v1-round-100-pimc8-rule.txt | 8.3 / 13101.0 |
+| 1v1 | round | 100 | pimc (16 worlds) | rule | 500 | 4.88 [3.21, 6.55] | - | - | 160.98 | 18.1 | 2030000000..2030000499 | row-4-1v1-round-100-pimc16-rule.txt | 14.8 / 28143.1 |
+| 1v1 | round | 100 | pimc (32 worlds) | rule | 500 | 6.01 [4.28, 7.74] | - | - | 319.88 | 18.1 | 2030000000..2030000499 | row-5-1v1-round-100-pimc32-rule.txt | 29.2 / 59986.6 |
+| 1v1 | round | 100 | pimc (64 worlds) | rule | 500 | 6.75 [5.00, 8.49] | - | - | 690.47 | 18.1 | 2030000000..2030000499 | row-6-1v1-round-100-pimc64-rule.txt | 62.9 / 103662.1 |
+| 2v2 | round | 100 | pimc (1 worlds) | rule | 500 | 0.99 [-1.76, 3.75] | - | - | 31.66 | 18.1 | 2031000000..2031000499 | row-7-2v2-round-100-pimc1-rule.txt | 2.3 / 225.3 |
+| 2v2 | round | 100 | pimc (2 worlds) | rule | 500 | 3.97 [1.27, 6.67] | - | - | 53.83 | 18.2 | 2031000000..2031000499 | row-8-2v2-round-100-pimc2-rule.txt | 4.1 / 281.7 |
+| 2v2 | round | 100 | pimc (4 worlds) | rule | 500 | 5.13 [2.57, 7.70] | - | - | 112.10 | 18.1 | 2031000000..2031000499 | row-9-2v2-round-100-pimc4-rule.txt | 8.8 / 982.3 |
+| 2v2 | round | 100 | pimc (8 worlds) | rule | 500 | 8.40 [5.87, 10.94] | - | - | 232.98 | 18.1 | 2031000000..2031000499 | row-10-2v2-round-100-pimc8-rule.txt | 18.5 / 2295.0 |
+| 2v2 | round | 100 | pimc (16 worlds) | rule | 500 | 8.92 [6.41, 11.42] | - | - | 490.38 | 18.2 | 2031000000..2031000499 | row-11-2v2-round-100-pimc16-rule.txt | 39.1 / 12080.5 |
+| 2v2 | round | 100 | pimc (32 worlds) | rule | 500 | 12.71 [10.25, 15.17] | - | - | 761.39 | 18.1 | 2031000000..2031000499 | row-12-2v2-round-100-pimc32-rule.txt | 60.7 / 22858.0 |
+| 2v2 | round | 100 | pimc (64 worlds) | rule | 500 | 10.41 [7.87, 12.94] | - | - | 1122.61 | 18.2 | 2031000000..2031000499 | row-13-2v2-round-100-pimc64-rule.txt | 90.1 / 25653.4 |
+
+Command of each row: `runs/bin/e3f9a4f/dominofish match --mode 1v1 --unit round --target 100 --pairs 500 --seed 2030000000 --engine-seed 5000500000  --timeout-ms 120000 --a "runs/bin/e3f9a4f/dominofish engine --bot pimc --worlds 1" --b "runs/bin/e3f9a4f/dominofish engine --bot rule" --out docs/eval/results/2026-10-26-pimc-curve-r5/row-0-1v1-round-100-pimc1-rule.txt`, with the row's options; the files hold every pair.
+
+## 2026-10-26-pimc-gap-r6 (R6)
+
+Pre-registered as R6 in docs/PLAN.md. Side A: commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets nodes:10000000, threads 1, tables 16MB, view omniscient (sees every hand: cheating). Side B: commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:64,nodes:10000000, threads 1, tables 1MB. Engine seed base: 5000600000 to 5000600001 (one per row). Measured 2026-10-26 at a 1-minute load average of 4.37 to 10.28.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | omniscient (cheating) | pimc (64 worlds) | 500 | 24.22 [22.92, 25.52] | - | - | 372.19 | 18.4 | 2040000000..2040000499 | row-0-1v1-round-100-omniscient-pimc.txt | 0.4 / 230.4 |
+| 2v2 | round | 100 | omniscient (cheating) | pimc (64 worlds) | 500 | 48.04 [46.34, 49.74] | - | - | 813.42 | 18.2 | 2040100000..2040100499 | row-1-2v2-round-100-omniscient-pimc.txt | 1.9 / 80.6 |
+
+Command of each row: `runs/bin/e3f9a4f/dominofish match --mode 1v1 --unit round --target 100 --pairs 500 --seed 2040000000 --engine-seed 5000600000  --timeout-ms 120000 --a "runs/bin/e3f9a4f/dominofish engine --bot omniscient" --b "runs/bin/e3f9a4f/dominofish engine --bot pimc --worlds 64" --out docs/eval/results/2026-10-26-pimc-gap-r6/row-0-1v1-round-100-omniscient-pimc.txt`, with the row's options; the files hold every pair.
+
 ## 2026-10-26-pimc-r4 (R4)
 
 Pre-registered as R4 in docs/PLAN.md. Side A: commit ebaa5fd, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:64,nodes:10000000, threads 1, tables 1MB. Side B: commit ebaa5fd, Bench -, binary hash f14485ac51db0b38, budgets -, threads 1, tables -. Engine seed base: 5000400000 to 5000400015 (one per row). Measured 2026-10-26 at a 1-minute load average of 7.51 to 96.5.

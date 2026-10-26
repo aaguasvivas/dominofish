@@ -410,7 +410,7 @@
    "M2-06",
    "M2-07"
   ],
-  "passes": true,
+  "passes": false,
   "evidence": {
    "date": "2026-10-26",
    "result": "M2-09: PASS REPORT.md current with 88 rows for 88 result files, every claim-format field present; README.md has the three decided lines, its sections, and 13 numbers found in REPORT.md; readme-fast: PASS 8 rows reproduce docs/eval/results/2026-10-25-baselines-r2-fast.txt and docs/eval/results/2026-10-25-omniscient-r3-fast.txt; no license, publish = false",
@@ -786,8 +786,12 @@
   "requires": [
    "M4-07"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-09: PASS R5 as registered (commit e3f9a4f, 500 pairs per point, the same deals per mode, no fault): 1v1 pimc (1 worlds) -1.08 [-2.96, 0.81]; 1v1 pimc (2 worlds) 2.31 [0.50, 4.12]; 1v1 pimc (4 worlds) 1.85 [0.10, 3.59]; 1v1 pimc (8 worlds) 3.80 [2.11, 5.48]; 1v1 pimc (16 worlds) 4.88 [3.21, 6.55]; 1v1 pimc (32 worlds) 6.01 [4.28, 7.74]; 1v1 pimc (64 worlds) 6.75 [5.00, 8.49]; 2v2 pimc (1 worlds) 0.99 [-1.76, 3.75]; 2v2 pimc (2 worlds) 3.97 [1.27, 6.67]; 2v2 pimc (4 worlds) 5.13 [2.57, 7.70]; 2v2 pimc (8 worlds) 8.40 [5.87, 10.94]; 2v2 pimc (16 worlds) 8.92 [6.41, 11.42]; 2v2 pimc (32 worlds) 12.71 [10.25, 15.17]; 2v2 pimc (64 worlds) 10.41 [7.87, 12.94];",
+   "log": null
+  }
  },
  {
   "id": "M4-10",
@@ -798,8 +802,12 @@
   "requires": [
    "M4-07"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-10: PASS R6 as registered (commit e3f9a4f, 500 pairs per mode, no fault): the omniscient bot (cheating) minus PIMC (64 worlds) in points per round [95% CI]: 1v1 24.22 [22.92, 25.52]; 2v2 48.04 [46.34, 49.74];",
+   "log": null
+  }
  },
  {
   "id": "M4-11",
@@ -812,7 +820,11 @@
    "M4-09",
    "M4-10"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-11: PASS README.md shows R4, R5, and R6 for PIMC with 22 numbers found in REPORT.md; readme-fast: PASS 20 rows reproduce docs/eval/results/2026-10-26-pimc-r4-fast.txt docs/eval/results/2026-10-26-pimc-curve-r5-fast.txt docs/eval/results/2026-10-26-pimc-gap-r6-fast.txt; REPORT.md current and checked by check.sh",
+   "log": null
+  }
  }
 ]

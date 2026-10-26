@@ -1,0 +1,14 @@
+row 0 (1v1 round 100, first 4 pairs): points per round (A minus B) mean 11.750 sd 31.582 95% CI [-38.504, 62.004] over 4 pairs
+row 1 (1v1 round 100, first 4 pairs): points per round (A minus B) mean -3.000 sd 20.988 95% CI [-36.397, 30.397] over 4 pairs
+row 2 (1v1 round 100, first 4 pairs): points per round (A minus B) mean -0.125 sd 25.898 95% CI [-41.335, 41.085] over 4 pairs
+row 3 (1v1 round 100, first 4 pairs): points per round (A minus B) mean 8.000 sd 17.440 95% CI [-19.752, 35.752] over 4 pairs
+row 4 (1v1 round 100, first 4 pairs): points per round (A minus B) mean -1.000 sd 19.131 95% CI [-31.442, 29.442] over 4 pairs
+row 5 (1v1 round 100, first 4 pairs): points per round (A minus B) mean -7.500 sd 16.768 95% CI [-34.182, 19.182] over 4 pairs
+row 6 (1v1 round 100, first 4 pairs): points per round (A minus B) mean 0.750 sd 20.480 95% CI [-31.838, 33.338] over 4 pairs
+row 7 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 10.125 sd 19.716 95% CI [-21.248, 41.498] over 4 pairs
+row 8 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 15.250 sd 8.510 95% CI [1.709, 28.791] over 4 pairs
+row 9 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 10.875 sd 6.142 95% CI [1.101, 20.649] over 4 pairs
+row 10 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 34.500 sd 22.675 95% CI [-1.581, 70.581] over 4 pairs
+row 11 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 6.000 sd 24.211 95% CI [-32.525, 44.525] over 4 pairs
+row 12 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 34.125 sd 22.451 95% CI [-1.600, 69.850] over 4 pairs
+row 13 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 0.500 sd 29.521 95% CI [-46.475, 47.475] over 4 pairs

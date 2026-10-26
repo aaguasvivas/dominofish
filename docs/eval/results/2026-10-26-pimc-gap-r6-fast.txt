@@ -1,0 +1,2 @@
+row 0 (1v1 round 100, first 4 pairs): points per round (A minus B) mean 24.375 sd 16.033 95% CI [-1.137, 49.887] over 4 pairs
+row 1 (2v2 round 100, first 4 pairs): points per round (A minus B) mean 32.750 sd 18.095 95% CI [3.957, 61.543] over 4 pairs
