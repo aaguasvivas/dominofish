@@ -34,7 +34,7 @@ DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under
 | **Speed** | About 1.4 million random 1v1 rounds and 1.3 million 2v2 rounds per second on one core (commit de3109a, load average 13.9), with 0 heap allocations in move generation, play, and undo |
 | **Solver** | Exact for a known deal: 0 mismatches against naive minimax on every position checked; `dominofish bench` solves 32 full rounds in under 1.1 s on one core (Bench 6,121,081 nodes) |
 | **Engine** | PIMC at 64 worlds per move beats every baseline by SPRT in all 16 rows of R4; against the rule bot it gains 8.98 [4.43, 13.54] points per round in 2v2 rounds and wins 0.771 [0.695, 0.833] of its 2v2 games to 100 |
-| **Sampling** | Exact: on 230 positions small enough to enumerate, the sampled deals match the exact distribution (chi-square), and the true placement of the unseen tiles comes up at the uniform rate |
+| **Sampling** | Exact: on 360 positions small enough to enumerate, the sampled deals match the exact distribution (chi-square), 1v1 boneyard orders and openings without a double included, and the true placement of the unseen tiles comes up at the uniform rate |
 | **Information** | Every engine runs as its own process and sees only its own seat's information |
 | **Best baseline** | The rule bot beats the other baselines by SPRT in 16 of 18 R2 rows and gains 11.99 [10.69, 13.29] points per round on the random bot in 1v1 rounds |
 
@@ -129,7 +129,7 @@ open web/dist/index.html
 - **Information sets.** It builds what one seat knows: its hand, the public moves, hand sizes, voids from passes, the 1v1 draw history, and round-1 deductions. It counts exactly the ways to place the unseen tiles that agree with that knowledge (one known limit, for the 1v1 opening without a double, is in docs/PLAN.md D11).
 - **Baseline bots.** Random, heaviest tile (bota gorda), most-accompanied tile (la más acompañada), and a rule bot that reads pass voids.
 - **Exact solver.** For a known deal it finds the rest of the round's exact margin with alpha-beta search and a transposition table whose key covers the bonus cap. It drives the omniscient bot, a cheating upper bound, and solves every world that PIMC samples.
-- **Sampling.** It draws placements of the unseen tiles in exact proportion to the deals each one stands for, from a count over the tiles. It needs no retries and never falls back to the true hands, which it cannot see.
+- **Sampling.** It draws placements of the unseen tiles in exact proportion to the deals each one stands for, from a count over the tiles. It never falls back to the true hands, which it cannot see. It draws again under one rule only: after a 1v1 opening without a double, a placement that gives the opener several tiles of the opening tile's pip sum stands for fewer deals ([docs/PLAN.md](docs/PLAN.md) D17).
 - **PIMC.** For each legal move it averages the exact result over the same sampled worlds, 64 by default, and plays the best mean. `dominofish analyze` prints that ranking, with its sampling error, for any point of a game record.
 - **Match harness.** It plays duplicate pairs: one deal played twice, with the sides swapping seats. Every seat runs as its own process and gets only its own information; engine seeds come from a base apart from the deal seeds, and no engine sees a deal seed. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
 
@@ -146,9 +146,9 @@ PIMC plays from one seat's information. For each move it samples 64 deals that a
 | 2v2 | round | 129 | 8.98 [4.43, 13.54] | - | H1 at pair 129 |
 | 2v2 | game to 100 | 70 | 18.47 [13.80, 23.14] | 0.771 [0.695, 0.833] | H1 at pair 70 |
 
-Each side ran on one thread. PIMC used 64 worlds per move, a node cap of 10,000,000 per solve, and a 1 MB table. In these rows its moves took 28 to 363 ms on average, the slowest 72 s (in 1v1), and each match peaked at 18 MB.
+Settings: both sides from commit ebaa5fd (Bench 6,121,081), one thread each; PIMC at 64 worlds per move, a node cap of 10,000,000 per solve, and a 1 MB table; target 100; deal seeds 2,020,000,000 + 100,000 k + i for pair i of row k, engine seed base 5,000,400,000 + k; a 120 s safety limit per move. Command: `scripts/run-pimc.sh R4`. Results: docs/eval/results/2026-10-26-pimc-r4/; every row, with its wall time and peak RSS (18 MB per match), is in [docs/eval/REPORT.md](docs/eval/REPORT.md). PIMC's time per move at 64 worlds, from `dominofish pimc-stats` over 20 random games per mode, two runs each (commit ec9d372, one thread, load average 7.2 at the start): a 90th percentile of 0.73 to 0.75 s in 2v2 and 0.24 to 0.25 s in 1v1.
 
-**Strength against worlds per move (R5).** PIMC at 1 to 64 worlds per move against the rule bot, 500 round pairs per point, every point on the same held-out deals (commit e3f9a4f):
+**Strength against worlds per move (R5).** PIMC at 1 to 64 worlds per move against the rule bot, rounds at target 100, 500 pairs per point, no SPRT, every point on the same held-out deals (seeds 2,030,000,000 + i in 1v1, 2,031,000,000 + i in 2v2), commit e3f9a4f (Bench 6,121,081), command `scripts/run-pimc.sh R5`:
 
 | Worlds per move | 1v1 points per round [95% CI] | 2v2 points per round [95% CI] |
 |---|---|---|
@@ -162,7 +162,7 @@ Each side ran on one thread. PIMC used 64 worlds per move, a node cap of 10,000,
 
 With one world, PIMC plays as if one guess at the hidden hands were true, and it does no better than the rule bot. More worlds bring more points. In 2v2 the intervals at 32 and 64 worlds overlap, so these runs show no gain from 32 to 64.
 
-**The gap to the omniscient bot (R6).** The omniscient bot sees every hand and beats PIMC at 64 worlds by 24.22 [22.92, 25.52] points per round in 1v1 and 48.04 [46.34, 49.74] in 2v2 (500 round pairs per mode, commit e3f9a4f). It cheats, so the gap is a reference, never a target.
+**The gap to the omniscient bot (R6).** The omniscient bot sees every hand and beats PIMC at 64 worlds by 24.22 [22.92, 25.52] points per round in 1v1 and 48.04 [46.34, 49.74] in 2v2 (rounds at target 100, 500 pairs per mode, no SPRT, deal seeds 2,040,000,000 + 100,000 k + i, commit e3f9a4f, command `scripts/run-pimc.sh R6`). It cheats, so the gap is a reference, never a target.
 
 ### The baselines
 
@@ -216,7 +216,7 @@ target/release/dominofish report
 
 - **Capi parity.** The Rust core replays 117,456 golden-trace moves from Capi's engine, 87 edge scenarios, and 200 perft queries, with 0 mismatches. A lockstep fuzzer compares the legal moves and a 32-bit digest of the full state with Capi's after every move: 0 mismatches over 1,000,000 rounds per mode.
 - **Never-peeks.** Rearranging tiles a seat cannot see, behind the same public record, leaves its information set byte-identical, every bot's move unchanged, and PIMC's analysis unchanged down to its node counts.
-- **Sampler.** On 230 positions small enough to enumerate (100 per mode and 30 openings without a double), a chi-square test at a fixed seed finds the sampled deals in the exact proportions. Over 53,259 decisions, 100 draws each, the true placement of the unseen tiles came up 167,890 times against 168,195.9 expected. Every sampled deal replays the public record exactly.
+- **Sampler.** On 230 positions small enough to enumerate (100 per mode and 30 openings without a double), a chi-square test at a fixed seed finds the sampled deals in the exact proportions. Over 53,259 decisions, 100 draws each, the true placement of the unseen tiles came up 167,890 times against 168,195.9 expected. On 100 more 1v1 positions the boneyard orders match their exact distribution too, and so do the placements after 30 openings without a double, where the weights differ (test T4). Two broken samplers, one without the boneyard shuffle and one without that weight, fail these tests. Every sampled deal replays the public record exactly.
 - **SPRT.** On synthetic data its error rates match alpha and beta (0.05). Of 200 null runs between two copies of one bot, 12 accepted H1, where 10 is the expected count.
 - **Solver.** The solver equals naive minimax on every position of the first two rounds of 30 seeded games per mode wherever naive minimax finishes, including scores where a bonus pays or not, and its table on and off agree everywhere else.
 - **Every commit.** `scripts/check.sh` runs formatting, lint, all tests, the wasm32 build, the report check, Bench determinism, and an em dash scan. `scripts/regress.sh` reruns the fast check of every passing feature.
@@ -260,7 +260,7 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 - 2v2 is a team game, and DominoFish makes no equilibrium claim for it.
 - The baseline bots are fixed heuristics.
 - PIMC solves each sampled world as if every seat could see every hand. So in 2v2 it treats its partner as a player who sees all hands, and in 1v1 it treats the boneyard order as known; M8 and M9 work on this.
-- PIMC's time per move has a long tail in 1v1: most moves take under 0.3 s at 64 worlds, but a few positions where many solves reach the node cap took up to 119 s.
+- PIMC's time per move has a long tail in 1v1. At 64 worlds its 90th percentile is 0.25 s, but in R4 single moves took up to 119 s, in positions where many solves reach the node cap, while the machine's load average reached 96 (one measurement).
 
 ## License
 

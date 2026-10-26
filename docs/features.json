@@ -562,10 +562,10 @@
   "requires": [
    "M2-99"
   ],
-  "passes": false,
+  "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M3-01: PASS [2v2 games 30: naive positions 1486 (finished at every position from 4 to 26 tiles left), near-target variants 6503 (0 beyond naive), salida variants at 27 tiles left 273, deeper positions table on and off 144, warm table per round, mismatches 0] [1v1 games 30: naive positions 1226 (finished at every position from 2 to 20 tiles left), near-target variants 4802 (0 beyond naive), salida variants at 27 tiles left 0, deeper positions table on and off 80, warm table per round, mismatches 0]; negative control: a key without the score state gives 92 mismatches; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; games 2000 plies 262167 moves played and undone 541185 perft lines 37330 solver nodes 2675209 (capped solves 7193) allocations 0 (hash check true)",
+   "result": "M3-01: PASS [2v2 games 30: naive positions 1486 (finished at every position from 4 to 26 tiles left), near-target variants 6503 (0 beyond naive), salida variants at 27 tiles left 273, deeper positions table on and off 144, warm table per round, mismatches 0] [1v1 games 30: naive positions 1226 (finished at every position from 2 to 20 tiles left), near-target variants 4802 (0 beyond naive), salida variants at 27 tiles left 0, deeper positions table on and off 80, warm table per round, mismatches 0]; negative control: a key without the score state gives 92 mismatches; capped fallback legal and greedy; state text round trip, malformed and unreachable lines rejected; games 2000 plies 262167 moves played and undone 541185 perft lines 37330 solver nodes 2675209 (capped solves 7193) sampled worlds 11720 allocations 0 (hash check true)",
    "log": null
   }
  },
@@ -661,7 +661,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M4-01: PASS uniformity (T3 (a) as registered): [2v2: decisions 100 samples 1335402 p<0.01 in 0 pooled X2 133484.6 df 133440 p 0.4651 inconsistent 0] [1v1: decisions 100 samples 539280 p<0.01 in 3 pooled X2 53942.8 df 53828 p 0.3625 inconsistent 0] [1v1 no-double: decisions 30 samples 7170 p<0.01 in 0 pooled X2 615.6 df 687 p 0.9761 inconsistent 0]; truth (T3 (b) as registered): [TwoVsTwo: decisions 20830 samples 2083000 true-world draws 61645 expected 61642.4 z 0.01 inconsistent 0] [OneVsOne: decisions 32429 samples 3242900 true-world draws 106245 expected 106553.5 z -1.06 inconsistent 0]; counts: 2604 decisions, equal to the M2-03 counts; 0 allocations over 11720 sampled worlds",
+   "result": "M4-01: PASS uniformity (T3 (a) as registered): [2v2: decisions 100 samples 1335402 p<0.01 in 0 pooled X2 133484.6 df 133440 p 0.4651 inconsistent 0] [1v1: decisions 100 samples 539280 p<0.01 in 3 pooled X2 53942.8 df 53828 p 0.3625 inconsistent 0] [1v1 no-double: decisions 30 samples 7170 p<0.01 in 0 pooled X2 615.6 df 687 p 0.9761 inconsistent 0]; truth (T3 (b) as registered): [TwoVsTwo: decisions 20830 samples 2083000 true-world draws 61645 expected 61642.4 z 0.01 inconsistent 0] [OneVsOne: decisions 32429 samples 3242900 true-world draws 106245 expected 106553.5 z -1.06 inconsistent 0]; order (T4 (a) as registered): [1v1 boneyard order: decisions 100 samples 298720 p<0.01 in 0 pooled X2 29900.8 df 29772 p 0.2981 inconsistent 0]; weight (T4 (b) as registered): [1v1 1/m weight: decisions 30 samples 8281 p<0.01 in 0 pooled X2 487.8 df 499 p 0.6318 inconsistent 0]; noshuffle fails t4_the_boneyard_order_is_uniform (p<0.01 in 100 pooled X2 4919098.8 df 29772 p 0.0000); nom fails t4_the_one_over_m_weight (p<0.01 in 23 pooled X2 1607.8 df 499 p 0.0000); counts: 2604 decisions, equal to the M2-03 counts; 0 allocations over 11720 sampled worlds",
    "log": null
   }
  },
