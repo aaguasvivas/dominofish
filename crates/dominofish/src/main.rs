@@ -9,6 +9,7 @@ mod report;
 mod selfplay;
 mod solve;
 mod stats;
+mod world_stats;
 
 use std::fmt::Write as _;
 use std::process::ExitCode;
@@ -118,6 +119,24 @@ fn run() -> Result<(String, bool), Failure> {
                     .map_err(|e| Failure::Run(format!("{path}: {e}")))?;
             }
             Ok((log, true))
+        }
+        "world-stats" => {
+            let (mut mode, mut games, mut seed) = (None, None, None);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    _ => return Err(arg.unexpected().to_string().into()),
+                }
+            }
+            let mode = mode.ok_or("--mode is required")?;
+            let games = games.ok_or("--games is required")?;
+            if games == 0 {
+                return Err("--games must be at least 1".into());
+            }
+            let seed = seed.ok_or("--seed is required")?;
+            Ok((world_stats::run(mode, games, seed), true))
         }
         "analyze" => {
             let (mut file, mut round, mut ply, mut worlds, mut seed) =

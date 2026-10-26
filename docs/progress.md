@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-06 (world-stats)
+- Feature in progress: M4-07 (pimc-stats and the worlds budget)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
@@ -132,4 +132,5 @@
 - M4-03 passed: M4-03: PASS 16 matches of PIMC (8 worlds) against every baseline (1v1 and 2v2, rounds 10 pairs and games to 100 3 pairs), 9,502 moves, illegal 0, crashes 0, timeouts 0, sampler faults 0; header a.budgets=worlds:8,nodes:10000000 a.tables=1MB a.view=infoset with Bench: 6121081; a repeated match gives equal pair lines; PIMC got 0 state lines in both modes; an engine reporting an inconsistent world stops the match with a Sampler fault. The first fast run failed the 2v2 spy count (79 infosets, 78 gos): both engines of a side appended to one log and a line was split between them. scripts/test-engines/spy.sh now takes %p in the log path for one file per engine; the counts then matched (79 and 79).
 - M4-04 passed: never-peeks for PIMC (tests/never_peeks.rs, pimc_never_peeks): 250 (1v1) and 197 (2v2) rearranged worlds with an identical public record give byte-identical InfoSets and the same Analysis, node counts included.
 - M4-05 passed: `dominofish analyze --record FILE --round R --ply K --worlds N` (crates/dominofish/src/analyze.rs) and `selfplay --record FILE`. M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1 4 moves and 2v2 3 moves ranked at ply 4 of seed 5 records; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, a missing --worlds, and a malformed record exit 2 with an ERROR line.
+- M4-06 passed: `dominofish world-stats` and docs/eval/results/2026-10-26-world-stats.md. M4-06: PASS 300 games per mode, 77,686 decisions; 2v2 median worlds 11,550 at 13 board tiles (research 7,350) and 24 at 20 (research 22), reference only; the committed record equals a fresh run.
 

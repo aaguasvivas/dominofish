@@ -738,8 +738,12 @@
   "requires": [
    "M3-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-06: PASS 300 games per mode, 77686 decisions; 2v2 median worlds 11,550 at 13 board tiles (research 7,350) and 24 at 20 (research 22), reference only; docs/eval/results/2026-10-26-world-stats.md equals a fresh run",
+   "log": null
+  }
  },
  {
   "id": "M4-07",

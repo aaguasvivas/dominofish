@@ -106,6 +106,15 @@ pub const COMMANDS: &[Command] = &[
   --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
     },
     Command {
+        name: "world-stats",
+        group: "Measure",
+        summary: "Exact world counts at decisions of random games, by board",
+        usage: "dominofish world-stats --mode 1v1|2v2 --games N --seed N",
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --games N           Random games (the selfplay games of seeds N to N+games-1)
+  --seed N            First selfplay seed",
+    },
+    Command {
         name: "bench-positions",
         group: "Measure",
         summary: "Print full-round positions of seeded games",
