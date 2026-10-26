@@ -8,8 +8,10 @@
 # every game row, and the settings line (commit, Bench, hash, budgets,
 # threads, tables) and command; README.md has the three lines and its
 # sections, its numbers appear in REPORT.md, and its fast reproductions
-# match their logged summary lines; no LICENSE file, no license, repository,
-# or homepage field, and publish = false. --fast runs the same checks.
+# match their logged summary lines; the license the owner chose (Q2, MIT OR
+# Apache-2.0: LICENSE-MIT, LICENSE-APACHE, the license field in every crate,
+# and a License section in README.md), and publish = false, since crates.io
+# is not approved. --fast runs the same checks.
 set -u
 cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
@@ -45,12 +47,16 @@ done
 [ "$nums" -ge 4 ] || err "README.md holds only $nums result numbers"
 fast=$(scripts/readme-fast.sh --check 2>&1 | tail -1)
 case "$fast" in "readme-fast: PASS"*) ;; *) err "$fast" ;; esac
-[ ! -e LICENSE ] || err "a LICENSE file exists"
-if grep -nE '^(license|license-file|repository|homepage) *=' Cargo.toml crates/*/Cargo.toml; then err "a license, repository, or homepage field exists"; fi
+[ -s LICENSE-MIT ] && grep -q '^Permission is hereby granted, free of charge' LICENSE-MIT || err "LICENSE-MIT is missing or not the MIT text"
+[ -s LICENSE-APACHE ] && grep -q 'Apache License' LICENSE-APACHE && grep -q 'Version 2.0, January 2004' LICENSE-APACHE || err "LICENSE-APACHE is missing or not the Apache 2.0 text"
+grep -qx 'license = "MIT OR Apache-2.0"' Cargo.toml || err "the workspace license is not MIT OR Apache-2.0"
+for c in crates/*/Cargo.toml; do grep -qx 'license.workspace = true' "$c" || err "$c does not inherit the license"; done
+grep -qxF '## License' README.md || err "README.md has no License section"
+if grep -nE '^(license-file|homepage) *=' Cargo.toml crates/*/Cargo.toml; then err "a license-file or homepage field exists"; fi
 grep -q '^publish = false' Cargo.toml || err "the workspace does not set publish = false"
 for c in crates/*/Cargo.toml; do grep -q '^publish.workspace = true' "$c" || err "$c does not inherit publish = false"; done
 if [ "$fail" -eq 0 ]; then
-  echo "M2-09: PASS REPORT.md current with $rows rows for $files result files, every claim-format field present; README.md has the three decided lines, its sections, and $nums numbers found in REPORT.md; $fast; no license, publish = false"
+  echo "M2-09: PASS REPORT.md current with $rows rows for $files result files, every claim-format field present; README.md has the three decided lines, its sections, and $nums numbers found in REPORT.md; $fast; license MIT OR Apache-2.0 in every crate, publish = false"
 else
   echo "M2-09: FAIL"
 fi

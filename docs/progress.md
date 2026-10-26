@@ -7,7 +7,7 @@
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q1 to Q6 in docs/PLAN.md, Decision log (Q1 to Q4 sent 2026-10-25, unanswered; Q5 and Q6 added during M2)
+- Open questions: none (Q1 to Q6 answered; docs/PLAN.md, decision log)
 - Stashes: none
 
 ## 2026-10-25
@@ -121,3 +121,4 @@
 - The first M3-99 run failed: the M3-05 replay of R3 row 15 differed (pair 5, game 1: 130-0 against 126-0). Cause: the M3-01 negative control built its mutant solver (a key without the score state) in target/old, which scripts/build-bin.sh also uses; Cargo names path-crate artifacts by their place in the workspace, and git archive dates files at the commit time, so the build of 47c5ed9 (a commit older than the mutant's artifacts) linked the mutant core (its build log warned that bonuses_left was unused). The replay check caught it. Fixed: the mutant builds in its own target directory, removed after, and build-bin touches every extracted file so Cargo always recompiles a commit's own sources. runs/bin/47c5ed9 was deleted and rebuilt; it replays row 15 exactly. No committed result came from an affected build: R1, R2, and R3 ran on builds made before any mutant existed (R3's replay on the clean c6dc485 build matched every pair line), and the earlier check-commit anomaly (a test binary pointing at a deleted archive directory) had the same cause.
 - M3-99 passed (M3 exit): M3-99: PASS M3-01 ok; M3-02 ok; M3-03 ok; M3-04 ok; M3-05 ok; M3 milestone review recorded in docs/progress.md. Report: docs/reports/2026-10-26-m3-exit.md.
 - Next: M4 (PIMC). Before it: profile the solver (full 2v2 rounds take a median of about 40 ms here against the lead's 7.7 ms), since PIMC solves many worlds per move.
+- The owner answered Q1 to Q6 (word for word in docs/PLAN.md, decision log; relayed on 2026-10-25, confirmed in this session on 2026-10-26). Applied: LICENSE-MIT and LICENSE-APACHE with license = "MIT OR Apache-2.0" and the repository field in every Cargo.toml (publish = false stays); M2-09 checks the chosen license; README.md gains a License section; the 6-thread night window under Resource caps; a local .git/hooks/pre-commit that runs scripts/check.sh; the amended T1 and T2 stand; a private github.com/aaguasvivas/dominofish with main pushed (public at the M4 exit).

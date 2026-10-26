@@ -96,7 +96,7 @@ Seeds are u64. A run uses deal seeds base + i for pair i and records its base an
 
 ## Resource caps
 
-- Threads: at most 4 for any run unless the owner says the machine is free; cargo uses [build] jobs = 4.
+- Threads: at most 4 for any run; from 01:00 to 07:00, up to 6 while the 1-minute load average is under 2 (Q3, the owner's answer); cargo uses [build] jobs = 4.
 - Memory: peak RSS under 2 GB per engine process and 3 GB for all DominoFish processes; table and world-pool flags default to at most 256 MB per engine and refuse values over the cap; record peak RSS with /usr/bin/time -l.
 - Disk: df -g /Users/Adelson before builds and long runs; below 8 GB free, cargo clean and delete raw logs already summarized in committed files; below 5 GB, stop and ask. One target tree (old-commit builds in target/old); no git worktrees.
 - Runs: long runs start from the main session's background shell as nohup nice -n 10 <command> > runs/<name>.log 2>&1 &, with the PID, log path, and ETA in the progress top block; a run expected over 6 hours waits for the owner.
@@ -139,7 +139,7 @@ Each item waits on an owner decision (BUILD.md, Out of scope):
 - Capi integration (bots and analysis in Capi): the server endpoint and Vercel plan (Hobby is non-commercial; Capi has ads and in-app purchases), deal-log storage while Capi's repo and game reads are public, per-seat masking of game_state, the PLAYBOOK.md:104 rule against claiming AI opponents, the store line "there are no computer opponents", wasm packaging and npm names, any on-device engine.
 - Human benchmark: players, consent, a platform, and logging.
 - Research tier (sequence-form LP or CFR endgames for 1v1, ReBeL or Student of Games search, team CFR for 2v2 endgames): a go-ahead and a compute budget.
-- Publishing: GitHub repo and visibility, license, crates.io or npm. Until then: no LICENSE file, no license, license-file, repository, or homepage field, and publish = false in every crate.
+- Publishing: decided (Q1, Q2): a private GitHub repository now, public at the M4 exit; license MIT OR Apache-2.0. crates.io and npm publishing still need the owner's yes; every crate keeps publish = false.
 
 ## Decision log
 
@@ -155,9 +155,21 @@ Owner decisions, copied word for word from docs/prompts/BUILD.md (written and ap
 8. 2026-10-25, sent in chat during M3, word for word: "Do a full pass and audit, i had it on Opus 5.5 extra instead of ultracode, we need to ensure this is high quality polished and professional, feel free to go ham, I want a visual way to interact with the project too like https://nextchessmove.com/ I think that would make it even cooler". Applied as: a ship-audit pass with fixes (docs/audit/2026-10-25/report.md), and the web board (M11-01, web/), started before M4 at the owner's request although BUILD.md keeps work outside the strength path until M4 exits.
 
 Questions sent to the owner on 2026-10-25 (answers go here word for word, dated):
-- Q1. Create github.com/aaguasvivas/dominofish now, public or private until results exist?
-- Q2. Which license?
-- Q3. May long runs use more than 4 threads while I am away, and in which hours?
-- Q4. Should a Stop hook or /goal condition enforce scripts/check.sh?
-- Q5 (added 2026-10-25 during M2). May a local git pre-commit hook (.git/hooks/pre-commit, not versioned) run scripts/check.sh before each commit? Two commits this session failed check.sh (31443cd, 2c11b62) because the commit was not gated on it.
-- Q6 (added 2026-10-25 at the M2 exit). The M2 review found that T1's code seeds differ from T1's text (7,000,000 + 1,000,000 c + 100,000 h + k, against 7,000,000 + k), and its fixes changed one input of each pre-registered test: T1's configuration (b) now uses the fixed accompanied bot, and T2 now needs an engine seed base (5,000,000,081). The amendments are in the T1 and T2 entries, committed before the reruns. Do you accept the amended entries, or do you want new tests stated instead?
+- Q1 (answered). Create github.com/aaguasvivas/dominofish now, public or private until results exist?
+- Q2 (answered). Which license?
+- Q3 (answered). May long runs use more than 4 threads while I am away, and in which hours?
+- Q4 (answered). Should a Stop hook or /goal condition enforce scripts/check.sh?
+- Q5 (answered; added 2026-10-25 during M2). May a local git pre-commit hook (.git/hooks/pre-commit, not versioned) run scripts/check.sh before each commit? Two commits this session failed check.sh (31443cd, 2c11b62) because the commit was not gated on it.
+- Q6 (answered; added 2026-10-25 at the M2 exit). The M2 review found that T1's code seeds differ from T1's text (7,000,000 + 1,000,000 c + 100,000 h + k, against 7,000,000 + k), and its fixes changed one input of each pre-registered test: T1's configuration (b) now uses the fixed accompanied bot, and T2 now needs an engine seed base (5,000,000,081). The amendments are in the T1 and T2 entries, committed before the reruns. Do you accept the amended entries, or do you want new tests stated instead?
+
+Answers to Q1 to Q6, word for word.
+
+2026-10-25, in the owner's own session, relayed to this one (the app cut the message at its 300-character button limit; the chosen button ends with "Then tell the session to continue with M3."):
+
+> Accept all six recommendations: private GitHub repo now, public at the M4 exit; MIT OR Apache-2.0; up to 6 threads from 01:00 to 07:00 while the 1-minute load average is under 2; no Stop hook; yes to a local pre-commit hook that runs scripts/check.sh; accept the amended T1 and T2 entries. Then tell
+
+2026-10-26, confirmed by the owner in this session:
+
+> Yes, these are my answers: private GitHub repo now (public at the M4 exit), MIT OR Apache-2.0, up to 6 threads 01:00 to 07:00 while load is under 2, no Stop hook, yes to a pre-commit hook running check.sh, accept amended T1 and T2. Apply them here, including creating the repo and pushing main.
+
+Applied 2026-10-26: Q1, a private github.com/aaguasvivas/dominofish with main pushed, to become public at the M4 exit after a check that its history holds no secrets or private data; Q2, LICENSE-MIT and LICENSE-APACHE, with license = "MIT OR Apache-2.0" and the repository field in every Cargo.toml (publish = false stays: crates.io is not approved); Q3, under Resource caps; Q4, no Stop hook; Q5, .git/hooks/pre-commit runs scripts/check.sh (not versioned); Q6, the amended T1 and T2 entries stand.

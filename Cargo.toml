@@ -5,6 +5,9 @@ members = ["crates/dominofish-core", "crates/dominofish", "crates/dominofish-was
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/aaguasvivas/dominofish"
+# crates.io is not approved (docs/PLAN.md, decision log).
 publish = false
 
 [profile.dev]

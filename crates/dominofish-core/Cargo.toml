@@ -3,6 +3,8 @@ name = "dominofish-core"
 description = "Rules, information sets, sampling, and search for Dominican dominoes under Capi's rules."
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
 publish.workspace = true
 
 [dependencies]

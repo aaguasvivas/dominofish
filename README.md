@@ -194,3 +194,7 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 - Self-play results are relative to these bots.
 - 2v2 is a team game, and DominoFish makes no equilibrium claim for it.
 - The baseline bots are fixed heuristics. The exact solver sees every hand, so only the omniscient bot, which cheats, uses it; the engine that plays from one seat's information arrives in M4.
+
+## License
+
+DominoFish is licensed under either of the [MIT license](LICENSE-MIT) or the [Apache License, Version 2.0](LICENSE-APACHE), at your option.

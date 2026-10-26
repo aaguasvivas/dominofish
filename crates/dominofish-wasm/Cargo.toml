@@ -3,6 +3,8 @@ name = "dominofish-wasm"
 description = "The DominoFish core for wasm32: the playout bench export (M1-10) and the web board's request interface."
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
 publish.workspace = true
 
 [lib]
