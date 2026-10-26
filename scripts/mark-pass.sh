@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: scripts/mark-pass.sh <feature-id> [committed-log-path]
 # Runs the feature's verify command from docs/features.json and, only when it
-# exits 0, sets passes to true and evidence to today's date, the command's
+# exits 0 and its last line starts with "<id>: PASS", sets passes to true and evidence to today's date, the command's
 # last output line, and the log path (or null). Changes no other field.
 set -u
 cd "$(dirname "$0")/.."
@@ -21,6 +21,12 @@ if [ "$code" -ne 0 ]; then
   echo "ERROR $id verify exited $code: $last (details in runs/verify-$id.log)"
   exit 1
 fi
+# bash 3.2 can exit 0 after an error such as an unbound variable, so the
+# exit code alone does not prove the script ran to its end.
+case "$last" in
+  "$id: PASS"*) ;;
+  *) echo "ERROR $id verify exited 0 without its PASS line: $last (details in runs/verify-$id.log)"; exit 1 ;;
+esac
 /usr/bin/python3 - "$id" "$last" "$log" <<'EOF'
 import json, sys, datetime
 fid, result, log = sys.argv[1], sys.argv[2], sys.argv[3] or None

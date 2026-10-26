@@ -52,7 +52,9 @@ for mode in 1v1 2v2; do
       grep -qx "# seeds deals=4000..$((4000 + pairs - 1)) engines=5000000060" "$out" || err "$out lacks the seeds line"
 
       [ "$(grep -c '^pair ' "$out")" -eq "$pairs" ] || err "$out has fewer than $pairs pairs"
-      moves=$((moves + $(printf '%s' "$line" | sed 's/.* moves \([0-9]*\) .*/\1/')))
+      n=$(printf '%s' "$line" | sed -n 's/.* moves \([0-9]*\);.*/\1/p')
+      [ -n "$n" ] || { err "$mode $unit $target: no move count in: $line"; n=0; }
+      moves=$((moves + n))
       matches=$((matches + 1))
     done
   done

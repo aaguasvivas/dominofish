@@ -16,7 +16,7 @@ for id in M2-01 M2-02 M2-03 M2-04 M2-05 M2-06 M2-07 M2-08 M2-09; do
   out=$("scripts/verify/$id.sh" $flag 2>&1)
   code=$?
   last=$(printf '%s\n' "$out" | tail -1)
-  if [ "$code" -ne 0 ]; then
+  if [ "$code" -ne 0 ] || case "$last" in "$id: PASS"*) false ;; *) true ;; esac; then
     printf '%s\n' "$out" | grep '^ERROR' | head -5
     echo "ERROR $id failed: $last"
     fail=1

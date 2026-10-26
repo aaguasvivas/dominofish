@@ -2,7 +2,8 @@
 # Runs the fast command of every passing feature in docs/features.json that no
 # later entry supersedes. Prints one summary line with the total wall time;
 # details go to runs/regress.log. --list prints the commands without running
-# them. Exit 0 only when every fast command exits 0.
+# them. Exit 0 only when every fast command exits 0 and ends with its
+# "<id>: PASS" line (bash 3.2 can exit 0 after an error).
 set -u
 cd "$(dirname "$0")/.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
@@ -33,7 +34,11 @@ while IFS=$'\t' read -r id cmd; do
   total=$((total + 1))
   t0=$(date +%s)
   echo "== $id: $cmd" >> "$log"
-  if bash -c "$cmd" >> "$log" 2>&1; then
+  out=$(bash -c "$cmd" 2>&1)
+  code=$?
+  printf '%s\n' "$out" >> "$log"
+  last=$(printf '%s\n' "$out" | tail -1)
+  if [ "$code" -eq 0 ] && case "$last" in "$id: PASS"*) true ;; *) false ;; esac; then
     echo "   $id ok in $(( $(date +%s) - t0 ))s" >> "$log"
   else
     echo "ERROR $id fast command failed: $cmd (details in $log)"
