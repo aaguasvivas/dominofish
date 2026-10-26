@@ -2,12 +2,12 @@
 
 ## Top block
 
-- Milestone: M4 (sampling over hidden hands) next; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: none (next: M4, whose features are appended when it starts)
+- Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
+- Feature in progress: M4-01 (world sampler, test T3)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q1 to Q6 answered; docs/PLAN.md, decision log)
+- Open questions: Q7 (push after each commit?), batched in docs/PLAN.md
 - Stashes: none
 
 ## 2026-10-25
@@ -123,3 +123,7 @@
 - Next: M4 (PIMC). Before it: profile the solver (full 2v2 rounds take a median of about 40 ms here against the lead's 7.7 ms), since PIMC solves many worlds per move.
 - The owner answered Q1 to Q6 (word for word in docs/PLAN.md, decision log; relayed on 2026-10-25, confirmed in this session on 2026-10-26). Applied: LICENSE-MIT and LICENSE-APACHE with license = "MIT OR Apache-2.0" and the repository field in every Cargo.toml (publish = false stays); M2-09 checks the chosen license; README.md gains a License section; the 6-thread night window under Resource caps; a local .git/hooks/pre-commit that runs scripts/check.sh; the amended T1 and T2 stand; a private github.com/aaguasvivas/dominofish with main pushed (public at the M4 exit).
 - Pushed main: gh repo create aaguasvivas/dominofish --private (gh reports visibility PRIVATE, default branch main), origin https://github.com/aaguasvivas/dominofish.git, git push -u origin main; git ls-remote origin main gives 1de317889106b4eaacf2ce7a44364dd70516d753, equal to the local HEAD. Scan before the push: 73 commits, pack 1.95 MiB, largest blob 3.7 MB (fixtures/golden/1v1-200.txt), no token or key patterns (the pattern matched a planted control token), no employer names. Before the M4 exit makes it public: repeat that scan; the commit author email becomes public then.
+- M4 started. Solver profile first, at the owner's request ("Profile the solver first."): docs/eval/results/2026-10-26-solver-profile.md. BUILD.md's xctrace command recorded but hung after the target exited (no usable trace), so /usr/bin/sample gave the profile. Finding: with the default 2^20-entry (16 MB) table the solver spends about half its 2v2 time on table misses; 2^16 entries (1 MB) solve the same positions 1.9 times faster in 2v2 and 1.6 times faster in 1v1 (solve-stats --games 20 --seed 1, user 2.51 s against 1.32 s, 0.27 s against 0.17 s). Two pure speedups were tried and reverted (PLAN.md, Rejected techniques). Bench, solve-stats, and the omniscient bot keep 2^20 (Bench 6121081 unchanged); PIMC uses 2^16 (D18).
+- Appended M4-01 to M4-11 to docs/features.json (sampler, PIMC analysis, PIMC engine, never-peeks with node counts, analyze, world-stats, pimc-stats and the worlds budget, R4, R5, R6, README table); M4-99 stays last. PLAN.md: D17 (sampler), D18 (PIMC), and test T3, committed before T3's first run.
+- M4-01 in progress: core/src/sampler.rs (an exact counting sampler over the M2-03 groups, 1v1 boneyard shuffle, the 1/m weight of a no-double opening) and crates/dominofish-core/tests/sampler.rs (T3; the replay oracle moved to tests/common/oracle.rs, and the world tests still pass 5 of 5). Smoke run in release: 0 inconsistent worlds; true-world draws 752 against 773.4 expected (2v2) and 1,897 against 1,877.7 (1v1). The allocation test now samples 11,720 worlds: 0 allocations.
+

@@ -648,5 +648,139 @@
    "result": "M11-01: PASS web/dist/index.html 263083 bytes; games 10 (5 per mode) rounds 42 moves 1006 analyses 68 errors 0; board request tests 3 passed; English and Spanish keys 88",
    "log": null
   }
+ },
+ {
+  "id": "M4-01",
+  "milestone": "M4",
+  "description": "Exact world sampler (core/src/sampler.rs, docs/PLAN.md D17): draws worlds consistent with an InfoSet in proportion to the consistent deals each stands for, by a counting dynamic program over the M2-03 groups (2v2: the three other hands under hand sizes and pass voids; 1v1: the other seat's dealt hand and draws and the boneyard, under the full draw history, with a uniform boneyard order and the 1/m weight of a no-double round-1 opening), and builds each world's full state. Checks, by test T3 (docs/PLAN.md, stated before its first run): on information sets with at most 2,000 consistent worlds, a chi-square test at a fixed seed matches exact enumeration; the true world appears at the uniform rate; every sampled world rebuilt into a deal replays the public record, the seat's hand, and the scores, and its state equals the replayed one (0 inconsistent worlds); the sampler never fails and has no fallback to the true hands (fallback counter 0); 0 allocations per sampled world after setup.",
+  "verify": "scripts/verify/M4-01.sh",
+  "fast": "scripts/verify/M4-01.sh --fast",
+  "requires": [
+   "M3-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-02",
+  "milestone": "M4",
+  "description": "PIMC analysis in the core (core/src/pimc.rs, D18): analyze(&InfoSet, &Limits, seed) -> Analysis samples Limits.worlds worlds with the M4-01 sampler and solves every legal move exactly in each world with the M3 solver (the same worlds for every move, a node cap per solve, a table cleared per world), ranking the moves by mean round points for the seat's team with the standard error over worlds; the Analysis holds each move's mean and standard error, the chosen move, the information-set size, worlds, nodes, capped solves, and the sampler's inconsistency and fallback counts. Checks: the same seed gives the same Analysis; where one world is consistent, every move's mean equals the exact solver value of that move on the true state with standard error 0; each move's per-world value equals the solver's value on that world's state; over every decision of seeded games in both modes, 0 inconsistent and 0 fallback worlds and only legal chosen moves; 0 allocations in solves after setup.",
+  "verify": "scripts/verify/M4-02.sh",
+  "fast": "scripts/verify/M4-02.sh --fast",
+  "requires": [
+   "M4-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-03",
+  "milestone": "M4",
+  "description": "The PIMC engine: dominofish engine --bot pimc [--worlds N] [--nodes N] [--table-bits B] decides from its InfoSet only (view=infoset), seeds each decision from the game seed and round as the bots do, plays a forced move without search, and reports its world and node budgets and its table in the ready line; info lines report capped solves and sampler failures, which the harness writes to the result file. Matches against every baseline in both modes have 0 illegal moves, crashes, timeouts, inconsistent worlds, or fallbacks.",
+  "verify": "scripts/verify/M4-03.sh",
+  "fast": "scripts/verify/M4-03.sh --fast",
+  "requires": [
+   "M4-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-04",
+  "milestone": "M4",
+  "description": "never-peeks for the PIMC engine: hidden tiles rearranged behind an identical public record give a byte-identical InfoSet and the same decision, move values, and node counts at a fixed seed.",
+  "verify": "scripts/verify/M4-04.sh",
+  "fast": "scripts/verify/M4-04.sh --fast",
+  "requires": [
+   "M4-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-05",
+  "milestone": "M4",
+  "description": "dominofish analyze --record <file> --round R --ply K [--worlds N] [--seed S]: for the seat on turn at that point of a game record, ranks the legal moves with expected points and sampling error (PIMC, labeled as sampled, with the world count and the information-set size); the same command gives the same output twice; every legal move is listed; malformed or impossible requests exit 2 with one line.",
+  "verify": "scripts/verify/M4-05.sh",
+  "fast": "scripts/verify/M4-05.sh --fast",
+  "requires": [
+   "M4-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-06",
+  "milestone": "M4",
+  "description": "dominofish world-stats: the median exact world count at decisions by board size over 300 seeded random games per mode, printed beside the research medians (2v2: 7,350 at 13 board tiles and 22 at 20, over 300 random Capi-rule games) as a reference only, and written to docs/eval/results/.",
+  "verify": "scripts/verify/M4-06.sh",
+  "fast": "scripts/verify/M4-06.sh --fast",
+  "requires": [
+   "M3-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-07",
+  "milestone": "M4",
+  "description": "dominofish pimc-stats: PIMC per-move time (median, p90, max) and nodes by tiles left, per mode, over the decisions of seeded games, measured twice with commit, thread count, and load; the default worlds per move is chosen from it for the 1 second per-move target on one core (rule recorded in docs/PLAN.md D18 first); the peak RSS of a PIMC engine process is recorded with /usr/bin/time -l and stays under 256 MB.",
+  "verify": "scripts/verify/M4-07.sh",
+  "fast": "scripts/verify/M4-07.sh --fast",
+  "requires": [
+   "M4-03"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-08",
+  "milestone": "M4",
+  "description": "PIMC beats every baseline by SPRT on held-out duplicate pairs in both modes (run R4, pre-registered in docs/PLAN.md before it starts), reported in docs/eval/REPORT.md with per-move time and peak RSS.",
+  "verify": "scripts/verify/M4-08.sh",
+  "fast": "scripts/verify/M4-08.sh --fast",
+  "requires": [
+   "M4-07"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-09",
+  "milestone": "M4",
+  "description": "Strength against worlds per move as a curve: PIMC at several world budgets against one fixed opponent on the same held-out pairs (run R5, pre-registered), each point with its 95% CI, reported in docs/eval/REPORT.md.",
+  "verify": "scripts/verify/M4-09.sh",
+  "fast": "scripts/verify/M4-09.sh --fast",
+  "requires": [
+   "M4-07"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-10",
+  "milestone": "M4",
+  "description": "The gap to the omniscient bot: the omniscient bot (cheating) against PIMC on held-out pairs in both modes (run R6, pre-registered), the margin reported with its 95% CI in docs/eval/REPORT.md.",
+  "verify": "scripts/verify/M4-10.sh",
+  "fast": "scripts/verify/M4-10.sh --fast",
+  "requires": [
+   "M4-07"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M4-11",
+  "milestone": "M4",
+  "description": "The first README results table for PIMC: README.md shows R4 (and the R5 curve and R6 gap) in the strength-claim format with each row's --fast reproduction (the first pairs of its run, same seeds and budgets), whose summary lines are committed beside the full results; dominofish report regenerates REPORT.md and check.sh fails on a stale one.",
+  "verify": "scripts/verify/M4-11.sh",
+  "fast": "scripts/verify/M4-11.sh --fast",
+  "requires": [
+   "M4-08",
+   "M4-09",
+   "M4-10"
+  ],
+  "passes": false,
+  "evidence": null
  }
 ]

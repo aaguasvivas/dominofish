@@ -4,6 +4,8 @@
 
 #![allow(dead_code)]
 
+pub mod oracle;
+
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
