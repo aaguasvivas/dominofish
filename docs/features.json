@@ -690,8 +690,12 @@
   "requires": [
    "M4-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-03: PASS 16 matches of PIMC (8 worlds) against every baseline (1v1 and 2v2, rounds and games), 9502 moves, illegal 0, crashes 0, timeouts 0, sampler faults 0; header a.budgets=worlds:8,nodes:10000000 a.tables=1MB a.view=infoset with Bench: 6121081; a repeated match gives equal pair lines; 1v1: PIMC 78 infosets and 0 state lines for 78 moves, baseline 0 state lines; 2v2: PIMC 79 infosets and 0 state lines for 79 moves, baseline 0 state lines; an engine reporting an inconsistent world stops the match with a Sampler fault",
+   "log": null
+  }
  },
  {
   "id": "M4-04",
@@ -702,8 +706,12 @@
   "requires": [
    "M4-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-04: PASS rearranged worlds with an identical public record, 1v1 250 and 2v2 197, in rule-bot games; byte-identical InfoSets and the same PIMC decision, move values, and node counts (77972 nodes) at a fixed seed",
+   "log": null
+  }
  },
  {
   "id": "M4-05",

@@ -48,11 +48,11 @@ done
 spy=""
 for mode in 1v1 2v2; do
   "$bin" match --mode "$mode" --unit round --target 100 --pairs 3 --seed 63000 --engine-seed 5000000404 \
-    --a "scripts/test-engines/spy.sh $dir/spy-a-$mode.log $pimc" \
-    --b "scripts/test-engines/spy.sh $dir/spy-b-$mode.log $bin engine --bot rule" --out "$dir/spy-$mode.txt" > /dev/null || err "spy match failed ($mode)"
-  sa=$(grep -c '^state ' "$dir/spy-a-$mode.log"); ia=$(grep -c '^infoset ' "$dir/spy-a-$mode.log"); ga=$(grep -c '^go$' "$dir/spy-a-$mode.log")
-  sb=$(grep -c '^state ' "$dir/spy-b-$mode.log")
-  [ "$sa" -eq 0 ] && [ "$ia" -eq "$ga" ] && [ "$ga" -gt 0 ] || err "$mode: the PIMC engine got $sa state lines and $ia infosets for $ga moves"
+    --a "scripts/test-engines/spy.sh $dir/spy-a-$mode-%p.log $pimc" \
+    --b "scripts/test-engines/spy.sh $dir/spy-b-$mode-%p.log $bin engine --bot rule" --out "$dir/spy-$mode.txt" > /dev/null || err "spy match failed ($mode)"
+  count() { cat "$dir"/spy-"$1"-"$mode"-*.log | grep -c "$2"; }
+  sa=$(count a '^state '); ia=$(count a '^infoset '); ga=$(count a '^go$'); sb=$(count b '^state ')
+  [ "$sa" -eq 0 ] && [ "$ia" -eq "$ga" ] && [ "$ga" -gt 0 ] || err "$mode: the PIMC engines got $sa state lines and $ia infosets for $ga moves"
   [ "$sb" -eq 0 ] || err "$mode: the baseline got $sb state lines"
   spy="$spy $mode: PIMC $ia infosets and $sa state lines for $ga moves, baseline $sb state lines;"
 done
