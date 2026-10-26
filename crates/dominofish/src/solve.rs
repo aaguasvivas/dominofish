@@ -20,6 +20,10 @@ pub const TABLE_BITS: u32 = 20;
 /// constraint 10): 2^24 entries.
 pub const MAX_TABLE_BITS: u32 = 24;
 
+/// PIMC's table: 2^16 entries (1 MB), faster than 2^20 because it stays in
+/// cache (docs/eval/results/2026-10-26-solver-profile.md; D18).
+pub const PIMC_TABLE_BITS: u32 = 16;
+
 fn thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();

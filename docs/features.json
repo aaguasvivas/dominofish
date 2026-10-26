@@ -658,8 +658,12 @@
   "requires": [
    "M3-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-01: PASS uniformity (T3 (a) as registered): [2v2: decisions 100 samples 1335402 p<0.01 in 0 pooled X2 133484.6 df 133440 p 0.4651 inconsistent 0] [1v1: decisions 100 samples 539280 p<0.01 in 3 pooled X2 53942.8 df 53828 p 0.3625 inconsistent 0] [1v1 no-double: decisions 30 samples 7170 p<0.01 in 0 pooled X2 615.6 df 687 p 0.9761 inconsistent 0]; truth (T3 (b) as registered): [TwoVsTwo: decisions 20830 samples 2083000 true-world draws 61645 expected 61642.4 z 0.01 inconsistent 0] [OneVsOne: decisions 32429 samples 3242900 true-world draws 106245 expected 106553.5 z -1.06 inconsistent 0]; counts: 2604 decisions, equal to the M2-03 counts; 0 allocations over 11720 sampled worlds",
+   "log": null
+  }
  },
  {
   "id": "M4-02",
@@ -670,8 +674,12 @@
   "requires": [
    "M4-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-02: PASS sweep (full): [OneVsOne: games 20 decisions 2731 worlds per decision 4 nodes 205675083 capped 5 inconsistent 0 fallback 0] [TwoVsTwo: games 20 decisions 1732 worlds per decision 4 nodes 480671307 capped 0 inconsistent 0 fallback 0]; determinism: 167 decisions, equal analyses from equal seeds; one world: 1v1 66 decisions, 2v2 96 decisions, every move's mean equals its exact value with standard error 0; per world: 370 decisions, every move's values equal the solver's without a table on the same worlds; tables: 23 decisions, equal values with 2^12 and 2^16 entries; solver allocations 0",
+   "log": null
+  }
  },
  {
   "id": "M4-03",

@@ -23,13 +23,19 @@ pub const COMMANDS: &[Command] = &[
         name: "engine",
         group: "Play",
         summary: "Run a bot over the engine protocol on stdin and stdout",
-        usage: "dominofish engine --bot NAME [--salt N] [--nodes N] [--table-bits B]",
+        usage: "dominofish engine --bot NAME [--worlds N] [--salt N] [--nodes N]
+           [--table-bits B]",
         options: "  --bot NAME          random, heaviest (bota gorda), accompanied (la más
-                      acompañada), rule (counts tiles, reads pass voids), or
-                      omniscient: it sees every hand and plays the exact
-                      solver's move, an upper bound that cheats on purpose
-  --nodes N           Omniscient: node cap per solve (default 10000000)
-  --table-bits B      Omniscient: table of 2^B entries (default 20, at most 24)
+                      acompañada), rule (counts tiles, reads pass voids),
+                      pimc (samples the hidden hands its seat cannot see and
+                      solves each world), or omniscient: it sees every hand
+                      and plays the exact solver's move, an upper bound that
+                      cheats on purpose
+  --worlds N          PIMC: worlds per move, 1 to 4096 (required)
+  --nodes N           PIMC and omniscient: node cap per solve (default
+                      10000000)
+  --table-bits B      PIMC and omniscient: table of 2^B entries (default 16
+                      for PIMC, 20 for omniscient; at most 24)
   --salt N            Mixed into the seed the referee sends, so two copies of
                       one bot play with independent randomness
 

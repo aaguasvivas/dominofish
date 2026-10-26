@@ -140,20 +140,33 @@ fn run() -> Result<(String, bool), Failure> {
             ))
         }
         "engine" => {
-            let (mut bot, mut salt) = (None, None);
-            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::TABLE_BITS);
+            let (mut bot, mut salt, mut worlds) = (None, None, None);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("bot") => bot = Some(value(&mut parser)?),
                     Long("salt") => salt = Some(parse_num(&value(&mut parser)?)?),
                     Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
-                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = Some(parse_bits(&value(&mut parser)?)?),
+                    Long("worlds") => worlds = Some(parse_worlds(&value(&mut parser)?)?),
                     _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let name = bot.ok_or("--bot is required")?;
+            if worlds.is_some() && name != "pimc" {
+                return Err("--worlds applies to --bot pimc only".to_string().into());
+            }
             let player = if name == "omniscient" {
-                engine::Player::Omniscient { nodes, bits }
+                engine::Player::Omniscient {
+                    nodes,
+                    bits: bits.unwrap_or(solve::TABLE_BITS),
+                }
+            } else if name == "pimc" {
+                engine::Player::Pimc(dominofish_core::pimc::Limits {
+                    worlds: worlds.ok_or("--bot pimc needs --worlds")?,
+                    nodes,
+                    table_bits: bits.unwrap_or(solve::PIMC_TABLE_BITS),
+                })
             } else {
                 engine::Player::Bot(
                     dominofish_core::bots::Bot::from_name(&name)
@@ -357,6 +370,16 @@ fn parse_mode(s: &str) -> Result<Mode, String> {
 
 fn parse_num(s: &str) -> Result<u64, String> {
     s.parse().map_err(|_| format!("not a number: {s}"))
+}
+
+/// A world count for PIMC: 1 to 4,096.
+fn parse_worlds(s: &str) -> Result<u32, String> {
+    let n = parse_num(s)?;
+    if (1..=4096).contains(&n) {
+        Ok(n as u32)
+    } else {
+        Err(format!("--worlds must be 1 to 4096, got {s}"))
+    }
 }
 
 fn parse_bits(s: &str) -> Result<u32, String> {

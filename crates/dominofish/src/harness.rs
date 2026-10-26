@@ -80,6 +80,9 @@ pub enum Fault {
     Timeout,
     Protocol,
     Header,
+    /// A PIMC engine drew a world that disagrees with its InfoSet, or could
+    /// draw none (`info inconsistent`, `info fallback`; docs/PLAN.md D17).
+    Sampler,
 }
 
 struct Engine {
@@ -186,6 +189,12 @@ impl Engine {
             };
             match FromEngine::parse(&line) {
                 Some(FromEngine::Info(text)) => {
+                    if text == "inconsistent" || text == "fallback" {
+                        return Err((
+                            Fault::Sampler,
+                            format!("{}: the sampler reported {text}", self.name),
+                        ));
+                    }
                     self.capped += u64::from(text == "capped");
                     continue;
                 }
@@ -338,9 +347,10 @@ impl Spec {
     /// engines reported; then mode, unit, target, and pairs. It holds no
     /// seed: the deal seeds go only to the results file.
     fn header(&self, settings: &[Settings; 2]) -> String {
-        // A side that searches (the omniscient bot) gets its binary's Bench.
+        // A side that searches (one that reports budgets: the omniscient
+        // bot, PIMC) gets its binary's Bench.
         let side = |name: &str, s: &Side, set: &Settings| {
-            let bench = if set.view == View::Omniscient {
+            let bench = if set.budgets != "-" {
                 bench_of(s)
             } else {
                 "-".into()
