@@ -301,8 +301,13 @@ struct Settings {
 }
 
 /// The Bench of an engine binary that searches: the last line of
-/// `<binary> bench`, run once before the match; - when it prints none.
+/// `<binary> bench`, run once before the match. - when the program is not
+/// a dominofish binary (a wrapper script would take "bench" as its own
+/// argument) or prints no Bench line.
 fn bench_of(side: &Side) -> String {
+    if Path::new(&side.command[0]).file_name() != Some("dominofish".as_ref()) {
+        return "-".into();
+    }
     Command::new(&side.command[0])
         .arg("bench")
         .stdin(Stdio::null())
