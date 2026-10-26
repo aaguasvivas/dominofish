@@ -2,12 +2,12 @@
 
 ## Top block
 
-- Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-99 (M4 exit: milestone review)
-- Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
+- Milestone: M5 (variance reduction) next; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
+- Feature in progress: none (next: M5, whose features are appended when it starts)
+- Last green commit: d56468f (check.sh passes; M4-99 passed on it; regress passes 39 of 39 after the M0-04 fix in the next commit)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q8 answered 2026-10-26)
+- Open questions: Q9 (make the repository public now, given what the history check found), batched in docs/PLAN.md
 - Stashes: none
 
 ## 2026-10-25
@@ -157,4 +157,8 @@
 - M3-01 passes again with the fixed pattern (full run: 2v2 1,486 naive positions, 6,503 near-target variants, 0 mismatches; the mutant key control still fails).
 - README: the PIMC section gives each run's commit, Bench, target, seeds, command, and result directory and links REPORT.md; times come from the M4-07 record with its load; the "needs no retries" claim is corrected; the sampling row and the Testing bullet add T4. scripts/verify/M4-11.sh matches all 20 README values to their own REPORT.md rows (a copy with 8.76 changed to 8.77 fails) and checks the settings.
 - regress (da102db): FAIL 1 of 44 in 1,419 s. M1-05 --fast reported "test no_lock_while_boneyard_fits did not pass" while cargo test exited 0; it passed on three reruns and inside M1-99 in the same regress run. Cause: with --nocapture and 4 test threads, libtest writes a test's name and its result in two writes, and another test's printed output can land between them, so the verify's grep for "test X ... ok" misses the line. Fix: the ten verify scripts that grep result lines (M1-02, M1-05, M1-08, M2-01, M2-02, M2-03, M2-04, M2-05, M2-07, M4-04) use --show-output instead (results print whole while tests run, captured output after them); all ten --fast verifies pass. The run took 1,419 s against the 10-minute target: regress.sh now skips the milestone exits (M<k>-99, which rerun their milestone's fast commands; they run at each exit) and M0-02 (check.sh, run before regress and on every commit), saving about 924 s of that run.
+- regress after the regress change: FAIL 1 of 39 in 525 s: M0-04 checks that regress selects every passing feature, so it failed on the moved exits and M0-02. Its expected selection now excludes the same documented set (scripts/regress.sh header); M0-04 passes again.
+- M4-99 passed (M4 exit): M4-99: PASS M2-03 ok; M4-01 ok; M4-02 ok; M4-03 ok; M4-04 ok; M4-05 ok; M4-06 ok; M4-07 ok; M4-08 ok; M4-09 ok; M4-10 ok; M4-11 ok; M4 milestone review recorded in docs/progress.md. Report: docs/reports/2026-10-26-m4-exit.md.
+- History check before making the repository public (Q1: public at the M4 exit): 88 commits, 15.2 MB of history, no secret pattern, no work name; 131 lines with /Users/Adelson paths (25 files at HEAD), the author email on every commit, and 48 lines of notes on Capi's plans. Asked as Q9; the repository stays private until the owner answers.
+- Next: M5 (variance reduction). Follow-ups from M4: bound PIMC's 1v1 time per move (single moves up to 119 s); move generation and ordering take 35% of the solver's time with the small table.
 

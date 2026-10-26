@@ -12,8 +12,8 @@ Each milestone ends with an exit feature, id M<k>-99, whose verify command runs 
 | M1 | Rules parity with Capi: bitboard core, RULES.md, golden traces, edge cases, perft, differential fuzzer, property tests, 0 allocations, playout bench | passed 2026-10-25 |
 | M2 | Information sets, baseline bots, match harness with duplicate pairs and SPRT, REPORT.md | passed 2026-10-25 |
 | M3 | Exact perfect-information solver, omniscient bot, dominofish bench | passed 2026-10-26 |
-| M4 | PIMC with an exact consistent-world sampler: the strength-first engine | in progress (features appended 2026-10-26) |
-| M5 | Variance reduction (control variates) | not started |
+| M4 | PIMC with an exact consistent-world sampler: the strength-first engine | passed 2026-10-26 |
+| M5 | Variance reduction (control variates) | next |
 | M6 | Game equity table W and calibrated win probability | not started |
 | M7 | Exact endgames by enumeration | not started |
 | M8 | Inference and partner modeling | not started |
@@ -175,6 +175,7 @@ Questions sent to the owner on 2026-10-25 (answers go here word for word, dated)
 - Q6 (answered; added 2026-10-25 at the M2 exit). The M2 review found that T1's code seeds differ from T1's text (7,000,000 + 1,000,000 c + 100,000 h + k, against 7,000,000 + k), and its fixes changed one input of each pre-registered test: T1's configuration (b) now uses the fixed accompanied bot, and T2 now needs an engine seed base (5,000,000,081). The amendments are in the T1 and T2 entries, committed before the reruns. Do you accept the amended entries, or do you want new tests stated instead?
 - Q7 (answered; added 2026-10-26 at the start of M4). The repository is on GitHub (private). May I push main after each commit, or only when you ask? My recommendation: push after each commit that passes check.sh, so the remote stays a current backup.
 - Q8 (answered; added 2026-10-26 after R5 and R6). M2-09's check requires an SPRT outcome in every REPORT.md row, but R5 (the worlds curve) and R6 (the omniscient gap) were registered as fixed 500-pair runs with no SPRT, so their 16 rows show - and M2-09 now fails. Either (a) M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary, every other field still required; or (b) R5 and R6 are amended to report an SPRT, H0 0 and H1 4 in tracking mode, replayed from their committed pair lines (the play does not change; the test is added after seeing the results). Both weaken a check or change registered runs, so both need your yes. My recommendation: (a), since it reports the runs as registered and adds no test after the fact.
+- Q9 (added 2026-10-26 at the M4 exit). Q1's answer makes the repository public at the M4 exit after a check for secrets and private data. The check of all 88 commits (15.2 MB of history) found no secret pattern and no work name, but three things you may count as private: (1) 131 lines with local paths holding your first name (/Users/Adelson/..., in 25 files at HEAD: CLAUDE.md, BUILD.md, PLAN.md, scripts); (2) your personal email as the author of every commit; (3) 48 lines of notes on Capi's plans (the Vercel plan, ads and in-app purchases, the store listing's "no computer opponents" line, docs/research/). History cannot be rewritten (hard constraint 12), so all three would become public as they are. Make it public now, or keep it private? The repository stays private until you answer.
 
 Answers to Q1 to Q6, word for word.
 

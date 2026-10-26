@@ -62,7 +62,11 @@ want=$(/usr/bin/python3 -c '
 import json
 F = json.load(open("docs/features.json"))
 s = {f["supersedes"] for f in F if f.get("supersedes")}
-print("\n".join(f["id"] + "\t" + f["fast"] for f in F if f["passes"] and f["id"] not in s))')
+# Moved out of regress on 2026-10-26 (scripts/regress.sh header, BUILD.md:
+# the slowest fast commands go to the milestone-exit run): the milestone
+# exits and M0-02 (check.sh).
+moved = lambda i: i.endswith("-99") or i == "M0-02"
+print("\n".join(f["id"] + "\t" + f["fast"] for f in F if f["passes"] and f["id"] not in s and not moved(f["id"])))')
 got=$(scripts/regress.sh --list)
 [ "$want" = "$got" ] || err "regress.sh --list does not match the passing, non-superseded features"
 

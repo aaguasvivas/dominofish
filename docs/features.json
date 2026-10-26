@@ -56,8 +56,8 @@
   ],
   "passes": true,
   "evidence": {
-   "date": "2026-10-25",
-   "result": "M0-04: PASS CLAUDE.md 26 lines; PLAN.md headings; features.json 35 entries, M0 to M11; progress.md top block; regress.sh selection",
+   "date": "2026-10-26",
+   "result": "M0-04: PASS CLAUDE.md 30 lines; PLAN.md headings; features.json 52 entries, M0 to M11; progress.md top block; regress.sh selection",
    "log": null
   }
  },
@@ -466,8 +466,12 @@
   "requires": [
    "M3-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-99: PASS M2-03 ok; M4-01 ok; M4-02 ok; M4-03 ok; M4-04 ok; M4-05 ok; M4-06 ok; M4-07 ok; M4-08 ok; M4-09 ok; M4-10 ok; M4-11 ok; M4 milestone review recorded in docs/progress.md",
+   "log": null
+  }
  },
  {
   "id": "M5-99",
