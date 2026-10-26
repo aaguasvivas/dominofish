@@ -309,7 +309,7 @@ impl InfoSet {
         };
         let mut out = format!(
             "v=1 mode={} target={} scores={},{} seat={} hand={} board={:x} ends={} turn={} starter={} last={} passes={} phase={} sizes={},{},{},{} pile={} opening={}",
-            if mode == Mode::OneVsOne { "1v1" } else { "2v2" },
+            mode.name(),
             self.target,
             self.scores[0],
             self.scores[1],
@@ -365,8 +365,41 @@ impl InfoSet {
         out
     }
 
-    /// Parses `to_text`; None on any malformed field.
+    /// Parses `to_text`; None on any malformed field or on facts that no
+    /// game reaches (see `consistent`).
     pub fn from_text(text: &str) -> Option<InfoSet> {
+        Self::parse(text).filter(InfoSet::consistent)
+    }
+
+    /// The checks that keep every consumer from indexing out of range: a
+    /// real seat on turn and to view, ends that the board shows, at most 7
+    /// tiles in hand on an empty board, a hand of the stated size, and
+    /// scores below the 512 the hash covers.
+    fn consistent(&self) -> bool {
+        let seats = self.mode.seats();
+        let real = |s: u8| s < seats;
+        let shown = |pip: u8| tiles(self.board).any(|t| t.has(pip));
+        let ends_ok = if self.board == 0 {
+            self.left == NO_END && self.right == NO_END && self.hand.count_ones() <= 7
+        } else {
+            self.left < NO_END && self.right < NO_END && shown(self.left) && shown(self.right)
+        };
+        real(self.seat)
+            && real(self.turn)
+            && real(self.starter)
+            && (self.last_played_by == NO_SEAT || real(self.last_played_by))
+            && ends_ok
+            && self.hand & self.board == 0
+            && u32::from(self.hand_sizes[self.seat as usize]) == self.hand.count_ones()
+            && self.hand_sizes.iter().all(|&n| n <= 21)
+            && self.passes <= 3
+            && self.boneyard_count <= 14
+            && self.target >= 1
+            && self.target <= crate::rules::MAX_TARGET
+            && self.scores.iter().all(|&s| s < 512)
+    }
+
+    fn parse(text: &str) -> Option<InfoSet> {
         use crate::record::{parse_seat, parse_tile};
         let field = |key: &str| {
             text.split(' ')
@@ -434,14 +467,15 @@ impl InfoSet {
                 let (s, a, e) = (parts.next()?, parts.next()?, parts.next()?);
                 let action = match a.as_bytes().first()? {
                     b'p' => {
-                        let (t, end) = a[1..].split_at(a.len() - 2);
+                        let body = a.get(1..)?;
+                        let (t, end) = if let Some(t) = body.strip_suffix('L') {
+                            (t, End::Left)
+                        } else {
+                            (body.strip_suffix('R')?, End::Right)
+                        };
                         Action::Play {
                             tile: parse_tile(t)?,
-                            end: match end {
-                                "L" => End::Left,
-                                "R" => End::Right,
-                                _ => return None,
-                            },
+                            end,
                         }
                     }
                     b'd' => Action::Draw {

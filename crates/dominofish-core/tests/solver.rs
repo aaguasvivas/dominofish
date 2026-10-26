@@ -65,6 +65,8 @@ struct Tally {
     by_left: BTreeMap<u32, (u64, u64)>,
     naive: u64,
     variants: u64,
+    /// Variants where naive minimax did not finish.
+    variants_beyond: u64,
     deeper: u64,
     mismatches: Vec<String>,
 }
@@ -111,6 +113,7 @@ fn check(state: &State, table: &mut Table, variant_left: u32, tally: &mut Tally,
         }
         if naive.is_none() {
             tally.deeper += 1;
+            tally.variants_beyond += u64::from(i > 0);
         } else if i == 0 {
             tally.naive += 1;
         }
@@ -172,12 +175,13 @@ fn solver_equals_naive_minimax_and_table_off() {
     let mut mismatches = Vec::new();
     for (mode, tally) in run(games, 28, 18) {
         line.push_str(&format!(
-            " [{} games {games}: naive positions {} (finished at every position from {} to {} tiles left), near-target variants {}, deeper positions table on and off {}, mismatches {}]",
+            " [{} games {games}: naive positions {} (finished at every position from {} to {} tiles left), near-target variants {} ({} beyond naive), deeper positions table on and off {}, mismatches {}]",
             if mode == Mode::OneVsOne { "1v1" } else { "2v2" },
             tally.naive,
             tally.naive_range().0,
             tally.naive_range().1,
             tally.variants,
+            tally.variants_beyond,
             tally.deeper,
             tally.mismatches.len()
         ));
@@ -188,4 +192,35 @@ fn solver_equals_naive_minimax_and_table_off() {
         println!("ERROR {m}");
     }
     assert!(mismatches.is_empty());
+}
+
+/// Past the node cap the solver falls back to `greedy`: its move is legal,
+/// the state is unchanged, and its value is that move's points plus the
+/// greedy margin after it.
+#[test]
+fn the_capped_fallback_plays_a_legal_greedy_move() {
+    let mut checked = 0;
+    for mode in [Mode::TwoVsTwo, Mode::OneVsOne] {
+        for state in positions(mode, 40_000).into_iter().take(12) {
+            let mut s = state;
+            let sol = solver::solve(&mut s, None, 5);
+            assert_eq!(s, state);
+            if !sol.capped {
+                continue;
+            }
+            assert!(state.is_legal(sol.best), "{:?}", sol.best);
+            let played = s.play(sol.best);
+            let gain = (i32::from(s.scores[0]) - i32::from(state.scores[0]))
+                - (i32::from(s.scores[1]) - i32::from(state.scores[1]));
+            let rest = if s.phase == Phase::Playing {
+                solver::greedy(&mut s)
+            } else {
+                0
+            };
+            s.undo(sol.best, played.undo);
+            assert_eq!(sol.value, gain + rest);
+            checked += 1;
+        }
+    }
+    assert!(checked >= 10, "{checked}");
 }

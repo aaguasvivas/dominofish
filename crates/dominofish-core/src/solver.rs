@@ -313,8 +313,10 @@ pub fn solve(state: &mut State, table: Option<&mut Table>, cap: u64) -> Solution
     }
 }
 
-/// The fallback past the node cap: the margin when every seat plays its
-/// heaviest tile (ties to the generator's order) to the end of the round.
+/// The fallback past the node cap: the margin when every seat plays the
+/// first move of the search's ordering (`order_score`: the heaviest tile,
+/// with a double counted 3 pips heavier; ties to the generator's order) to
+/// the end of the round.
 pub fn greedy(state: &mut State) -> i32 {
     let mut moves = MoveList::new();
     let mut trail = [(Move::Pass, None); 128];

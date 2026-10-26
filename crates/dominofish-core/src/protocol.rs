@@ -75,13 +75,6 @@ pub enum FromEngine {
     Info(String),
 }
 
-fn mode_text(mode: Mode) -> &'static str {
-    match mode {
-        Mode::OneVsOne => "1v1",
-        Mode::TwoVsTwo => "2v2",
-    }
-}
-
 fn tiles_text(tiles: &[Tile]) -> String {
     tiles
         .iter()
@@ -119,7 +112,7 @@ impl ToEngine {
                 seed,
             } => format!(
                 "game mode={} target={target} seat={} seed={seed}",
-                mode_text(*mode),
+                mode.name(),
                 mode.seat_name(*seat)
             ),
             ToEngine::Round {

@@ -23,6 +23,14 @@ pub enum Mode {
 }
 
 impl Mode {
+    /// "1v1" or "2v2", as every text format writes it.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Mode::OneVsOne => "1v1",
+            Mode::TwoVsTwo => "2v2",
+        }
+    }
+
     pub const fn seats(self) -> u8 {
         match self {
             Mode::OneVsOne => 2,

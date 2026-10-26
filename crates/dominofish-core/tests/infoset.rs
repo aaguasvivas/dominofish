@@ -205,3 +205,30 @@ fn infoset_ignores_tiles_hidden_from_its_seat() {
         "infoset hidden: swaps {tried}, {same_public} with the same public record gave equal infosets, {different} changed the record"
     );
 }
+
+/// Texts no game produces, which panicked consumers before the parser's
+/// consistency checks (M3 code review): a play action with no tile, ends
+/// on an empty board's opposite, a seat of "-", and too many tiles in hand
+/// on an empty board. Each must be rejected, not accepted or panic.
+#[test]
+fn inconsistent_infoset_text_is_rejected() {
+    use dominofish_core::infoset::InfoSet;
+    let good = "v=1 mode=2v2 target=100 scores=0,0 seat=n hand=0-0,1-1,2-2,2-4,4-4 board=4881400 ends=34 turn=n starter=w last=w passes=0 phase=P sizes=5,6,6,6 pile=0 opening=- voids=0,40,10,0 excluded=0,0,0,0 history=-";
+    assert!(InfoSet::from_text(good).is_some());
+    for bad in [
+        good.replace("history=-", "history=n:p:66"),
+        good.replace("history=-", "history=n:pé:66"),
+        good.replace("ends=34", "ends=--"),
+        good.replace("ends=34", "ends=02"),
+        good.replace("seat=n", "seat=-"),
+        good.replace("sizes=5,6,6,6", "sizes=4,6,6,6"),
+        good.replace("board=4881400 ends=34", "board=0 ends=--")
+            .replace(
+                "hand=0-0,1-1,2-2,2-4,4-4",
+                "hand=0-0,1-1,2-2,2-4,4-4,0-1,0-2,0-3",
+            )
+            .replace("sizes=5,6,6,6", "sizes=8,6,6,6"),
+    ] {
+        assert!(InfoSet::from_text(&bad).is_none(), "accepted: {bad}");
+    }
+}

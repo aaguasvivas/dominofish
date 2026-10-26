@@ -121,10 +121,7 @@ impl GameRecord {
     /// The text form (docs/FORMATS.md, Game records).
     pub fn to_text(&self) -> String {
         use core::fmt::Write as _;
-        let mode = match self.mode {
-            Mode::OneVsOne => "1v1",
-            Mode::TwoVsTwo => "2v2",
-        };
+        let mode = self.mode.name();
         let mut out = format!("dominofish-record 1\nmode {mode}\ntarget {}\n", self.target);
         for (r, round) in self.rounds.iter().enumerate() {
             out.push_str("deal");
@@ -239,14 +236,14 @@ impl GameRecord {
                 }
                 state.play(mv);
             }
+            if state.phase == Phase::Finished && r + 1 < record.rounds.len() {
+                return Err(err(0, "a deal after the game ended"));
+            }
             if r + 1 < record.rounds.len() && state.phase != Phase::RoundOver {
                 return Err(err(
                     0,
                     format!("round {} is not over before the next deal", r + 1),
                 ));
-            }
-            if state.phase == Phase::Finished && r + 1 < record.rounds.len() {
-                return Err(err(0, "a deal after the game ended"));
             }
         }
         Ok(record)

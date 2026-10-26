@@ -5,7 +5,7 @@
 
 use crate::record::{parse_seat, parse_tile};
 use crate::rules::{MAX_TARGET, Mode, NO_SEAT, Parts, Phase, State};
-use crate::tile::{ALL, TILE_COUNT, Tile, tiles};
+use crate::tile::{ALL, SUIT, TILE_COUNT, Tile, tiles};
 
 fn tile_list(mask: u32) -> String {
     if mask == 0 {
@@ -42,7 +42,7 @@ pub fn to_text(state: &State) -> String {
     let pile: Vec<String> = state.boneyard().iter().map(Tile::to_string).collect();
     format!(
         "v=1 mode={} target={} scores={},{} hands={} board={:x} ends={} turn={} starter={} last={} passes={} phase={} winner={} pile={}",
-        if mode == Mode::OneVsOne { "1v1" } else { "2v2" },
+        mode.name(),
         state.target,
         state.scores[0],
         state.scores[1],
@@ -157,6 +157,23 @@ pub fn from_text(line: &str) -> Option<State> {
     {
         return None;
     }
+    // A round in play: every hand holds tiles (R17 ends the round when one
+    // empties), the board was just dealt (seven tiles each) or shows its
+    // ends and is not locked (R19 ends the round at the lock), and the
+    // scores are below the target.
+    if phase == Phase::Playing {
+        let hands_ok = (0..mode.seats()).all(|s| {
+            let n = hands[s as usize].count_ones();
+            n > 0 && (board != 0 || n == 7)
+        });
+        let shown = |pip: u8| tiles(board).any(|t| t.has(pip));
+        let open = SUIT[left as usize] | SUIT[right as usize];
+        let board_ok = board == 0
+            || (shown(left) && shown(right) && ALL & !board & open != 0 && last != NO_SEAT);
+        if !hands_ok || !board_ok || scores.iter().any(|&s| s >= target) {
+            return None;
+        }
+    }
     let parts = Parts {
         mode,
         target,
@@ -236,5 +253,22 @@ mod tests {
         for b in bad {
             assert!(from_text(&b).is_none(), "accepted: {b}");
         }
+    }
+
+    /// States no game reaches, which made the solver index out of range
+    /// before the checks (M3 code review): 21 tiles in one hand on an empty
+    /// board, a locked board in play, and scores at the target.
+    #[test]
+    fn unreachable_states_are_rejected() {
+        let big_hand = "v=1 mode=1v1 target=100 scores=0,0 hands=0-0,0-1,0-2,0-3,0-4,0-5,0-6,1-1,1-2,1-3,1-4,1-5,1-6,2-2,2-3,2-4,2-5,2-6,3-3,3-4,3-5/3-6,4-4,4-5,4-6,5-5,5-6,6-6 board=0 ends=-- turn=n starter=n last=- passes=0 phase=P winner=- pile=-";
+        let locked = "v=1 mode=2v2 target=100 scores=0,0 hands=0-0,0-4,1-3,2-3,3-4,5-5/0-1,0-5,1-4,2-4,3-5/0-2,1-1,1-5,2-5,4-4/0-3,1-2,2-2,3-3,4-5 board=d221040 ends=66 turn=n starter=n last=- passes=3 phase=P winner=- pile=-";
+        assert!(from_text(big_hand).is_none());
+        assert!(from_text(locked).is_none());
+        let deal = Deal::shuffled(&mut Rng::new(4));
+        let (state, _) = State::first_round(Mode::TwoVsTwo, 100, &deal);
+        let good = to_text(&state);
+        assert!(from_text(&good).is_some());
+        assert!(from_text(&good.replace("scores=0,0", "scores=100,0")).is_none());
+        assert!(from_text(&good.replace("ends=66", "ends=55")).is_none());
     }
 }
