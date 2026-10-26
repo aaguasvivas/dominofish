@@ -23,9 +23,13 @@ pub const COMMANDS: &[Command] = &[
         name: "engine",
         group: "Play",
         summary: "Run a bot over the engine protocol on stdin and stdout",
-        usage: "dominofish engine --bot random|heaviest|accompanied|rule [--salt N]",
-        options: "  --bot NAME          random, heaviest (bota gorda), accompanied (la mas
-                      acompanada), or rule (counts tiles, reads pass voids)
+        usage: "dominofish engine --bot NAME [--salt N] [--nodes N] [--table-bits B]",
+        options: "  --bot NAME          random, heaviest (bota gorda), accompanied (la más
+                      acompañada), rule (counts tiles, reads pass voids), or
+                      omniscient: it sees every hand and plays the exact
+                      solver's move, an upper bound that cheats on purpose
+  --nodes N           Omniscient: node cap per solve (default 10000000)
+  --table-bits B      Omniscient: table of 2^B entries (default 20, at most 24)
   --salt N            Mixed into the seed the referee sends, so two copies of
                       one bot play with independent randomness
 
@@ -57,7 +61,8 @@ pub const COMMANDS: &[Command] = &[
         group: "Measure",
         summary: "Solve the bench positions; prints Bench: <nodes>",
         usage: "dominofish bench [--positions FILE] [--nodes N] [--table-bits B]",
-        options: "  --positions FILE    State text lines (default fixtures/bench.txt)
+        options: "  --positions FILE    State text lines (default: fixtures/bench.txt, built
+                      into the binary)
   --nodes N           Node cap per solve (default 10000000)
   --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
     },

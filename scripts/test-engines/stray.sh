@@ -4,7 +4,7 @@
 # before this engine's first go instead of taking it as that move.
 while IFS= read -r line; do
   case "$line" in
-    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=-" ;;
+    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=- view=infoset" ;;
     header*) printf '%s\nmove pass\n' "$line" ;;
     go) echo "move pass" ;;
     quit) exit 0 ;;

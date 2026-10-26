@@ -109,8 +109,12 @@ fn side_text(header: &str, side: &str) -> String {
             .or_else(|| field(header, key))
             .unwrap_or("-")
     };
+    let view = match field(header, &format!("{side}.view")) {
+        Some("omniscient") => ", view omniscient (sees every hand: cheating)",
+        _ => "",
+    };
     format!(
-        "commit {}, Bench {}, binary hash {}, budgets {}, threads {}, tables {}",
+        "commit {}, Bench {}, binary hash {}, budgets {}, threads {}, tables {}{view}",
         get("commit"),
         get("bench"),
         get("hash"),
@@ -118,6 +122,16 @@ fn side_text(header: &str, side: &str) -> String {
         get("threads"),
         get("tables")
     )
+}
+
+/// The table label of a side: its bot, marked when it cheats.
+fn side_label(header: &str, side: &str) -> String {
+    let bot = bot_of(field(header, &format!("{side}.cmd")).unwrap_or("-"));
+    if field(header, &format!("{side}.view")) == Some("omniscient") {
+        format!("{bot} (cheating)")
+    } else {
+        bot.to_string()
+    }
 }
 
 /// The report text for every run directory under `results`.
@@ -216,8 +230,8 @@ pub fn build(results: &Path) -> Result<String, String> {
                 "| {} | {unit} | {} | {} | {} | {} | {:.2} [{:.2}, {:.2}] | {win} | {sprt} | {} | {rss} | {} | {} |",
                 field(h, "mode").unwrap_or("-"),
                 field(h, "target").unwrap_or("-"),
-                bot_of(field(h, "a.cmd").unwrap_or("-")),
-                bot_of(field(h, "b.cmd").unwrap_or("-")),
+                side_label(h, "a"),
+                side_label(h, "b"),
                 r.margins.len(),
                 pr.mean,
                 pr.lo,

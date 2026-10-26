@@ -17,7 +17,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use dominofish_core::infoset::{Action, InfoSet};
-use dominofish_core::protocol::{FromEngine, ToEngine, VERSION};
+use dominofish_core::protocol::{FromEngine, ToEngine, VERSION, View};
 use dominofish_core::record::{GameRecord, RoundRecord};
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, Mode, Move, Phase, State, team};
@@ -89,6 +89,9 @@ struct Engine {
     lines: Receiver<String>,
     /// The end of what the engine wrote to stderr, for a crash report.
     stderr: Arc<Mutex<String>>,
+    /// What the engine sees, from its ready line: only an omniscient engine
+    /// (the cheating upper bound) is also sent the full state.
+    view: View,
 }
 
 /// Bytes of an engine's stderr kept for a crash report.
@@ -150,6 +153,7 @@ impl Engine {
             stdin,
             lines,
             stderr,
+            view: View::InfoSet,
         })
     }
 
@@ -293,6 +297,26 @@ struct Settings {
     budgets: String,
     threads: u32,
     tables: String,
+    view: View,
+}
+
+/// The Bench of an engine binary that searches: the last line of
+/// `<binary> bench`, run once before the match; - when it prints none.
+fn bench_of(side: &Side) -> String {
+    Command::new(&side.command[0])
+        .arg("bench")
+        .stdin(Stdio::null())
+        .stderr(Stdio::null())
+        .output()
+        .ok()
+        .and_then(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .last()
+                .and_then(|l| l.strip_prefix("Bench: "))
+                .map(str::to_string)
+        })
+        .unwrap_or_else(|| "-".into())
 }
 
 impl Spec {
@@ -301,15 +325,22 @@ impl Spec {
     /// engines reported; then mode, unit, target, and pairs. It holds no
     /// seed: the deal seeds go only to the results file.
     fn header(&self, settings: &[Settings; 2]) -> String {
+        // A side that searches (the omniscient bot) gets its binary's Bench.
         let side = |name: &str, s: &Side, set: &Settings| {
+            let bench = if set.view == View::Omniscient {
+                bench_of(s)
+            } else {
+                "-".into()
+            };
             format!(
-                "{name}.cmd={} {name}.commit={} {name}.bench=- {name}.hash={:016x} {name}.budgets={} {name}.threads={} {name}.tables={}",
+                "{name}.cmd={} {name}.commit={} {name}.bench={bench} {name}.hash={:016x} {name}.budgets={} {name}.threads={} {name}.tables={} {name}.view={}",
                 s.command.join("+"),
                 s.commit,
                 s.hash,
                 set.budgets,
                 set.threads,
-                set.tables
+                set.tables,
+                set.view.name()
             )
         };
         format!(
@@ -414,11 +445,16 @@ fn handshake(
                 budgets,
                 threads,
                 tables,
-            } if version == VERSION => reported.push(Settings {
-                budgets,
-                threads,
-                tables,
-            }),
+                view,
+            } if version == VERSION => {
+                e.view = view;
+                reported.push(Settings {
+                    budgets,
+                    threads,
+                    tables,
+                    view,
+                });
+            }
             other => {
                 return Err((
                     Fault::Protocol,
@@ -514,6 +550,9 @@ fn play_game(
             let info = InfoSet::new(&record, r, ply, mover).expect("the record so far is valid");
             engines[e].expect_quiet()?;
             engines[e].send(&ToEngine::InfoSet(Box::new(info)).to_line(mode))?;
+            if engines[e].view == View::Omniscient {
+                engines[e].send(&ToEngine::State(Box::new(state)).to_line(mode))?;
+            }
             engines[e].send(&ToEngine::Go.to_line(mode))?;
             let mv = match engines[e].recv(spec.timeout)? {
                 FromEngine::Move(mv) => mv,

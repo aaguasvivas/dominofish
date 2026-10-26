@@ -32,10 +32,22 @@ fn thousands(n: u64) -> String {
     out
 }
 
-/// The positions of a bench file: one state text per line; blank lines and
-/// lines starting with # are skipped.
-pub fn read_positions(path: &str) -> Result<Vec<State>, String> {
-    let text = std::fs::read_to_string(path).map_err(|e| format!("{path}: {e}"))?;
+/// The committed bench positions, built into the binary, so a binary's
+/// Bench depends on that binary alone (the harness runs it to fill a
+/// searching engine's Bench in the match header).
+pub const BENCH_POSITIONS: &str = include_str!("../../../fixtures/bench.txt");
+
+/// The positions of a bench file, or of the built-in set when `path` is
+/// None: one state text per line; blank lines and lines starting with #
+/// are skipped.
+pub fn read_positions(path: Option<&str>) -> Result<Vec<State>, String> {
+    let (text, path) = match path {
+        Some(p) => (
+            std::fs::read_to_string(p).map_err(|e| format!("{p}: {e}"))?,
+            p,
+        ),
+        None => (BENCH_POSITIONS.to_string(), "fixtures/bench.txt (built in)"),
+    };
     let mut out = Vec::new();
     for (i, line) in text.lines().enumerate() {
         if line.is_empty() || line.starts_with('#') {
@@ -53,7 +65,7 @@ pub fn read_positions(path: &str) -> Result<Vec<State>, String> {
 
 /// Solves every position with a cleared table and prints one line each,
 /// then the totals; the last line is "Bench: <nodes>".
-pub fn bench(path: &str, cap: u64, bits: u32) -> Result<String, String> {
+pub fn bench(path: Option<&str>, cap: u64, bits: u32) -> Result<String, String> {
     let positions = read_positions(path)?;
     let mut table = Table::new(bits);
     let mut out = format!(

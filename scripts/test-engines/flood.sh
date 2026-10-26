@@ -4,7 +4,7 @@
 # never moves. The per-move deadline must still end the match.
 while IFS= read -r line; do
   case "$line" in
-    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=-" ;;
+    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=- view=infoset" ;;
     header*) echo "$line" ;;
     go) while :; do echo "info thinking"; sleep 0.05; done ;;
     quit) exit 0 ;;

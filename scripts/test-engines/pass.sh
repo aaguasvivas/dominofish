@@ -4,7 +4,7 @@
 # a fitting tile or, in 1v1, while the boneyard has tiles.
 while IFS= read -r line; do
   case "$line" in
-    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=-" ;;
+    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=- view=infoset" ;;
     header*) echo "$line" ;;
     go) echo "move pass" ;;
     quit) exit 0 ;;

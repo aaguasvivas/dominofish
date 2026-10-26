@@ -6,7 +6,7 @@
 
 use crate::infoset::{Action, InfoSet};
 use crate::record::{GameRecord, move_text, parse_move, parse_seat, parse_tile};
-use crate::rules::{Mode, Move, Phase};
+use crate::rules::{Mode, Move, Phase, State};
 use crate::tile::Tile;
 
 pub const VERSION: u32 = 1;
@@ -45,6 +45,11 @@ pub enum ToEngine {
     /// `infoset <text>`: the InfoSet the referee builds for the engine's
     /// seat (docs/FORMATS.md, InfoSet text), sent before each `go`.
     InfoSet(Box<InfoSet>),
+    /// `state <state text>`: the full state, every hidden tile included
+    /// (docs/FORMATS.md, State text), sent before each `go` only to an
+    /// engine whose ready line said view=omniscient: the omniscient bot,
+    /// which is labeled as cheating wherever it appears.
+    State(Box<State>),
     /// `go`: the engine's turn.
     Go,
     /// `roundover scores=<s0>,<s1>`.
@@ -55,17 +60,35 @@ pub enum ToEngine {
     Quit,
 }
 
+/// What an engine sees: its seat's InfoSet (every bot that plays fairly),
+/// or also the full state (the omniscient bot, a cheating upper bound).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum View {
+    InfoSet,
+    Omniscient,
+}
+
+impl View {
+    pub const fn name(self) -> &'static str {
+        match self {
+            View::InfoSet => "infoset",
+            View::Omniscient => "omniscient",
+        }
+    }
+}
+
 /// Engine to referee.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FromEngine {
-    /// `dominofish <version> ready budgets=<b> threads=<n> tables=<t>`: the
-    /// engine's own settings, which the referee puts in the match header
-    /// (- for none).
+    /// `dominofish <version> ready budgets=<b> threads=<n> tables=<t>
+    /// view=<infoset|omniscient>`: the engine's own settings, which the
+    /// referee puts in the match header (- for none), and what it sees.
     Ready {
         version: u32,
         budgets: String,
         threads: u32,
         tables: String,
+        view: View,
     },
     /// `header <text>`, echoing the referee's header.
     Header(String),
@@ -138,6 +161,7 @@ impl ToEngine {
                 format!("played {} {what}", seat(*s))
             }
             ToEngine::InfoSet(info) => format!("infoset {}", info.to_text()),
+            ToEngine::State(state) => format!("state {}", crate::position::to_text(state)),
             ToEngine::Go => "go".into(),
             ToEngine::RoundOver { scores } => {
                 format!("roundover scores={},{}", scores[0], scores[1])
@@ -195,6 +219,9 @@ impl ToEngine {
             ["infoset", ..] => ToEngine::InfoSet(Box::new(InfoSet::from_text(
                 line.strip_prefix("infoset ")?,
             )?)),
+            ["state", ..] => ToEngine::State(Box::new(crate::position::from_text(
+                line.strip_prefix("state ")?,
+            )?)),
             ["go"] => ToEngine::Go,
             ["roundover", s] => ToEngine::RoundOver {
                 scores: parse_scores(s.strip_prefix("scores=")?)?,
@@ -216,8 +243,10 @@ impl FromEngine {
                 budgets,
                 threads,
                 tables,
+                view,
             } => format!(
-                "dominofish {version} ready budgets={budgets} threads={threads} tables={tables}"
+                "dominofish {version} ready budgets={budgets} threads={threads} tables={tables} view={}",
+                view.name()
             ),
             FromEngine::Header(text) => format!("header {text}"),
             FromEngine::Move(mv) => format!("move {}", move_text(*mv)),
@@ -228,11 +257,16 @@ impl FromEngine {
     pub fn parse(line: &str) -> Option<FromEngine> {
         let words: Vec<&str> = line.split_whitespace().collect();
         Some(match words.as_slice() {
-            ["dominofish", v, "ready", b, n, t] => FromEngine::Ready {
+            ["dominofish", v, "ready", b, n, t, w] => FromEngine::Ready {
                 version: v.parse().ok()?,
                 budgets: b.strip_prefix("budgets=")?.to_string(),
                 threads: n.strip_prefix("threads=")?.parse().ok()?,
                 tables: t.strip_prefix("tables=")?.to_string(),
+                view: match w.strip_prefix("view=")? {
+                    "infoset" => View::InfoSet,
+                    "omniscient" => View::Omniscient,
+                    _ => return None,
+                },
             },
             ["header", ..] => FromEngine::Header(line.strip_prefix("header ")?.to_string()),
             ["move", rest @ ..] => FromEngine::Move(parse_move(rest)?),

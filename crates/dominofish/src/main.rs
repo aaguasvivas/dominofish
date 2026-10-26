@@ -141,20 +141,26 @@ fn run() -> Result<(String, bool), Failure> {
         }
         "engine" => {
             let (mut bot, mut salt) = (None, None);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::TABLE_BITS);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
-                    Long("bot") => {
-                        let name = value(&mut parser)?;
-                        bot = Some(
-                            dominofish_core::bots::Bot::from_name(&name)
-                                .ok_or(format!("unknown bot {name}"))?,
-                        );
-                    }
+                    Long("bot") => bot = Some(value(&mut parser)?),
                     Long("salt") => salt = Some(parse_num(&value(&mut parser)?)?),
+                    Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
                     _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
-            engine::run(bot.ok_or("--bot is required")?, salt).map_err(Failure::Run)?;
+            let name = bot.ok_or("--bot is required")?;
+            let player = if name == "omniscient" {
+                engine::Player::Omniscient { nodes, bits }
+            } else {
+                engine::Player::Bot(
+                    dominofish_core::bots::Bot::from_name(&name)
+                        .ok_or(format!("unknown bot {name}"))?,
+                )
+            };
+            engine::run(player, salt).map_err(Failure::Run)?;
             Ok((String::new(), true))
         }
         "match" => {
@@ -274,20 +280,19 @@ fn run() -> Result<(String, bool), Failure> {
             Ok((out, outcome.passed))
         }
         "bench" => {
-            let (mut file, mut cap, mut bits) = (
-                "fixtures/bench.txt".to_string(),
-                solve::NODE_CAP,
-                solve::TABLE_BITS,
-            );
+            let (mut file, mut cap, mut bits) = (None, solve::NODE_CAP, solve::TABLE_BITS);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
-                    Long("positions") => file = value(&mut parser)?,
+                    Long("positions") => file = Some(value(&mut parser)?),
                     Long("nodes") => cap = parse_num(&value(&mut parser)?)?,
                     Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
                     _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
-            Ok((solve::bench(&file, cap, bits).map_err(Failure::Run)?, true))
+            Ok((
+                solve::bench(file.as_deref(), cap, bits).map_err(Failure::Run)?,
+                true,
+            ))
         }
         "solve-stats" => {
             let (mut mode, mut games, mut seed) = (None, None, None);

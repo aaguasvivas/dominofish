@@ -6,7 +6,7 @@
 mod common;
 
 use dominofish_core::infoset::Action;
-use dominofish_core::protocol::{FromEngine, ToEngine, messages_for};
+use dominofish_core::protocol::{FromEngine, ToEngine, View, messages_for};
 use dominofish_core::record::GameRecord;
 use dominofish_core::rules::{End, Mode, Move};
 use dominofish_core::tile::Tile;
@@ -101,12 +101,28 @@ fn protocol_round_trips() {
             }
         }
     }
+    // The omniscient bot's state message round-trips in both modes.
+    for (mode, seed) in [(Mode::OneVsOne, 3u64), (Mode::TwoVsTwo, 4)] {
+        use dominofish_core::rng::Rng;
+        use dominofish_core::rules::{Deal, State};
+        let (state, _) = State::first_round(mode, 100, &Deal::shuffled(&mut Rng::new(seed)));
+        let msg = ToEngine::State(Box::new(state));
+        assert_eq!(ToEngine::parse(&msg.to_line(mode), mode), Some(msg));
+    }
     for msg in [
         FromEngine::Ready {
             version: 1,
             budgets: "-".into(),
             threads: 1,
             tables: "-".into(),
+            view: View::InfoSet,
+        },
+        FromEngine::Ready {
+            version: 1,
+            budgets: "nodes:10000000".into(),
+            threads: 1,
+            tables: "16MB".into(),
+            view: View::Omniscient,
         },
         FromEngine::Header("a=1 b=2".into()),
         FromEngine::Info("nodes 123".into()),
