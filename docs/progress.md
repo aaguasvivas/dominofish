@@ -2,9 +2,9 @@
 
 ## Top block
 
-- Milestone: M3 (exact perfect-information solver) in progress; M0, M1, and M2 passed 2026-10-25
-- Feature in progress: M3-99 (the M3 exit and its milestone review)
-- Last green commit: dcc99b0 (M2 review fixes and the verify PASS-line check)
+- Milestone: M4 (sampling over hidden hands) next; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
+- Feature in progress: none (next: M4, whose features are appended when it starts)
+- Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
 - Open questions: Q1 to Q6 in docs/PLAN.md, Decision log (Q1 to Q4 sent 2026-10-25, unanswered; Q5 and Q6 added during M2)
@@ -119,3 +119,5 @@
   9. solve-stats counted every position with 27 or more tiles left as a round start (2,176 in the 1v1 27 row against 2,000 real starts). 401b80a counts the first position of each round.
   The reviewer found no counterexample to the solver's value or key, confirmed that only the omniscient engine receives hidden information, and confirmed R3's registration, seeds, bounds, and recomputation.
 - The first M3-99 run failed: the M3-05 replay of R3 row 15 differed (pair 5, game 1: 130-0 against 126-0). Cause: the M3-01 negative control built its mutant solver (a key without the score state) in target/old, which scripts/build-bin.sh also uses; Cargo names path-crate artifacts by their place in the workspace, and git archive dates files at the commit time, so the build of 47c5ed9 (a commit older than the mutant's artifacts) linked the mutant core (its build log warned that bonuses_left was unused). The replay check caught it. Fixed: the mutant builds in its own target directory, removed after, and build-bin touches every extracted file so Cargo always recompiles a commit's own sources. runs/bin/47c5ed9 was deleted and rebuilt; it replays row 15 exactly. No committed result came from an affected build: R1, R2, and R3 ran on builds made before any mutant existed (R3's replay on the clean c6dc485 build matched every pair line), and the earlier check-commit anomaly (a test binary pointing at a deleted archive directory) had the same cause.
+- M3-99 passed (M3 exit): M3-99: PASS M3-01 ok; M3-02 ok; M3-03 ok; M3-04 ok; M3-05 ok; M3 milestone review recorded in docs/progress.md. Report: docs/reports/2026-10-26-m3-exit.md.
+- Next: M4 (PIMC). Before it: profile the solver (full 2v2 rounds take a median of about 40 ms here against the lead's 7.7 ms), since PIMC solves many worlds per move.

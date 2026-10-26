@@ -178,7 +178,7 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 | M0 | Toolchain, checks, random selfplay | passed |
 | M1 | Rules parity with Capi | passed |
 | M2 | Information sets, baseline bots, match harness | passed |
-| M3 | Exact perfect-information solver, omniscient bot | exit review in progress |
+| M3 | Exact perfect-information solver, omniscient bot | passed |
 | M4 | Sampling over hidden hands, each world solved exactly | next |
 | M5 | Variance reduction for smaller measured gains | planned |
 | M6 | Game equity and a calibrated win probability | planned |

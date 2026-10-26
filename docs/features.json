@@ -450,8 +450,12 @@
   "requires": [
    "M2-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M3-99: PASS M3-01 ok; M3-02 ok; M3-03 ok; M3-04 ok; M3-05 ok; M3 milestone review recorded in docs/progress.md",
+   "log": null
+  }
  },
  {
   "id": "M4-99",
