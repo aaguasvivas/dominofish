@@ -298,7 +298,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-02: PASS malformed: 9 rejected at their line;protocol: messages 329216 round-trip exactly; malformed lines rejected;records: games 400 lines 83862 round-trip exactly; documented in docs/FORMATS.md",
+   "result": "M2-02: PASS malformed: 9 rejected at their line;protocol: messages 408169 round-trip exactly; malformed lines rejected;records: games 400 lines 83862 round-trip exactly; documented in docs/FORMATS.md",
    "log": null
   }
  },
@@ -314,7 +314,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-03: PASS deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example holds in all 2212848 worlds;leads: 399072960, 133024320, 116280, and C(20 - h, 6) after a d-d opening (d = 6, 5, 4) reproduced;oracle: 1v1 positions 150 (133 after a draw of the other seat, 150 constrained) worlds 1967; 2v2 positions 150 (87 constrained) worlds 38852; counts equal the brute force;truth: decisions 9873, the true world allowed at each",
+   "result": "M2-03: PASS deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example, counted from its InfoSet, holds in all 559944 worlds;leads: 399072960, 133024320, 116280, and C(20 - h, 6) after a d-d opening (d = 6, 5, 4) reproduced;oracle: 1v1 positions 150 (133 after a draw of the other seat, 150 constrained) worlds 1967; 2v2 positions 150 (87 constrained) worlds 38852; counts equal the brute force;truth: decisions 9873, the true world allowed at each",
    "log": null
   }
  },
@@ -330,7 +330,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-04: PASS criteria: decisions checked random 8527 heaviest 12711 accompanied 8977 rule (forcing plays) 456;games: 200 full games of every pairing in both modes at 100 and 200, 38507 moves, all legal, each replayed identically;legal: decisions 15332 with InfoSet moves equal to the referee's",
+   "result": "M2-04: PASS criteria: decisions checked random 8527 heaviest 12711 accompanied 9404 rule (forcing plays) 456;games: 200 full games of every pairing in both modes at 100 and 200, 39572 moves, all legal, each replayed identically;legal: decisions 15332 with InfoSet moves equal to the referee's",
    "log": null
   }
  },
@@ -346,7 +346,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-05: PASS InfoSet texts 11380 round-trip; rearranged worlds with an identical public record in games of random 4715 heaviest 6379 accompanied 5352 rule 4352; byte-identical InfoSets and the same decision of every bot at a fixed seed",
+   "result": "M2-05: PASS InfoSet texts 11169 round-trip; rearranged worlds with an identical public record in games of random 4715 heaviest 6379 accompanied 5125 rule 4203; byte-identical InfoSets and the same decision of every bot at a fixed seed",
    "log": null
   }
  },
@@ -363,7 +363,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/0e51531/dominofish, 17918 moves, illegal 0, crashes 0, timeouts 0, header echoed; identical bots 0 in every duplicate pair (4 configurations); faults Illegal, Crash, Timeout, Header each stop a match; target/ refused",
+   "result": "M2-06: PASS 8 matches (1v1 and 2v2, rounds and games, targets 100 and 200) from runs/bin/dcc99b0/dominofish, 18032 moves, illegal 0, crashes 0, timeouts 0, header echoed with each side's settings and no seed; engine seeds equal under two deal seed bases; identical bots 0 in every duplicate pair (4 configurations); 14 of 14 fault matches (7 engines, both modes) stopped with their fault; target/ refused",
    "log": null
   }
  },
@@ -379,7 +379,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.87, H1 5.29): false H1 0.0488, false H0 0.0530; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported",
+   "result": "M2-07: PASS normal (sd 40.00, H1 4.00): false H1 0.0515, false H0 0.0500; empirical (sd 52.39, H1 5.24): false H1 0.0488, false H0 0.0495; band [0.0397, 0.0603]; runs at the maximum 0; null match stops at H0 after 16 pairs; points-per-round and game-win CIs reported",
    "log": null
   }
  },
@@ -396,7 +396,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-25",
-   "result": "M2-08: PASS identical bots: 320 duplicate pairs (4 bots, both modes, rounds and games) all exactly 0; null SPRT runs: 200 (100 per mode), H1 12 (band [3, 19] at 200 runs), H0 188, inconclusive 0, 23508 pairs, no fault",
+   "result": "M2-08: PASS identical bots: 320 duplicate pairs (4 bots, both modes, rounds and games) all exactly 0; null SPRT runs: 200 (100 per mode), H1 12 (band [3, 19] at 200 runs), H0 188, inconclusive 0, 21544 pairs, no fault",
    "log": null
   }
  },
