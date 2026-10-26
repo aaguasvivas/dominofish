@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-99 (M4 exit: milestone review); M2-09 fails and waits on Q8
+- Feature in progress: M4-99 (M4 exit: milestone review)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q8 (M2-09 and the SPRT column of R5 and R6), batched in docs/PLAN.md
+- Open questions: none (Q8 answered 2026-10-26)
 - Stashes: none
 
 ## 2026-10-25
@@ -144,4 +144,5 @@
 - M4-10 passed: R6 as registered, commit e3f9a4f, 500 round pairs per mode, 0 faults: the omniscient bot (cheating) minus PIMC at 64 worlds, 24.22 [22.92, 25.52] points per round in 1v1 and 48.04 [46.34, 49.74] in 2v2.
 - M4-11 passed: README.md has the PIMC section (R4 against the rule bot, the R5 curve, the R6 gap) and the M4 updates (summary table, What it does now, analyze example, Testing, Limitations). scripts/readme-fast.sh adds 20 fast reproductions (R4 rows 12 to 15 with 4 round or 2 game pairs, every R5 point and both R6 rows with 4 pairs) and takes run ids, so M2-09 checks R2 and R3 and M4-11 checks R4 to R6; each of the 20 replays the first pairs of its full run exactly (pair lines compared).
 - M2-09 fails (scripts/verify/M2-09.sh, no seed): "ERROR 16 REPORT.md rows lack a claim-format field". Its check wants an SPRT outcome in every row; R5 and R6 were registered without an SPRT. passes set to false; the fix waits on Q8 (docs/PLAN.md).
+- Q8 answered ("(a)", word for word in docs/PLAN.md). scripts/verify/M2-09.sh accepts exactly - in the SPRT column only for rows whose result file has no SPRT summary. Negative control: a copy of REPORT.md with - in R4 row 12's SPRT column fails the check ("1 REPORT.md rows lack a claim-format field"). M2-09 passes again: 120 rows for 120 result files, 35 README numbers found in REPORT.md, R2 and R3 fast rows reproduce.
 

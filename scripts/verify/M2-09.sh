@@ -4,7 +4,8 @@
 # baseline's results with CIs; README.md has the tagline, subtitle, and
 # credit line exactly as decided. Checks: the report is current; it has one
 # row per result file, each with pairs, a points-per-round CI, the SPRT
-# bounds and outcome, wall time, peak RSS, seeds, and file, a game-win CI on
+# bounds and outcome (- only for a file with no SPRT summary, the owner's
+# answer to Q8), wall time, peak RSS, seeds, and file, a game-win CI on
 # every game row, and the settings line (commit, Bench, hash, budgets,
 # threads, tables) and command; README.md has the three lines and its
 # sections, its numbers appear in REPORT.md, and its fast reproductions
@@ -22,10 +23,21 @@ report=docs/eval/REPORT.md
 files=$(find docs/eval/results -mindepth 2 -name '*.txt' | wc -l | tr -d ' ')
 rows=$(grep -c '^| [12]v[12] |' "$report")
 [ "$files" -gt 0 ] && [ "$rows" -eq "$files" ] || err "REPORT.md has $rows rows for $files result files"
-bad=$(grep '^| [12]v[12] |' "$report" | awk -F'|' '{
-  ok = ($8 ~ /\[-?[0-9.]+, -?[0-9.]+\]/) && ($10 ~ /^ (H0 at|H1 at|inconclusive)/) && ($10 ~ /\(.*, .*\)/) && ($11 ~ /[0-9]/) && ($12 ~ /[0-9]/) && ($13 ~ /\.\./) && ($14 ~ /\.txt/)
-  if ($3 ~ /game/ && $9 !~ /\[/) ok = 0
-  if (!ok) n++ } END {print n + 0}')
+# Result files with no SPRT summary (runs registered without one, such as
+# R5 and R6; the owner's answer to Q8): their rows show - for the SPRT.
+nosprt=" "
+for f in docs/eval/results/*/*.txt; do
+  grep -q '^# summary .*sprt on the pair margin' "$f" || nosprt="$nosprt$(basename "$(dirname "$f")")/$(basename "$f") "
+done
+bad=$(awk -F'|' -v nosprt="$nosprt" '
+  /^## [0-9]/ { split($0, h, " "); dir = h[2] }
+  /^\| [12]v[12] \|/ {
+    f = $14; gsub(/ /, "", f)
+    sprt = ($10 ~ /^ (H0 at|H1 at|inconclusive)/) && ($10 ~ /\(.*, .*\)/)
+    if (index(nosprt, " " dir "/" f " ") > 0) sprt = ($10 == " - ")
+    ok = sprt && ($8 ~ /\[-?[0-9.]+, -?[0-9.]+\]/) && ($11 ~ /[0-9]/) && ($12 ~ /[0-9]/) && ($13 ~ /\.\./) && ($14 ~ /\.txt/)
+    if ($3 ~ /game/ && $9 !~ /\[/) ok = 0
+    if (!ok) n++ } END {print n + 0}' "$report")
 [ "$bad" -eq 0 ] || err "$bad REPORT.md rows lack a claim-format field"
 for want in "commit " "Bench " "binary hash " "budgets " "threads " "tables " "Pre-registered as " "Command of each row"; do
   grep -q "$want" "$report" || err "REPORT.md lacks: $want"

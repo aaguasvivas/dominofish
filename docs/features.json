@@ -410,10 +410,10 @@
    "M2-06",
    "M2-07"
   ],
-  "passes": false,
+  "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M2-09: PASS REPORT.md current with 88 rows for 88 result files, every claim-format field present; README.md has the three decided lines, its sections, and 13 numbers found in REPORT.md; readme-fast: PASS 8 rows reproduce docs/eval/results/2026-10-25-baselines-r2-fast.txt and docs/eval/results/2026-10-25-omniscient-r3-fast.txt; no license, publish = false",
+   "result": "M2-09: PASS REPORT.md current with 120 rows for 120 result files, every claim-format field present; README.md has the three decided lines, its sections, and 35 numbers found in REPORT.md; readme-fast: PASS 8 rows reproduce docs/eval/results/2026-10-25-baselines-r2-fast.txt docs/eval/results/2026-10-25-omniscient-r3-fast.txt; license MIT OR Apache-2.0 in every crate, publish = false",
    "log": null
   }
  },

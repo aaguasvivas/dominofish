@@ -172,7 +172,7 @@ Questions sent to the owner on 2026-10-25 (answers go here word for word, dated)
 - Q5 (answered; added 2026-10-25 during M2). May a local git pre-commit hook (.git/hooks/pre-commit, not versioned) run scripts/check.sh before each commit? Two commits this session failed check.sh (31443cd, 2c11b62) because the commit was not gated on it.
 - Q6 (answered; added 2026-10-25 at the M2 exit). The M2 review found that T1's code seeds differ from T1's text (7,000,000 + 1,000,000 c + 100,000 h + k, against 7,000,000 + k), and its fixes changed one input of each pre-registered test: T1's configuration (b) now uses the fixed accompanied bot, and T2 now needs an engine seed base (5,000,000,081). The amendments are in the T1 and T2 entries, committed before the reruns. Do you accept the amended entries, or do you want new tests stated instead?
 - Q7 (answered; added 2026-10-26 at the start of M4). The repository is on GitHub (private). May I push main after each commit, or only when you ask? My recommendation: push after each commit that passes check.sh, so the remote stays a current backup.
-- Q8 (added 2026-10-26 after R5 and R6). M2-09's check requires an SPRT outcome in every REPORT.md row, but R5 (the worlds curve) and R6 (the omniscient gap) were registered as fixed 500-pair runs with no SPRT, so their 16 rows show - and M2-09 now fails. Either (a) M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary, every other field still required; or (b) R5 and R6 are amended to report an SPRT, H0 0 and H1 4 in tracking mode, replayed from their committed pair lines (the play does not change; the test is added after seeing the results). Both weaken a check or change registered runs, so both need your yes. My recommendation: (a), since it reports the runs as registered and adds no test after the fact.
+- Q8 (answered; added 2026-10-26 after R5 and R6). M2-09's check requires an SPRT outcome in every REPORT.md row, but R5 (the worlds curve) and R6 (the omniscient gap) were registered as fixed 500-pair runs with no SPRT, so their 16 rows show - and M2-09 now fails. Either (a) M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary, every other field still required; or (b) R5 and R6 are amended to report an SPRT, H0 0 and H1 4 in tracking mode, replayed from their committed pair lines (the play does not change; the test is added after seeing the results). Both weaken a check or change registered runs, so both need your yes. My recommendation: (a), since it reports the runs as registered and adds no test after the fact.
 
 Answers to Q1 to Q6, word for word.
 
@@ -191,4 +191,10 @@ Answer to Q7, 2026-10-26, from the owner in this session, word for word:
 > Yes lets push
 
 Applied 2026-10-26: main is pushed to the private github.com/aaguasvivas/dominofish after each commit that passes check.sh (the pre-commit hook). Force-pushing and rewriting history stay forbidden (BUILD.md hard constraint 12).
+
+Answer to Q8, 2026-10-26, from the owner in this session, word for word:
+
+> Q8: (a). M2-09 accepts - in the SPRT column only for a row whose result file has no SPRT summary; every other field stays required.
+
+Applied 2026-10-26: scripts/verify/M2-09.sh lists the result files whose `# summary` line has no SPRT and accepts exactly - in the SPRT column for their rows; every other row still needs its SPRT bounds and outcome, and every row its other claim-format fields.
 
