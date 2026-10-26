@@ -8,7 +8,7 @@ cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 mkdir -p runs
 log=runs/M2-02.log
-RUST_TEST_THREADS=4 cargo test -p dominofish-core --test formats -- --nocapture > "$log" 2>&1
+RUST_TEST_THREADS=4 cargo test -p dominofish-core --test formats -- --show-output > "$log" 2>&1
 code=$?
 fail=0
 [ "$code" -eq 0 ] || { echo "ERROR format tests failed (details in $log)"; fail=1; }

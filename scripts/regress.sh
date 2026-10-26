@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # Runs the fast command of every passing feature in docs/features.json that no
-# later entry supersedes. Prints one summary line with the total wall time;
+# later entry supersedes, except two kinds moved out on 2026-10-26, when the
+# run reached 1,419 s against its 10-minute target (BUILD.md, check.sh and
+# regress.sh): the milestone exits (M<k>-99), whose fast commands rerun
+# their milestone's fast commands a second time and run at each milestone
+# exit, and M0-02, whose fast command is scripts/check.sh, run before
+# regress (CONTINUE.md) and by the pre-commit hook on every commit. Prints
+# one summary line with the total wall time;
 # details go to runs/regress.log. --list prints the commands without running
 # them. Exit 0 only when every fast command exits 0 and ends with its
 # "<id>: PASS" line (bash 3.2 can exit 0 after an error).
@@ -15,7 +21,8 @@ import json
 features = json.load(open("docs/features.json"))
 superseded = {f["supersedes"] for f in features if f.get("supersedes")}
 for f in features:
-    if f["passes"] and f["id"] not in superseded:
+    moved = f["id"].endswith("-99") or f["id"] == "M0-02"
+    if f["passes"] and f["id"] not in superseded and not moved:
         print(f["id"] + "\t" + f["fast"])
 EOF
 ) || { echo "ERROR regress: cannot read docs/features.json"; exit 1; }

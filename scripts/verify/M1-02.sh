@@ -10,7 +10,7 @@ cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 mkdir -p runs
 log=runs/M1-02.log
-if ! RUST_TEST_THREADS=4 cargo test -p dominofish-core -- --nocapture --test-threads=4 > "$log" 2>&1; then
+if ! RUST_TEST_THREADS=4 cargo test -p dominofish-core -- --show-output --test-threads=4 > "$log" 2>&1; then
   grep -E 'panicked|FAILED|error' "$log" | head -5
   echo "M1-02: FAIL (details in $log)"
   exit 1

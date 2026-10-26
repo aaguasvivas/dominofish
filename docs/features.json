@@ -823,7 +823,7 @@
   "passes": true,
   "evidence": {
    "date": "2026-10-26",
-   "result": "M4-11: PASS README.md shows R4, R5, and R6 for PIMC with 22 numbers found in REPORT.md; readme-fast: PASS 20 rows reproduce docs/eval/results/2026-10-26-pimc-r4-fast.txt docs/eval/results/2026-10-26-pimc-curve-r5-fast.txt docs/eval/results/2026-10-26-pimc-gap-r6-fast.txt; REPORT.md current and checked by check.sh",
+   "result": "M4-11: PASS README.md shows R4, R5, and R6 for PIMC with their settings, command, and files, and 20 rows equal to their REPORT.md rows; readme-fast: PASS 20 rows reproduce docs/eval/results/2026-10-26-pimc-r4-fast.txt docs/eval/results/2026-10-26-pimc-curve-r5-fast.txt docs/eval/results/2026-10-26-pimc-gap-r6-fast.txt; REPORT.md current and checked by check.sh",
    "log": null
   }
  }

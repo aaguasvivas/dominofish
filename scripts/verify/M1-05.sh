@@ -18,7 +18,7 @@ tools/capi-oracle/build.sh > runs/M1-05.build.log 2>&1 || { cat runs/M1-05.build
 "$node" tools/capi-oracle/edges.mjs runs/edges-regen.txt > runs/M1-05.edges.log 2>&1 || err "edges.mjs failed (runs/M1-05.edges.log)"
 cmp -s fixtures/edges.txt runs/edges-regen.txt || err "fixtures/edges.txt differs from a fresh edges.mjs run"
 
-RUST_TEST_THREADS=4 cargo test -p dominofish-core --test edges -- --nocapture --test-threads=4 > runs/M1-05.test.log 2>&1
+RUST_TEST_THREADS=4 cargo test -p dominofish-core --test edges -- --show-output --test-threads=4 > runs/M1-05.test.log 2>&1
 code=$?
 summary=$(grep -o 'edges: scenarios .*' runs/M1-05.test.log)
 [ "$code" -eq 0 ] || err "cargo test --test edges failed (runs/M1-05.test.log)"

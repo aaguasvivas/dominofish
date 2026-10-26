@@ -11,7 +11,7 @@ cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 mkdir -p runs
 log=runs/M1-08.log
-RUST_TEST_THREADS=4 cargo test -p dominofish-core --lib properties -- --nocapture --test-threads=4 > "$log" 2>&1
+RUST_TEST_THREADS=4 cargo test -p dominofish-core --lib properties -- --show-output --test-threads=4 > "$log" 2>&1
 code=$?
 fail=0
 err() { echo "ERROR $*"; fail=1; }

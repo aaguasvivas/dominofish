@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 mkdir -p runs
 log=runs/M2-05.log
-RUST_TEST_THREADS=4 cargo test -p dominofish-core --test never_peeks -- --nocapture > "$log" 2>&1
+RUST_TEST_THREADS=4 cargo test -p dominofish-core --test never_peeks -- --show-output > "$log" 2>&1
 code=$?
 summary=$(grep -o 'never-peeks: .*' "$log")
 if [ "$code" -eq 0 ] && grep -q "test every_bot_never_peeks ... ok" "$log" && grep -qxF "## InfoSet text" docs/FORMATS.md; then

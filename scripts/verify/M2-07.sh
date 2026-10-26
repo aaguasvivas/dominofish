@@ -14,7 +14,7 @@ mkdir -p runs/M2-07
 fail=0
 err() { echo "ERROR $*"; fail=1; }
 log=runs/M2-07/tests.log
-cargo test -p dominofish --bin dominofish stats -- --nocapture > "$log" 2>&1 || err "stats tests failed ($log)"
+cargo test -p dominofish --bin dominofish stats -- --show-output > "$log" 2>&1 || err "stats tests failed ($log)"
 for t in t1_sprt_error_rates_match_alpha_and_beta summary_and_interval_match_the_formulas sprt_bounds_and_simple_decisions; do
   grep -q "test stats::tests::$t ... ok" "$log" || err "test $t did not pass"
 done

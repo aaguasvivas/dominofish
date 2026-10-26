@@ -10,7 +10,7 @@ cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 mkdir -p runs
 log=runs/M4-04.log
-RUST_TEST_THREADS=4 cargo test -p dominofish-core --test never_peeks pimc_never_peeks -- --nocapture > "$log" 2>&1
+RUST_TEST_THREADS=4 cargo test -p dominofish-core --test never_peeks pimc_never_peeks -- --show-output > "$log" 2>&1
 code=$?
 summary=$(grep -o 'never-peeks pimc: .*' "$log")
 if [ "$code" -eq 0 ] && grep -q "test pimc_never_peeks ... ok" "$log" && [ -n "$summary" ]; then
