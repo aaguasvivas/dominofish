@@ -1,12 +1,15 @@
 //! Solver commands (M3): `dominofish bench` solves the committed position
 //! set (fixtures/bench.txt) and prints "Bench: <nodes>"; `dominofish
 //! solve-stats` measures solve time and nodes by tiles left; `dominofish
-//! bench-positions` writes a position set.
+//! bench-positions` writes a position set; `dominofish pimc-stats` (M4)
+//! measures PIMC's time per move.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::time::Instant;
 
+use dominofish_core::infoset::InfoSet;
+use dominofish_core::pimc::{self, Limits};
 use dominofish_core::position;
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, Mode, MoveList, Phase, State};
@@ -227,6 +230,87 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
         starts.0,
         starts.1,
         100.0 * starts.1 as f64 / starts.0.max(1) as f64,
+        start.elapsed().as_secs_f64()
+    );
+    out
+}
+
+/// PIMC's time per move (M4-07): `analyze` at every decision of the seat on
+/// turn with more than one legal move (a forced move is played without
+/// search) in the selfplay games of seeds `seed` to `seed + games - 1`, by
+/// tiles left.
+pub fn pimc_stats(mode: Mode, games: u64, seed: u64, limits: &Limits) -> String {
+    // Per tiles left: (nanoseconds, nodes, capped solves).
+    let mut by_left: BTreeMap<u32, Vec<(u64, u64, u32)>> = BTreeMap::new();
+    let (mut forced, mut inconsistent, mut fallback) = (0u64, 0u64, 0u64);
+    let mut legal = MoveList::new();
+    let start = Instant::now();
+    for g in 0..games {
+        let (_, record) = crate::selfplay::run(mode, seed + g, 100);
+        let mut rng = Rng::new(derive(seed + g, 7));
+        for (r, round) in record.rounds.iter().enumerate() {
+            let (mut state, _) = record.round_start(r).expect("a selfplay record replays");
+            for ply in 0..round.moves.len() {
+                state.legal_moves(&mut legal);
+                if legal.len() == 1 {
+                    forced += 1;
+                } else {
+                    let info = InfoSet::new(&record, r, ply, state.turn).expect("a decision");
+                    let t = Instant::now();
+                    let a = pimc::analyze(&info, limits, rng.next_u64());
+                    let ns = t.elapsed().as_nanos() as u64;
+                    by_left
+                        .entry(tiles_left(&state))
+                        .or_default()
+                        .push((ns, a.nodes, a.capped));
+                    inconsistent += u64::from(a.inconsistent);
+                    fallback += u64::from(a.fallback);
+                }
+                state.play(round.moves[ply]);
+            }
+        }
+    }
+    let mut out = format!(
+        "DominoFish pimc-stats   mode {}   games {games} (selfplay seeds {seed} to {})   worlds {}   node cap {}   table {} MB   one thread\n\n",
+        mode.name(),
+        seed + games - 1,
+        limits.worlds,
+        thousands(limits.nodes),
+        (16usize << limits.table_bits) >> 20
+    );
+    out.push_str("| Tiles left | Decisions | Time ms median | p90 | max | Nodes median | p90 | max | Capped solves |\n|---|---|---|---|---|---|---|---|---|\n");
+    let ms = |x: u64| format!("{:.1}", x as f64 / 1e6);
+    let (mut all_ns, mut capped_all) = (Vec::new(), 0u64);
+    for (left, v) in &by_left {
+        let mut ns: Vec<u64> = v.iter().map(|x| x.0).collect();
+        let mut nodes: Vec<u64> = v.iter().map(|x| x.1).collect();
+        ns.sort_unstable();
+        nodes.sort_unstable();
+        let capped: u64 = v.iter().map(|x| u64::from(x.2)).sum();
+        capped_all += capped;
+        all_ns.extend_from_slice(&ns);
+        let _ = writeln!(
+            out,
+            "| {left} | {} | {} | {} | {} | {} | {} | {} | {capped} |",
+            v.len(),
+            ms(quantile(&ns, 0.5)),
+            ms(quantile(&ns, 0.9)),
+            ms(*ns.last().unwrap()),
+            quantile(&nodes, 0.5),
+            quantile(&nodes, 0.9),
+            nodes.last().unwrap()
+        );
+    }
+    all_ns.sort_unstable();
+    let _ = write!(
+        out,
+        "\npimc-stats: mode {} worlds {} decisions {} (forced moves skipped {forced}); time ms median {} p90 {} max {}; capped solves {capped_all}; inconsistent {inconsistent}; fallback {fallback}; wall {:.1} s\n",
+        mode.name(),
+        limits.worlds,
+        all_ns.len(),
+        ms(quantile(&all_ns, 0.5)),
+        ms(quantile(&all_ns, 0.9)),
+        ms(*all_ns.last().unwrap_or(&0)),
         start.elapsed().as_secs_f64()
     );
     out

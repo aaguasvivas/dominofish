@@ -120,6 +120,33 @@ fn run() -> Result<(String, bool), Failure> {
             }
             Ok((log, true))
         }
+        "pimc-stats" => {
+            let (mut mode, mut games, mut seed, mut worlds) = (None, None, None, None);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::PIMC_TABLE_BITS);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("worlds") => worlds = Some(parse_worlds(&value(&mut parser)?)?),
+                    Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    _ => return Err(arg.unexpected().to_string().into()),
+                }
+            }
+            let mode = mode.ok_or("--mode is required")?;
+            let games = games.ok_or("--games is required")?;
+            if games == 0 {
+                return Err("--games must be at least 1".into());
+            }
+            let seed = seed.ok_or("--seed is required")?;
+            let limits = dominofish_core::pimc::Limits {
+                worlds: worlds.ok_or("--worlds is required")?,
+                nodes,
+                table_bits: bits,
+            };
+            Ok((solve::pimc_stats(mode, games, seed, &limits), true))
+        }
         "world-stats" => {
             let (mut mode, mut games, mut seed) = (None, None, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {

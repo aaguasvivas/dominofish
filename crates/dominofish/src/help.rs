@@ -106,6 +106,20 @@ pub const COMMANDS: &[Command] = &[
   --table-bits B      Table of 2^B entries of 16 bytes (default 20, at most 24)",
     },
     Command {
+        name: "pimc-stats",
+        group: "Measure",
+        summary: "PIMC time per move and nodes by tiles left",
+        usage: "dominofish pimc-stats --mode 1v1|2v2 --games N --seed N --worlds N
+           [--nodes N] [--table-bits B]",
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --games N           Random games (the selfplay games of seeds N to N+games-1);
+                      every decision with more than one legal move is timed
+  --seed N            First selfplay seed
+  --worlds N          Worlds per move, 1 to 4096
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries (default 16, at most 24)",
+    },
+    Command {
         name: "world-stats",
         group: "Measure",
         summary: "Exact world counts at decisions of random games, by board",
