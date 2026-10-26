@@ -32,9 +32,16 @@ pub fn run(bot: Bot, salt: Option<u64>) -> Result<(), String> {
             return Err(format!("unreadable line: {line}"));
         };
         match msg {
-            ToEngine::Hello { version } if version == VERSION => {
-                reply(&mut out, FromEngine::Ready { version })?
-            }
+            // A bot has no budgets or tables and runs on one thread.
+            ToEngine::Hello { version } if version == VERSION => reply(
+                &mut out,
+                FromEngine::Ready {
+                    version,
+                    budgets: "-".into(),
+                    threads: 1,
+                    tables: "-".into(),
+                },
+            )?,
             ToEngine::Hello { version } => {
                 return Err(format!("protocol version {version} not supported"));
             }

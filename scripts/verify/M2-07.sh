@@ -21,10 +21,10 @@ done
 t1=$(grep -o 'sprt t1: .*' "$log")
 bin=$(scripts/build-bin.sh HEAD | tail -1)
 [ -x "$bin" ] || { echo "ERROR build failed: $bin"; echo "M2-07: FAIL"; exit 1; }
-out=$("$bin" match --mode 2v2 --unit round --target 100 --pairs 500 --seed 8000 --sprt 0,4 \
+out=$("$bin" match --mode 2v2 --unit round --target 100 --pairs 500 --seed 8000 --engine-seed 5000000070 --sprt 0,4 \
   --a "$bin engine --bot heaviest" --b "$bin engine --bot heaviest" --out runs/M2-07/null-sprt.txt)
 case "$out" in *"H0 after 16 pairs"*"match: PASS"*) ;; *) err "null SPRT: $out" ;; esac
-out=$("$bin" match --mode 1v1 --unit game --target 100 --pairs 10 --seed 8100 \
+out=$("$bin" match --mode 1v1 --unit game --target 100 --pairs 10 --seed 8100 --engine-seed 5000000071 \
   --a "$bin engine --bot rule" --b "$bin engine --bot rule" --out runs/M2-07/game-ci.txt)
 case "$out" in *"points per round"*"95% CI"*"game-win rate of A"*"95% CI"*"match: PASS"*) ;; *) err "game CIs: $out" ;; esac
 grep -q '^# summary points per round' runs/M2-07/game-ci.txt || err "no summary line in the results file"

@@ -23,7 +23,7 @@ for bot in random heaviest accompanied rule; do
     for unit in round game; do
       pairs=$pr; [ "$unit" = game ] && pairs=$pg
       out="runs/M2-08/null-$bot-$mode-$unit.txt"
-      "$bin" match --mode "$mode" --unit "$unit" --target 100 --pairs "$pairs" --seed 9500000 \
+      "$bin" match --mode "$mode" --unit "$unit" --target 100 --pairs "$pairs" --seed 9500000 --engine-seed 5000000080 \
         --a "$bin engine --bot $bot" --b "$bin engine --bot $bot" --out "$out" > /dev/null || err "$bot $mode $unit: match failed"
       nonzero=$(awk '$1 == "pair" && $(NF-2) != 0' "$out" | wc -l | tr -d ' ')
       [ "$nonzero" -eq 0 ] || err "$bot $mode $unit: $nonzero pairs with a nonzero margin ($out)"
@@ -36,7 +36,7 @@ for mode in 1v1 2v2; do
   for k in $(seq 0 $((runs - 1))); do
     kk=$k; [ "$mode" = 2v2 ] && kk=$((k + 100))
     out="runs/M2-08/t2-$mode-$k.txt"
-    line=$("$bin" match --mode "$mode" --unit round --target 100 --pairs 2000 --seed $((9000000 + 10000 * kk)) --sprt 0,10 \
+    line=$("$bin" match --mode "$mode" --unit round --target 100 --pairs 2000 --seed $((9000000 + 10000 * kk)) --engine-seed 5000000081 --sprt 0,10 \
       --a "$bin engine --bot random --salt $((2 * kk + 1))" --b "$bin engine --bot random --salt $((2 * kk + 2))" --out "$out")
     case "$line" in *"match: PASS"*) ;; *) err "T2 run $mode $k: $(printf '%s' "$line" | tail -1)" ;; esac
     case "$line" in

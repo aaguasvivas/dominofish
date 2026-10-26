@@ -3,7 +3,7 @@
 # handshake and then misbehaves.
 while IFS= read -r line; do
   case "$line" in
-    "dominofish 1") echo "dominofish 1 ready" ;;
+    "dominofish 1") echo "dominofish 1 ready budgets=- threads=1 tables=-" ;;
     header*) echo "header something else" ;;
     go) echo "move pass" ;;
     quit) exit 0 ;;

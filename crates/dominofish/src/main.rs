@@ -18,7 +18,7 @@ const USAGE: &str = "usage: dominofish selfplay --mode 1v1|2v2 --seed N [--targe
        dominofish capi-fuzz --mode 1v1|2v2 --rounds N --seed N
        dominofish playout-bench --mode 1v1|2v2 --rounds N --seed N
        dominofish engine --bot random|heaviest|accompanied|rule [--salt N]
-       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --a CMD --b CMD --out FILE [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
+       dominofish match --mode 1v1|2v2 --unit round|game --target 100|200 --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]]
        dominofish report [--results DIR] [--out FILE] [--check]";
 
 fn main() -> ExitCode {
@@ -111,6 +111,7 @@ fn run() -> Result<(String, bool), String> {
             let (mut mode, mut unit, mut target, mut pairs, mut seed) =
                 (None, None, None, None, None);
             let (mut a, mut b, mut out, mut timeout_ms) = (None, None, None, 10_000u64);
+            let mut engine_seed = None;
             let mut sprt: Option<stats::Sprt> = None;
             let mut track = false;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
@@ -126,6 +127,7 @@ fn run() -> Result<(String, bool), String> {
                     Long("target") => target = Some(parse_target(&value(&mut parser)?)?),
                     Long("pairs") => pairs = Some(parse_num(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("engine-seed") => engine_seed = Some(parse_num(&value(&mut parser)?)?),
                     Long("a") => a = Some(harness::Side::new(&value(&mut parser)?)?),
                     Long("b") => b = Some(harness::Side::new(&value(&mut parser)?)?),
                     Long("out") => out = Some(value(&mut parser)?),
@@ -156,6 +158,7 @@ fn run() -> Result<(String, bool), String> {
                 a: a.ok_or("--a is required")?,
                 b: b.ok_or("--b is required")?,
                 timeout: std::time::Duration::from_millis(timeout_ms),
+                engine_seed: engine_seed.ok_or("--engine-seed is required")?,
             };
             let out = out.ok_or("--out is required")?;
             // The SPRT runs on each pair's margin and stops the match at a
@@ -381,7 +384,13 @@ fn write_match(
     sprt: Option<&stats::Sprt>,
     out: &str,
 ) -> Result<(String, bool), String> {
-    let mut text = format!("# header {}\n", report.header);
+    let mut text = format!(
+        "# header {}\n# seeds deals={}..{} engines={}\n",
+        report.header,
+        spec.seed,
+        spec.seed + spec.pairs.saturating_sub(1),
+        spec.engine_seed
+    );
     for p in &report.pairs {
         let _ = writeln!(
             text,

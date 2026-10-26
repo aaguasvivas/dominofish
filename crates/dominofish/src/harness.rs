@@ -3,15 +3,17 @@
 //! share nothing. The unit is a duplicate pair: one deal (in 1v1 with its
 //! boneyard order) played twice with the sides swapping seats; full games
 //! share the per-round deal seeds. Each seat's engine gets the seed
-//! derive(deal seed, 100 + seat), keyed by deal and seat. Any illegal move,
-//! crash, timeout, protocol error, or wrong header echo stops the match and
-//! voids it (hard constraint 6).
+//! derive(derive(engine seed, pair), 100 + seat), keyed by pair and seat
+//! from a base apart from the deal seeds, and the header sent to engines
+//! holds no deal seed, so no engine message is a function of a deal. Any
+//! illegal move, crash, timeout, protocol error, line out of turn, or wrong
+//! header echo stops the match and voids it (hard constraint 6).
 
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dominofish_core::infoset::{Action, InfoSet};
 use dominofish_core::protocol::{FromEngine, ToEngine, VERSION};
@@ -120,10 +122,13 @@ impl Engine {
             .map_err(|e| (Fault::Crash, format!("{}: write failed: {e}", self.name)))
     }
 
-    /// The next reply that is not an info line.
+    /// The next reply that is not an info line, within one deadline for the
+    /// whole reply: info lines do not extend it.
     fn recv(&mut self, timeout: Duration) -> Result<FromEngine, (Fault, String)> {
+        let deadline = Instant::now() + timeout;
         loop {
-            let line = match self.lines.recv_timeout(timeout) {
+            let left = deadline.saturating_duration_since(Instant::now());
+            let line = match self.lines.recv_timeout(left) {
                 Ok(l) => l,
                 Err(RecvTimeoutError::Timeout) => {
                     return Err((
@@ -146,6 +151,20 @@ impl Engine {
                 }
             }
         }
+    }
+
+    /// Fails on any line other than info that the engine sent unasked (a
+    /// reply out of turn), so a stray line can never pass for a later move.
+    fn expect_quiet(&mut self) -> Result<(), (Fault, String)> {
+        while let Ok(line) = self.lines.try_recv() {
+            if !matches!(FromEngine::parse(&line), Some(FromEngine::Info(_))) {
+                return Err((
+                    Fault::Protocol,
+                    format!("{}: sent a line out of turn: {line}", self.name),
+                ));
+            }
+        }
+        Ok(())
     }
 
     fn stop(mut self) {
@@ -171,6 +190,10 @@ pub struct Spec {
     pub a: Side,
     pub b: Side,
     pub timeout: Duration,
+    /// The base of the engines' seeds, apart from the deal seeds: seat s of
+    /// pair i gets derive(derive(engine_seed, i), 100 + s), keyed by pair
+    /// and seat, so no engine message is a function of a deal.
+    pub engine_seed: u64,
 }
 
 /// One duplicate pair: the final scores of each game as [side A, side B],
@@ -210,21 +233,35 @@ pub struct Report {
     pub fault: Option<(Fault, String)>,
 }
 
+/// An engine's own settings, from its ready line.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Settings {
+    budgets: String,
+    threads: u32,
+    tables: String,
+}
+
 impl Spec {
-    /// The match header each engine must echo before the first deal.
-    pub fn header(&self) -> String {
-        let side = |name: &str, s: &Side| {
+    /// The match header each engine must echo before the first deal: each
+    /// side's command, commit, Bench, binary hash, and the settings its
+    /// engines reported; then mode, unit, target, and pairs. It holds no
+    /// seed: the deal seeds go only to the results file.
+    fn header(&self, settings: &[Settings; 2]) -> String {
+        let side = |name: &str, s: &Side, set: &Settings| {
             format!(
-                "{name}.cmd={} {name}.commit={} {name}.bench=- {name}.hash={:016x}",
+                "{name}.cmd={} {name}.commit={} {name}.bench=- {name}.hash={:016x} {name}.budgets={} {name}.threads={} {name}.tables={}",
                 s.command.join("+"),
                 s.commit,
-                s.hash
+                s.hash,
+                set.budgets,
+                set.threads,
+                set.tables
             )
         };
         format!(
-            "{} {} mode={} unit={} target={} pairs={} seeds={}..{} budgets=- threads=1 tables=-",
-            side("a", &self.a),
-            side("b", &self.b),
+            "{} {} mode={} unit={} target={} pairs={}",
+            side("a", &self.a, &settings[0]),
+            side("b", &self.b, &settings[1]),
             if self.mode == Mode::OneVsOne {
                 "1v1"
             } else {
@@ -236,9 +273,7 @@ impl Spec {
                 "game"
             },
             self.target,
-            self.pairs,
-            self.seed,
-            self.seed + self.pairs.saturating_sub(1)
+            self.pairs
         )
     }
 }
@@ -246,9 +281,8 @@ impl Spec {
 /// Plays the match; stops at the first fault, or after a pair when `stop`
 /// says so (an SPRT decision).
 pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
-    let header = spec.header();
     let mut report = Report {
-        header: header.clone(),
+        header: String::new(),
         pairs: Vec::new(),
         moves: 0,
         fault: None,
@@ -267,7 +301,7 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
             }
         }
     }
-    let result = handshake(&mut engines, &header, spec.timeout).and_then(|_| {
+    let result = handshake(spec, &mut engines, per_side, &mut report.header).and_then(|_| {
         for i in 0..spec.pairs {
             let deal_seed = spec.seed + i;
             let mut scores = [[0u16; 2]; 2];
@@ -281,8 +315,14 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
                         if a_side { k } else { per_side + k }
                     })
                     .collect();
-                let (final_scores, played) =
-                    play_game(spec, &mut engines, &engine_at, deal_seed, &mut report.moves)?;
+                let (final_scores, played) = play_game(
+                    spec,
+                    &mut engines,
+                    &engine_at,
+                    i,
+                    deal_seed,
+                    &mut report.moves,
+                )?;
                 scores[g] = [final_scores[g], final_scores[1 - g]];
                 rounds[g] = played;
             }
@@ -307,15 +347,28 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
     report
 }
 
+/// Version and settings from every engine, then the header, which each
+/// engine must echo. The engines of one side must report the same settings.
 fn handshake(
+    spec: &Spec,
     engines: &mut [Engine],
-    header: &str,
-    timeout: Duration,
+    per_side: usize,
+    header: &mut String,
 ) -> Result<(), (Fault, String)> {
+    let mut reported: Vec<Settings> = Vec::new();
     for e in engines.iter_mut() {
         e.send(&ToEngine::Hello { version: VERSION }.to_line(Mode::TwoVsTwo))?;
-        match e.recv(timeout)? {
-            FromEngine::Ready { version } if version == VERSION => {}
+        match e.recv(spec.timeout)? {
+            FromEngine::Ready {
+                version,
+                budgets,
+                threads,
+                tables,
+            } if version == VERSION => reported.push(Settings {
+                budgets,
+                threads,
+                tables,
+            }),
             other => {
                 return Err((
                     Fault::Protocol,
@@ -323,9 +376,23 @@ fn handshake(
                 ));
             }
         }
-        e.send(&ToEngine::Header(header.into()).to_line(Mode::TwoVsTwo))?;
-        match e.recv(timeout)? {
-            FromEngine::Header(h) if h == header => {}
+    }
+    for (k, set) in reported.iter().enumerate() {
+        if *set != reported[k / per_side * per_side] {
+            return Err((
+                Fault::Protocol,
+                format!(
+                    "{}: settings differ from its side's: {set:?}",
+                    engines[k].name
+                ),
+            ));
+        }
+    }
+    *header = spec.header(&[reported[0].clone(), reported[per_side].clone()]);
+    for e in engines.iter_mut() {
+        e.send(&ToEngine::Header(header.clone()).to_line(Mode::TwoVsTwo))?;
+        match e.recv(spec.timeout)? {
+            FromEngine::Header(h) if h == *header => {}
             other => {
                 return Err((
                     Fault::Header,
@@ -343,6 +410,7 @@ fn play_game(
     spec: &Spec,
     engines: &mut [Engine],
     engine_at: &[usize],
+    pair: u64,
     deal_seed: u64,
     moves: &mut u64,
 ) -> Result<([u16; 2], u32), (Fault, String)> {
@@ -353,7 +421,7 @@ fn play_game(
             mode,
             target: spec.target,
             seat,
-            seed: derive(deal_seed, 100 + u64::from(seat)),
+            seed: derive(derive(spec.engine_seed, pair), 100 + u64::from(seat)),
         };
         engines[engine_at[seat as usize]].send(&msg.to_line(mode))?;
     }
@@ -394,6 +462,7 @@ fn play_game(
             let e = engine_at[mover as usize];
             let ply = record.rounds[r].moves.len();
             let info = InfoSet::new(&record, r, ply, mover).expect("the record so far is valid");
+            engines[e].expect_quiet()?;
             engines[e].send(&ToEngine::InfoSet(Box::new(info)).to_line(mode))?;
             engines[e].send(&ToEngine::Go.to_line(mode))?;
             let mv = match engines[e].recv(spec.timeout)? {

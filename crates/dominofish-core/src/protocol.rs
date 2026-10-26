@@ -58,8 +58,15 @@ pub enum ToEngine {
 /// Engine to referee.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FromEngine {
-    /// `dominofish <version> ready`.
-    Ready { version: u32 },
+    /// `dominofish <version> ready budgets=<b> threads=<n> tables=<t>`: the
+    /// engine's own settings, which the referee puts in the match header
+    /// (- for none).
+    Ready {
+        version: u32,
+        budgets: String,
+        threads: u32,
+        tables: String,
+    },
     /// `header <text>`, echoing the referee's header.
     Header(String),
     /// `move play <a-b> <left|right>`, `move draw`, or `move pass`.
@@ -211,7 +218,14 @@ impl ToEngine {
 impl FromEngine {
     pub fn to_line(&self) -> String {
         match self {
-            FromEngine::Ready { version } => format!("dominofish {version} ready"),
+            FromEngine::Ready {
+                version,
+                budgets,
+                threads,
+                tables,
+            } => format!(
+                "dominofish {version} ready budgets={budgets} threads={threads} tables={tables}"
+            ),
             FromEngine::Header(text) => format!("header {text}"),
             FromEngine::Move(mv) => format!("move {}", move_text(*mv)),
             FromEngine::Info(text) => format!("info {text}"),
@@ -221,8 +235,11 @@ impl FromEngine {
     pub fn parse(line: &str) -> Option<FromEngine> {
         let words: Vec<&str> = line.split_whitespace().collect();
         Some(match words.as_slice() {
-            ["dominofish", v, "ready"] => FromEngine::Ready {
+            ["dominofish", v, "ready", b, n, t] => FromEngine::Ready {
                 version: v.parse().ok()?,
+                budgets: b.strip_prefix("budgets=")?.to_string(),
+                threads: n.strip_prefix("threads=")?.parse().ok()?,
+                tables: t.strip_prefix("tables=")?.to_string(),
             },
             ["header", ..] => FromEngine::Header(line.strip_prefix("header ")?.to_string()),
             ["move", rest @ ..] => FromEngine::Move(parse_move(rest)?),

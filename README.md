@@ -11,7 +11,7 @@ DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under
 ## What it does now
 
 - Plays Capi's rules as Capi's engine implements them: the automatic 6-6, draws in 1v1, pase corrido and pase de salida with their cap, capicua, and tranque with ties to the opener. [docs/RULES.md](docs/RULES.md) cites every rule to Capi's source.
-- Builds what one seat knows: its hand, the public moves, hand sizes, voids from passes, the 1v1 draw history, and round-1 deductions. It gives the exact count of hidden deals that agree with that knowledge.
+- Builds what one seat knows: its hand, the public moves, hand sizes, voids from passes, the 1v1 draw history, and round-1 deductions. It counts exactly the ways to place the unseen tiles that agree with that knowledge (one known limit, for the 1v1 opening without a double, is in docs/PLAN.md D11).
 - Includes four baseline bots: random, heaviest tile (bota gorda), most-accompanied tile (la mas acompanada), and a rule bot that reads pass voids.
 - Runs matches of duplicate pairs, one deal played twice with the sides swapping seats. Every seat runs as its own process and gets only its own information. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
 
@@ -55,7 +55,7 @@ target/release/dominofish report
 
 ## Testing
 
-- Capi parity. The Rust core replays 117,456 golden-trace moves from Capi's engine, 87 edge scenarios, and 200 perft queries, with 0 mismatches. A lockstep fuzzer compares legal moves and full states with Capi's after every move: 0 mismatches over 1,000,000 rounds per mode.
+- Capi parity. The Rust core replays 117,456 golden-trace moves from Capi's engine, 87 edge scenarios, and 200 perft queries, with 0 mismatches. A lockstep fuzzer compares the legal moves and a 32-bit digest of the full state with Capi's after every move: 0 mismatches over 1,000,000 rounds per mode.
 - Never-peeks. Rearranging tiles a seat cannot see, behind the same public record, leaves its information set byte-identical and every bot's move unchanged.
 - SPRT. On synthetic data its error rates match alpha and beta (0.05). Of 200 null runs between two copies of one bot, 12 accepted H1, where 10 is the expected count.
 - `scripts/check.sh` runs formatting, lint, all tests, the wasm32 build, the report check, and an em dash scan. `scripts/regress.sh` reruns the fast check of every passing feature.

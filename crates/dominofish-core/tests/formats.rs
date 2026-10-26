@@ -102,7 +102,12 @@ fn protocol_round_trips() {
         }
     }
     for msg in [
-        FromEngine::Ready { version: 1 },
+        FromEngine::Ready {
+            version: 1,
+            budgets: "-".into(),
+            threads: 1,
+            tables: "-".into(),
+        },
         FromEngine::Header("a=1 b=2".into()),
         FromEngine::Info("nodes 123".into()),
     ] {
