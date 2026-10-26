@@ -1,0 +1,33 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=1v1 unit=game target=100 pairs=300
+# seeds deals=2020900000..2020900299 engines=5000400009
+pair 0 seed 2020900000 game1 120-24 game2 142-72 rounds 6,12 margin 166 wins 2
+pair 1 seed 2020900001 game1 129-84 game2 185-21 rounds 10,5 margin 209 wins 2
+pair 2 seed 2020900002 game1 51-115 game2 116-0 rounds 7,4 margin 52 wins 1
+pair 3 seed 2020900003 game1 121-0 game2 117-29 rounds 6,7 margin 209 wins 2
+pair 4 seed 2020900004 game1 133-31 game2 128-36 rounds 7,5 margin 194 wins 2
+pair 5 seed 2020900005 game1 102-79 game2 108-0 rounds 7,4 margin 131 wins 2
+pair 6 seed 2020900006 game1 123-41 game2 120-0 rounds 8,4 margin 202 wins 2
+pair 7 seed 2020900007 game1 105-11 game2 96-177 rounds 5,7 margin 13 wins 1
+pair 8 seed 2020900008 game1 110-66 game2 107-0 rounds 10,4 margin 151 wins 2
+pair 9 seed 2020900009 game1 145-87 game2 100-90 rounds 9,9 margin 68 wins 2
+pair 10 seed 2020900010 game1 127-15 game2 129-62 rounds 4,6 margin 179 wins 2
+pair 11 seed 2020900011 game1 124-0 game2 117-49 rounds 2,5 margin 192 wins 2
+pair 12 seed 2020900012 game1 146-12 game2 123-12 rounds 5,4 margin 245 wins 2
+pair 13 seed 2020900013 game1 120-76 game2 113-0 rounds 5,2 margin 157 wins 2
+pair 14 seed 2020900014 game1 100-28 game2 119-14 rounds 6,5 margin 177 wins 2
+pair 15 seed 2020900015 game1 134-30 game2 130-41 rounds 6,13 margin 193 wins 2
+pair 16 seed 2020900016 game1 106-24 game2 21-114 rounds 8,3 margin -11 wins 1
+pair 17 seed 2020900017 game1 102-0 game2 136-87 rounds 2,10 margin 151 wins 2
+pair 18 seed 2020900018 game1 125-17 game2 189-28 rounds 5,4 margin 269 wins 2
+pair 19 seed 2020900019 game1 64-107 game2 117-72 rounds 9,6 margin 2 wins 1
+pair 20 seed 2020900020 game1 107-29 game2 149-0 rounds 5,4 margin 227 wins 2
+pair 21 seed 2020900021 game1 107-30 game2 134-21 rounds 8,8 margin 190 wins 2
+pair 22 seed 2020900022 game1 162-47 game2 102-3 rounds 5,4 margin 214 wins 2
+pair 23 seed 2020900023 game1 143-0 game2 122-0 rounds 4,4 margin 265 wins 2
+pair 24 seed 2020900024 game1 112-10 game2 127-57 rounds 4,5 margin 172 wins 2
+pair 25 seed 2020900025 game1 110-29 game2 101-0 rounds 6,3 margin 182 wins 2
+pair 26 seed 2020900026 game1 104-25 game2 103-0 rounds 8,6 margin 182 wins 2
+# summary points per round (A minus B) mean 15.322 sd 9.103 95% CI [11.720, 18.923] over 27 pairs; game-win rate of A 0.926 95% CI [0.824, 0.971]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 27 pairs, llr 3.064 in [-2.944, 2.944] after 27 pairs
+# capped a=48 b=0
+# time a=114.3,54922.0,3485 b=0.1,11.2,3494
+# run run=R4 row=9 command=runs/bin/ebaa5fd/dominofish+match+--mode+1v1+--unit+game+--target+100+--pairs+300+--seed+2020900000+--engine-seed+5000400009+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied"+--out+docs/eval/results/2026-10-26-pimc-r4/row-9-1v1-game-100-pimc-accompanied.txt wall_s=399.66 peak_rss_kb=18624 load=12.42 date=2026-10-26

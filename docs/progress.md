@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-08 (run R4)
+- Feature in progress: M4-09 (run R5), then M4-10 (run R6)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
@@ -138,4 +138,6 @@
 - The harness now writes `# time a=<mean>,<max>,<moves> b=...` (reply time from go to move, a record, not a budget), and the report shows side A's mean and slowest ms per move as a last column ("-" for earlier runs); PIMC sides are labeled "pimc (W worlds)". REPORT.md regenerated (the new column only).
 - R4, R5, and R6 pre-registered in docs/PLAN.md (scripts/run-pimc.sh); M4-05's verify now uses --worlds 0 as its malformed-request case, since --worlds has a default.
 - M4-07 passed (second full run; the first failed on the verify's own glob, which counted the two match result files as engine memory reports: 5 files for 3 engines). M4-07: PASS default 64 worlds per move by the D18 rule; two runs per mode with equal node counts: 2v2 1,116 decisions, p90 780.3 ms, max 6,461.3 ms, 0 capped, 0 inconsistent, 0 fallback; 1v1 1,268 decisions, p90 273.2 ms, max 8,849.3 ms, 27 capped solves, 0 inconsistent, 0 fallback; peak RSS of 3 PIMC engine processes 3.4 MB (target under 256 MB). The committed record, docs/eval/results/2026-10-26-pimc-stats.md, is the first full run (load 7.20 at its start): 2v2 p90 754.7 and 732.3 ms, 1v1 238.6 and 253.6 ms.
+- M4-08 passed: R4 as registered, commit ebaa5fd, 64 worlds, 13:23 to 14:27 (4 rows at once). M4-08: PASS PIMC accepts H1 against every baseline in 16 of 16 rows, 908 pairs, no fault. Against the rule bot: 1v1 rounds 4.94 [1.77, 8.12] points per round (H1 at 181 pairs); 1v1 games to 100 8.76 [6.36, 11.16], game-win rate 0.743 [0.667, 0.807] (H1 at 74); 2v2 rounds 8.98 [4.43, 13.54] (H1 at 129); 2v2 games 18.47 [13.80, 23.14], 0.771 [0.695, 0.833] (H1 at 70). Peak RSS of the match command 18.1 to 18.2 MB.
+- Finding: PIMC's slowest moves in R4 took 119.0 s (row 4, 1v1 rounds against the heaviest bot), 71.8 s (row 13), and 54.9 s (row 9), against the 120 s safety limit. Cause: in some 1v1 positions many of the 64 worlds x legal moves solves reach the 10,000,000-node cap (about 1.3 s each). R5 and R6 run as registered with the same limit; a timeout would void its row (then a question for the owner). Follow-up for M5 or later: bound PIMC's 1v1 time per move (a per-move node budget, or a lower per-solve cap in 1v1), measured by SPRT.
 

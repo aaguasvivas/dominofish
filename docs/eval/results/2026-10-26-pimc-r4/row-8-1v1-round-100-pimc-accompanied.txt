@@ -1,0 +1,60 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=1v1 unit=round target=100 pairs=1000
+# seeds deals=2020800000..2020800999 engines=5000400008
+pair 0 seed 2020800000 game1 38-0 game2 5-0 rounds 1,1 margin 43 wins 0
+pair 1 seed 2020800001 game1 1-0 game2 36-0 rounds 1,1 margin 37 wins 0
+pair 2 seed 2020800002 game1 0-14 game2 8-0 rounds 1,1 margin -6 wins 0
+pair 3 seed 2020800003 game1 23-0 game2 90-0 rounds 1,1 margin 113 wins 0
+pair 4 seed 2020800004 game1 11-0 game2 22-0 rounds 1,1 margin 33 wins 0
+pair 5 seed 2020800005 game1 0-10 game2 14-0 rounds 1,1 margin 4 wins 0
+pair 6 seed 2020800006 game1 0-31 game2 0-35 rounds 1,1 margin -66 wins 0
+pair 7 seed 2020800007 game1 0-80 game2 36-0 rounds 1,1 margin -44 wins 0
+pair 8 seed 2020800008 game1 29-0 game2 18-0 rounds 1,1 margin 47 wins 0
+pair 9 seed 2020800009 game1 46-0 game2 64-0 rounds 1,1 margin 110 wins 0
+pair 10 seed 2020800010 game1 51-0 game2 12-0 rounds 1,1 margin 63 wins 0
+pair 11 seed 2020800011 game1 6-0 game2 4-0 rounds 1,1 margin 10 wins 0
+pair 12 seed 2020800012 game1 11-0 game2 10-0 rounds 1,1 margin 21 wins 0
+pair 13 seed 2020800013 game1 0-2 game2 27-0 rounds 1,1 margin 25 wins 0
+pair 14 seed 2020800014 game1 59-0 game2 17-0 rounds 1,1 margin 76 wins 0
+pair 15 seed 2020800015 game1 0-14 game2 28-0 rounds 1,1 margin 14 wins 0
+pair 16 seed 2020800016 game1 25-0 game2 43-0 rounds 1,1 margin 68 wins 0
+pair 17 seed 2020800017 game1 1-0 game2 0-6 rounds 1,1 margin -5 wins 0
+pair 18 seed 2020800018 game1 31-0 game2 19-0 rounds 1,1 margin 50 wins 0
+pair 19 seed 2020800019 game1 12-0 game2 12-0 rounds 1,1 margin 24 wins 0
+pair 20 seed 2020800020 game1 0-26 game2 0-3 rounds 1,1 margin -29 wins 0
+pair 21 seed 2020800021 game1 0-10 game2 10-0 rounds 1,1 margin 0 wins 0
+pair 22 seed 2020800022 game1 57-0 game2 0-8 rounds 1,1 margin 49 wins 0
+pair 23 seed 2020800023 game1 8-0 game2 0-25 rounds 1,1 margin -17 wins 0
+pair 24 seed 2020800024 game1 17-0 game2 0-22 rounds 1,1 margin -5 wins 0
+pair 25 seed 2020800025 game1 15-0 game2 39-0 rounds 1,1 margin 54 wins 0
+pair 26 seed 2020800026 game1 0-29 game2 2-0 rounds 1,1 margin -27 wins 0
+pair 27 seed 2020800027 game1 0-79 game2 41-0 rounds 1,1 margin -38 wins 0
+pair 28 seed 2020800028 game1 30-0 game2 0-30 rounds 1,1 margin 0 wins 0
+pair 29 seed 2020800029 game1 0-20 game2 16-0 rounds 1,1 margin -4 wins 0
+pair 30 seed 2020800030 game1 91-0 game2 0-6 rounds 1,1 margin 85 wins 0
+pair 31 seed 2020800031 game1 0-6 game2 14-0 rounds 1,1 margin 8 wins 0
+pair 32 seed 2020800032 game1 0-23 game2 0-1 rounds 1,1 margin -24 wins 0
+pair 33 seed 2020800033 game1 2-0 game2 0-6 rounds 1,1 margin -4 wins 0
+pair 34 seed 2020800034 game1 16-0 game2 26-0 rounds 1,1 margin 42 wins 0
+pair 35 seed 2020800035 game1 14-0 game2 38-0 rounds 1,1 margin 52 wins 0
+pair 36 seed 2020800036 game1 0-7 game2 12-0 rounds 1,1 margin 5 wins 0
+pair 37 seed 2020800037 game1 25-0 game2 50-0 rounds 1,1 margin 75 wins 0
+pair 38 seed 2020800038 game1 14-0 game2 33-0 rounds 1,1 margin 47 wins 0
+pair 39 seed 2020800039 game1 28-0 game2 6-0 rounds 1,1 margin 34 wins 0
+pair 40 seed 2020800040 game1 12-0 game2 7-0 rounds 1,1 margin 19 wins 0
+pair 41 seed 2020800041 game1 47-0 game2 30-0 rounds 1,1 margin 77 wins 0
+pair 42 seed 2020800042 game1 0-7 game2 76-0 rounds 1,1 margin 69 wins 0
+pair 43 seed 2020800043 game1 0-24 game2 0-16 rounds 1,1 margin -40 wins 0
+pair 44 seed 2020800044 game1 12-0 game2 0-12 rounds 1,1 margin 0 wins 0
+pair 45 seed 2020800045 game1 15-0 game2 0-17 rounds 1,1 margin -2 wins 0
+pair 46 seed 2020800046 game1 0-4 game2 0-7 rounds 1,1 margin -11 wins 0
+pair 47 seed 2020800047 game1 23-0 game2 0-0 rounds 1,1 margin 23 wins 0
+pair 48 seed 2020800048 game1 48-0 game2 0-39 rounds 1,1 margin 9 wins 0
+pair 49 seed 2020800049 game1 49-0 game2 66-0 rounds 1,1 margin 115 wins 0
+pair 50 seed 2020800050 game1 9-0 game2 27-0 rounds 1,1 margin 36 wins 0
+pair 51 seed 2020800051 game1 0-15 game2 55-0 rounds 1,1 margin 40 wins 0
+pair 52 seed 2020800052 game1 29-0 game2 33-0 rounds 1,1 margin 62 wins 0
+pair 53 seed 2020800053 game1 33-0 game2 0-21 rounds 1,1 margin 12 wins 0
+# summary points per round (A minus B) mean 12.306 sd 20.301 95% CI [6.764, 17.847] over 54 pairs; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 54 pairs, llr 2.963 in [-2.944, 2.944] after 54 pairs
+# capped a=0 b=0
+# time a=66.2,16813.3,1053 b=0.1,4.5,1073
+# run run=R4 row=8 command=runs/bin/ebaa5fd/dominofish+match+--mode+1v1+--unit+round+--target+100+--pairs+1000+--seed+2020800000+--engine-seed+5000400008+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied"+--out+docs/eval/results/2026-10-26-pimc-r4/row-8-1v1-round-100-pimc-accompanied.txt wall_s=71.01 peak_rss_kb=18608 load=10.96 date=2026-10-26

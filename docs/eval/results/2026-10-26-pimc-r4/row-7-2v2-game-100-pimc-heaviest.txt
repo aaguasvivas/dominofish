@@ -1,0 +1,33 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+heaviest b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=game target=100 pairs=300
+# seeds deals=2020700000..2020700299 engines=5000400007
+pair 0 seed 2020700000 game1 149-64 game2 159-0 rounds 7,3 margin 244 wins 2
+pair 1 seed 2020700001 game1 139-0 game2 114-40 rounds 3,5 margin 213 wins 2
+pair 2 seed 2020700002 game1 134-0 game2 104-16 rounds 3,3 margin 222 wins 2
+pair 3 seed 2020700003 game1 105-0 game2 126-0 rounds 3,2 margin 231 wins 2
+pair 4 seed 2020700004 game1 141-25 game2 58-119 rounds 2,6 margin 55 wins 1
+pair 5 seed 2020700005 game1 113-57 game2 125-84 rounds 6,4 margin 97 wins 2
+pair 6 seed 2020700006 game1 60-185 game2 152-8 rounds 5,5 margin 19 wins 1
+pair 7 seed 2020700007 game1 137-84 game2 101-0 rounds 4,3 margin 154 wins 2
+pair 8 seed 2020700008 game1 126-25 game2 145-82 rounds 4,6 margin 164 wins 2
+pair 9 seed 2020700009 game1 154-0 game2 112-0 rounds 3,2 margin 266 wins 2
+pair 10 seed 2020700010 game1 101-36 game2 105-44 rounds 3,5 margin 126 wins 2
+pair 11 seed 2020700011 game1 104-0 game2 121-16 rounds 3,4 margin 209 wins 2
+pair 12 seed 2020700012 game1 25-170 game2 146-41 rounds 3,4 margin -40 wins 1
+pair 13 seed 2020700013 game1 102-37 game2 114-0 rounds 5,3 margin 179 wins 2
+pair 14 seed 2020700014 game1 168-0 game2 0-101 rounds 6,2 margin 67 wins 1
+pair 15 seed 2020700015 game1 131-0 game2 106-49 rounds 2,3 margin 188 wins 2
+pair 16 seed 2020700016 game1 145-0 game2 141-0 rounds 2,4 margin 286 wins 2
+pair 17 seed 2020700017 game1 116-28 game2 136-63 rounds 3,6 margin 161 wins 2
+pair 18 seed 2020700018 game1 110-58 game2 108-15 rounds 5,4 margin 145 wins 2
+pair 19 seed 2020700019 game1 127-0 game2 108-38 rounds 4,3 margin 197 wins 2
+pair 20 seed 2020700020 game1 107-50 game2 110-17 rounds 2,3 margin 150 wins 2
+pair 21 seed 2020700021 game1 115-18 game2 162-0 rounds 6,3 margin 259 wins 2
+pair 22 seed 2020700022 game1 165-0 game2 109-87 rounds 3,4 margin 187 wins 2
+pair 23 seed 2020700023 game1 106-23 game2 129-37 rounds 4,6 margin 175 wins 2
+pair 24 seed 2020700024 game1 117-10 game2 121-0 rounds 3,3 margin 228 wins 2
+pair 25 seed 2020700025 game1 117-30 game2 114-0 rounds 3,3 margin 201 wins 2
+pair 26 seed 2020700026 game1 117-0 game2 132-90 rounds 4,8 margin 159 wins 2
+# summary points per round (A minus B) mean 24.078 sd 14.106 95% CI [18.497, 29.658] over 27 pairs; game-win rate of A 0.926 95% CI [0.824, 0.971]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 27 pairs, llr 3.090 in [-2.944, 2.944] after 27 pairs
+# capped a=0 b=0
+# time a=478.5,35547.5,2682 b=0.2,21.1,2594
+# run run=R4 row=7 command=runs/bin/ebaa5fd/dominofish+match+--mode+2v2+--unit+game+--target+100+--pairs+300+--seed+2020700000+--engine-seed+5000400007+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+heaviest"+--out+docs/eval/results/2026-10-26-pimc-r4/row-7-2v2-game-100-pimc-heaviest.txt wall_s=1285.06 peak_rss_kb=18624 load=11.10 date=2026-10-26

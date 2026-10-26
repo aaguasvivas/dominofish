@@ -1,0 +1,22 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=round target=100 pairs=1000
+# seeds deals=2021000000..2021000999 engines=5000400010
+pair 0 seed 2021000000 game1 25-9 game2 59-0 rounds 1,1 margin 75 wins 0
+pair 1 seed 2021000001 game1 31-0 game2 17-0 rounds 1,1 margin 48 wins 0
+pair 2 seed 2021000002 game1 19-0 game2 42-0 rounds 1,1 margin 61 wins 0
+pair 3 seed 2021000003 game1 14-0 game2 43-0 rounds 1,1 margin 57 wins 0
+pair 4 seed 2021000004 game1 50-0 game2 36-0 rounds 1,1 margin 86 wins 0
+pair 5 seed 2021000005 game1 89-0 game2 0-66 rounds 1,1 margin 23 wins 0
+pair 6 seed 2021000006 game1 23-0 game2 0-22 rounds 1,1 margin 1 wins 0
+pair 7 seed 2021000007 game1 53-0 game2 25-52 rounds 1,1 margin 26 wins 0
+pair 8 seed 2021000008 game1 0-9 game2 31-0 rounds 1,1 margin 22 wins 0
+pair 9 seed 2021000009 game1 36-0 game2 18-0 rounds 1,1 margin 54 wins 0
+pair 10 seed 2021000010 game1 24-0 game2 0-33 rounds 1,1 margin -9 wins 0
+pair 11 seed 2021000011 game1 0-10 game2 44-0 rounds 1,1 margin 34 wins 0
+pair 12 seed 2021000012 game1 57-0 game2 0-22 rounds 1,1 margin 35 wins 0
+pair 13 seed 2021000013 game1 18-0 game2 30-0 rounds 1,1 margin 48 wins 0
+pair 14 seed 2021000014 game1 22-0 game2 52-0 rounds 1,1 margin 74 wins 0
+pair 15 seed 2021000015 game1 0-34 game2 86-0 rounds 1,1 margin 52 wins 0
+# summary points per round (A minus B) mean 21.469 sd 13.133 95% CI [14.471, 28.467] over 16 pairs; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 16 pairs, llr 3.797 in [-2.944, 2.944] after 16 pairs
+# capped a=0 b=0
+# time a=94.7,1753.4,409 b=0.2,7.7,404
+# run run=R4 row=10 command=runs/bin/ebaa5fd/dominofish+match+--mode+2v2+--unit+round+--target+100+--pairs+1000+--seed+2021000000+--engine-seed+5000400010+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied"+--out+docs/eval/results/2026-10-26-pimc-r4/row-10-2v2-round-100-pimc-accompanied.txt wall_s=39.70 peak_rss_kb=18624 load=9.09 date=2026-10-26

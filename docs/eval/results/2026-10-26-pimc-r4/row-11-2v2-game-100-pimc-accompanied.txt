@@ -1,0 +1,70 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=game target=100 pairs=300
+# seeds deals=2021100000..2021100299 engines=5000400011
+pair 0 seed 2021100000 game1 13-148 game2 149-36 rounds 5,5 margin -22 wins 1
+pair 1 seed 2021100001 game1 106-0 game2 113-63 rounds 5,4 margin 156 wins 2
+pair 2 seed 2021100002 game1 48-126 game2 151-22 rounds 3,3 margin 51 wins 1
+pair 3 seed 2021100003 game1 93-106 game2 102-49 rounds 6,3 margin 40 wins 1
+pair 4 seed 2021100004 game1 132-0 game2 110-43 rounds 2,5 margin 199 wins 2
+pair 5 seed 2021100005 game1 122-60 game2 82-106 rounds 6,5 margin 38 wins 1
+pair 6 seed 2021100006 game1 135-98 game2 104-84 rounds 3,3 margin 57 wins 2
+pair 7 seed 2021100007 game1 101-0 game2 143-0 rounds 3,3 margin 244 wins 2
+pair 8 seed 2021100008 game1 109-40 game2 119-25 rounds 4,3 margin 163 wins 2
+pair 9 seed 2021100009 game1 114-25 game2 151-0 rounds 3,2 margin 240 wins 2
+pair 10 seed 2021100010 game1 105-23 game2 32-107 rounds 3,3 margin 7 wins 1
+pair 11 seed 2021100011 game1 117-25 game2 105-25 rounds 3,2 margin 172 wins 2
+pair 12 seed 2021100012 game1 32-143 game2 116-0 rounds 5,5 margin 5 wins 1
+pair 13 seed 2021100013 game1 0-114 game2 126-0 rounds 2,2 margin 12 wins 1
+pair 14 seed 2021100014 game1 74-118 game2 115-0 rounds 3,2 margin 71 wins 1
+pair 15 seed 2021100015 game1 98-112 game2 171-21 rounds 5,5 margin 136 wins 1
+pair 16 seed 2021100016 game1 116-0 game2 118-0 rounds 2,2 margin 234 wins 2
+pair 17 seed 2021100017 game1 146-95 game2 76-125 rounds 5,5 margin 2 wins 1
+pair 18 seed 2021100018 game1 108-0 game2 76-142 rounds 3,6 margin 42 wins 1
+pair 19 seed 2021100019 game1 137-0 game2 117-55 rounds 2,5 margin 199 wins 2
+pair 20 seed 2021100020 game1 123-10 game2 128-0 rounds 5,2 margin 241 wins 2
+pair 21 seed 2021100021 game1 135-42 game2 111-0 rounds 4,3 margin 204 wins 2
+pair 22 seed 2021100022 game1 125-98 game2 107-97 rounds 6,6 margin 37 wins 2
+pair 23 seed 2021100023 game1 127-96 game2 113-0 rounds 9,2 margin 144 wins 2
+pair 24 seed 2021100024 game1 110-0 game2 111-0 rounds 3,1 margin 221 wins 2
+pair 25 seed 2021100025 game1 102-61 game2 130-84 rounds 3,5 margin 87 wins 2
+pair 26 seed 2021100026 game1 157-25 game2 120-15 rounds 3,3 margin 237 wins 2
+pair 27 seed 2021100027 game1 116-0 game2 125-42 rounds 4,4 margin 199 wins 2
+pair 28 seed 2021100028 game1 88-103 game2 74-103 rounds 6,4 margin -44 wins 0
+pair 29 seed 2021100029 game1 52-113 game2 15-111 rounds 5,3 margin -157 wins 0
+pair 30 seed 2021100030 game1 0-113 game2 162-0 rounds 2,2 margin 49 wins 1
+pair 31 seed 2021100031 game1 142-0 game2 101-88 rounds 3,4 margin 155 wins 2
+pair 32 seed 2021100032 game1 124-47 game2 148-0 rounds 4,3 margin 225 wins 2
+pair 33 seed 2021100033 game1 100-0 game2 143-33 rounds 3,3 margin 210 wins 2
+pair 34 seed 2021100034 game1 53-131 game2 130-25 rounds 4,2 margin 27 wins 1
+pair 35 seed 2021100035 game1 102-16 game2 113-44 rounds 3,5 margin 155 wins 2
+pair 36 seed 2021100036 game1 0-125 game2 113-11 rounds 2,4 margin -23 wins 1
+pair 37 seed 2021100037 game1 132-23 game2 142-88 rounds 5,4 margin 163 wins 2
+pair 38 seed 2021100038 game1 0-146 game2 138-67 rounds 3,3 margin -75 wins 1
+pair 39 seed 2021100039 game1 127-50 game2 147-0 rounds 4,3 margin 224 wins 2
+pair 40 seed 2021100040 game1 98-104 game2 117-25 rounds 5,3 margin 86 wins 1
+pair 41 seed 2021100041 game1 138-28 game2 119-0 rounds 3,3 margin 229 wins 2
+pair 42 seed 2021100042 game1 128-74 game2 129-0 rounds 7,3 margin 183 wins 2
+pair 43 seed 2021100043 game1 106-0 game2 142-0 rounds 3,4 margin 248 wins 2
+pair 44 seed 2021100044 game1 117-0 game2 108-25 rounds 2,3 margin 200 wins 2
+pair 45 seed 2021100045 game1 139-25 game2 109-69 rounds 4,3 margin 154 wins 2
+pair 46 seed 2021100046 game1 106-72 game2 160-0 rounds 4,4 margin 194 wins 2
+pair 47 seed 2021100047 game1 118-25 game2 113-0 rounds 2,1 margin 206 wins 2
+pair 48 seed 2021100048 game1 119-0 game2 128-19 rounds 2,5 margin 228 wins 2
+pair 49 seed 2021100049 game1 73-111 game2 26-128 rounds 3,3 margin -140 wins 0
+pair 50 seed 2021100050 game1 149-0 game2 115-20 rounds 3,4 margin 244 wins 2
+pair 51 seed 2021100051 game1 129-25 game2 116-0 rounds 6,3 margin 220 wins 2
+pair 52 seed 2021100052 game1 115-82 game2 101-0 rounds 5,3 margin 134 wins 2
+pair 53 seed 2021100053 game1 114-10 game2 146-15 rounds 3,4 margin 235 wins 2
+pair 54 seed 2021100054 game1 70-121 game2 145-0 rounds 5,2 margin 94 wins 1
+pair 55 seed 2021100055 game1 171-25 game2 171-0 rounds 3,3 margin 317 wins 2
+pair 56 seed 2021100056 game1 132-64 game2 117-0 rounds 5,3 margin 185 wins 2
+pair 57 seed 2021100057 game1 0-100 game2 108-9 rounds 3,4 margin -1 wins 1
+pair 58 seed 2021100058 game1 134-81 game2 116-0 rounds 4,3 margin 169 wins 2
+pair 59 seed 2021100059 game1 142-16 game2 116-0 rounds 5,2 margin 242 wins 2
+pair 60 seed 2021100060 game1 110-91 game2 110-0 rounds 4,3 margin 129 wins 2
+pair 61 seed 2021100061 game1 111-0 game2 108-97 rounds 1,6 margin 122 wins 2
+pair 62 seed 2021100062 game1 101-44 game2 117-0 rounds 5,3 margin 174 wins 2
+pair 63 seed 2021100063 game1 149-99 game2 147-0 rounds 3,2 margin 197 wins 2
+# summary points per round (A minus B) mean 20.420 sd 18.288 95% CI [15.852, 24.988] over 64 pairs; game-win rate of A 0.812 95% CI [0.736, 0.871]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 64 pairs, llr 3.043 in [-2.944, 2.944] after 64 pairs
+# capped a=0 b=0
+# time a=427.4,36333.8,5953 b=0.1,86.8,5811
+# run run=R4 row=11 command=runs/bin/ebaa5fd/dominofish+match+--mode+2v2+--unit+game+--target+100+--pairs+300+--seed+2021100000+--engine-seed+5000400011+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+accompanied"+--out+docs/eval/results/2026-10-26-pimc-r4/row-11-2v2-game-100-pimc-accompanied.txt wall_s=2546.46 peak_rss_kb=18624 load=14.69 date=2026-10-26

@@ -770,8 +770,12 @@
   "requires": [
    "M4-07"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-08: PASS R4 as registered: PIMC (64 worlds, commit ebaa5fd) accepts H1 against every baseline in 16 of 16 rows (1v1 and 2v2, rounds and games to 100), 908 pairs, seeds, bounds, maximums, and commit as registered, no fault; per-move time and peak RSS recorded; REPORT.md current",
+   "log": null
+  }
  },
  {
   "id": "M4-09",

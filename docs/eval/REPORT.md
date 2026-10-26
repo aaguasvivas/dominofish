@@ -118,3 +118,28 @@ Pre-registered as R3 in docs/PLAN.md. Side A: commit f77e9c2, Bench 6121081, bin
 | 2v2 | game | 100 | omniscient (cheating) | rule | 16 | 62.52 [55.57, 69.48] | 1.000 [0.893, 1.000] | H1 at 16 (0, 4) | 4.29 | 18.1 | 2011500000..2011500299 | row-15-2v2-game-100-omniscient-rule.txt | - |
 
 Command of each row: `runs/bin/f77e9c2/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2010000000 --engine-seed 5000300000 --sprt 0,4 --a "runs/bin/f77e9c2/dominofish engine --bot omniscient" --b "runs/bin/f77e9c2/dominofish engine --bot random" --out docs/eval/results/2026-10-25-omniscient-r3/row-0-1v1-round-100-omniscient-random.txt`, with the row's options; the files hold every pair.
+
+## 2026-10-26-pimc-r4 (R4)
+
+Pre-registered as R4 in docs/PLAN.md. Side A: commit ebaa5fd, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:64,nodes:10000000, threads 1, tables 1MB. Side B: commit ebaa5fd, Bench -, binary hash f14485ac51db0b38, budgets -, threads 1, tables -. Engine seed base: 5000400000 to 5000400015 (one per row). Measured 2026-10-26 at a 1-minute load average of 7.51 to 96.5.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | pimc (64 worlds) | random | 23 | 20.85 [13.32, 28.38] | - | H1 at 23 (0, 4) | 9.65 | 18.1 | 2020000000..2020000999 | row-0-1v1-round-100-pimc-random.txt | 19.0 / 760.8 |
+| 1v1 | game | 100 | pimc (64 worlds) | random | 16 | 21.77 [17.38, 26.16] | 1.000 [0.893, 1.000] | H1 at 16 (0, 4) | 124.35 | 18.1 | 2020100000..2020100299 | row-1-1v1-game-100-pimc-random.txt | 74.9 / 4421.1 |
+| 2v2 | round | 100 | pimc (64 worlds) | random | 59 | 20.40 [13.22, 27.58] | - | H1 at 59 (0, 4) | 143.21 | 18.1 | 2020200000..2020200999 | row-2-2v2-round-100-pimc-random.txt | 94.8 / 5905.3 |
+| 2v2 | game | 100 | pimc (64 worlds) | random | 34 | 29.68 [23.70, 35.66] | 0.926 [0.839, 0.968] | H1 at 34 (0, 4) | 1170.96 | 18.1 | 2020300000..2020300299 | row-3-2v2-game-100-pimc-random.txt | 408.9 / 16939.3 |
+| 1v1 | round | 100 | pimc (64 worlds) | heaviest | 74 | 9.31 [4.58, 14.04] | - | H1 at 74 (0, 4) | 331.52 | 18.2 | 2020400000..2020400999 | row-4-1v1-round-100-pimc-heaviest.txt | 237.9 / 118960.9 |
+| 1v1 | game | 100 | pimc (64 worlds) | heaviest | 16 | 14.73 [10.97, 18.48] | 0.969 [0.843, 0.994] | H1 at 16 (0, 4) | 165.02 | 18.2 | 2020500000..2020500299 | row-5-1v1-game-100-pimc-heaviest.txt | 74.0 / 9280.6 |
+| 2v2 | round | 100 | pimc (64 worlds) | heaviest | 44 | 16.89 [10.41, 23.36] | - | H1 at 44 (0, 4) | 103.59 | 18.2 | 2020600000..2020600999 | row-6-2v2-round-100-pimc-heaviest.txt | 94.9 / 2510.1 |
+| 2v2 | game | 100 | pimc (64 worlds) | heaviest | 27 | 24.08 [18.50, 29.66] | 0.926 [0.824, 0.971] | H1 at 27 (0, 4) | 1285.06 | 18.2 | 2020700000..2020700299 | row-7-2v2-game-100-pimc-heaviest.txt | 478.5 / 35547.5 |
+| 1v1 | round | 100 | pimc (64 worlds) | accompanied | 54 | 12.31 [6.76, 17.85] | - | H1 at 54 (0, 4) | 71.01 | 18.2 | 2020800000..2020800999 | row-8-1v1-round-100-pimc-accompanied.txt | 66.2 / 16813.3 |
+| 1v1 | game | 100 | pimc (64 worlds) | accompanied | 27 | 15.32 [11.72, 18.92] | 0.926 [0.824, 0.971] | H1 at 27 (0, 4) | 399.66 | 18.2 | 2020900000..2020900299 | row-9-1v1-game-100-pimc-accompanied.txt | 114.3 / 54922.0 |
+| 2v2 | round | 100 | pimc (64 worlds) | accompanied | 16 | 21.47 [14.47, 28.47] | - | H1 at 16 (0, 4) | 39.70 | 18.2 | 2021000000..2021000999 | row-10-2v2-round-100-pimc-accompanied.txt | 94.7 / 1753.4 |
+| 2v2 | game | 100 | pimc (64 worlds) | accompanied | 64 | 20.42 [15.85, 24.99] | 0.812 [0.736, 0.871] | H1 at 64 (0, 4) | 2546.46 | 18.2 | 2021100000..2021100299 | row-11-2v2-game-100-pimc-accompanied.txt | 427.4 / 36333.8 |
+| 1v1 | round | 100 | pimc (64 worlds) | rule | 181 | 4.94 [1.77, 8.12] | - | H1 at 181 (0, 4) | 114.39 | 18.1 | 2021200000..2021200999 | row-12-1v1-round-100-pimc-rule.txt | 28.3 / 3394.4 |
+| 1v1 | game | 100 | pimc (64 worlds) | rule | 74 | 8.76 [6.36, 11.16] | 0.743 [0.667, 0.807] | H1 at 74 (0, 4) | 1156.99 | 18.1 | 2021300000..2021300299 | row-13-1v1-game-100-pimc-rule.txt | 118.3 / 71798.1 |
+| 2v2 | round | 100 | pimc (64 worlds) | rule | 129 | 8.98 [4.43, 13.54] | - | H1 at 129 (0, 4) | 464.24 | 18.1 | 2021400000..2021400999 | row-14-2v2-round-100-pimc-rule.txt | 142.8 / 12792.0 |
+| 2v2 | game | 100 | pimc (64 worlds) | rule | 70 | 18.47 [13.80, 23.14] | 0.771 [0.695, 0.833] | H1 at 70 (0, 4) | 2291.63 | 18.1 | 2021500000..2021500299 | row-15-2v2-game-100-pimc-rule.txt | 363.1 / 21096.6 |
+
+Command of each row: `runs/bin/ebaa5fd/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2020000000 --engine-seed 5000400000 --sprt 0,4 --timeout-ms 120000 --a "runs/bin/ebaa5fd/dominofish engine --bot pimc --worlds 64" --b "runs/bin/ebaa5fd/dominofish engine --bot random" --out docs/eval/results/2026-10-26-pimc-r4/row-0-1v1-round-100-pimc-random.txt`, with the row's options; the files hold every pair.

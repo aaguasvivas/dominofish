@@ -1,0 +1,50 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+heaviest b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=round target=100 pairs=1000
+# seeds deals=2020600000..2020600999 engines=5000400006
+pair 0 seed 2020600000 game1 23-0 game2 15-0 rounds 1,1 margin 38 wins 0
+pair 1 seed 2020600001 game1 22-25 game2 93-0 rounds 1,1 margin 90 wins 0
+pair 2 seed 2020600002 game1 0-25 game2 74-0 rounds 1,1 margin 49 wins 0
+pair 3 seed 2020600003 game1 43-0 game2 32-0 rounds 1,1 margin 75 wins 0
+pair 4 seed 2020600004 game1 0-21 game2 53-0 rounds 1,1 margin 32 wins 0
+pair 5 seed 2020600005 game1 0-9 game2 13-0 rounds 1,1 margin 4 wins 0
+pair 6 seed 2020600006 game1 44-0 game2 11-0 rounds 1,1 margin 55 wins 0
+pair 7 seed 2020600007 game1 23-0 game2 28-0 rounds 1,1 margin 51 wins 0
+pair 8 seed 2020600008 game1 4-0 game2 16-0 rounds 1,1 margin 20 wins 0
+pair 9 seed 2020600009 game1 10-0 game2 0-27 rounds 1,1 margin -17 wins 0
+pair 10 seed 2020600010 game1 20-0 game2 14-0 rounds 1,1 margin 34 wins 0
+pair 11 seed 2020600011 game1 0-38 game2 14-0 rounds 1,1 margin -24 wins 0
+pair 12 seed 2020600012 game1 34-0 game2 0-28 rounds 1,1 margin 6 wins 0
+pair 13 seed 2020600013 game1 25-15 game2 0-44 rounds 1,1 margin -34 wins 0
+pair 14 seed 2020600014 game1 56-0 game2 0-13 rounds 1,1 margin 43 wins 0
+pair 15 seed 2020600015 game1 0-13 game2 0-12 rounds 1,1 margin -25 wins 0
+pair 16 seed 2020600016 game1 66-0 game2 21-0 rounds 1,1 margin 87 wins 0
+pair 17 seed 2020600017 game1 0-36 game2 14-0 rounds 1,1 margin -22 wins 0
+pair 18 seed 2020600018 game1 0-5 game2 0-42 rounds 1,1 margin -47 wins 0
+pair 19 seed 2020600019 game1 22-0 game2 0-9 rounds 1,1 margin 13 wins 0
+pair 20 seed 2020600020 game1 16-25 game2 36-0 rounds 1,1 margin 27 wins 0
+pair 21 seed 2020600021 game1 35-0 game2 90-0 rounds 1,1 margin 125 wins 0
+pair 22 seed 2020600022 game1 18-0 game2 30-0 rounds 1,1 margin 48 wins 0
+pair 23 seed 2020600023 game1 28-0 game2 26-0 rounds 1,1 margin 54 wins 0
+pair 24 seed 2020600024 game1 0-24 game2 45-0 rounds 1,1 margin 21 wins 0
+pair 25 seed 2020600025 game1 20-0 game2 37-0 rounds 1,1 margin 57 wins 0
+pair 26 seed 2020600026 game1 6-0 game2 12-0 rounds 1,1 margin 18 wins 0
+pair 27 seed 2020600027 game1 6-0 game2 15-0 rounds 1,1 margin 21 wins 0
+pair 28 seed 2020600028 game1 47-0 game2 12-0 rounds 1,1 margin 59 wins 0
+pair 29 seed 2020600029 game1 27-0 game2 5-0 rounds 1,1 margin 32 wins 0
+pair 30 seed 2020600030 game1 26-0 game2 79-0 rounds 1,1 margin 105 wins 0
+pair 31 seed 2020600031 game1 0-12 game2 100-0 rounds 1,1 margin 88 wins 1
+pair 32 seed 2020600032 game1 0-24 game2 28-0 rounds 1,1 margin 4 wins 0
+pair 33 seed 2020600033 game1 16-0 game2 25-16 rounds 1,1 margin 25 wins 0
+pair 34 seed 2020600034 game1 0-37 game2 49-0 rounds 1,1 margin 12 wins 0
+pair 35 seed 2020600035 game1 26-0 game2 19-0 rounds 1,1 margin 45 wins 0
+pair 36 seed 2020600036 game1 0-56 game2 22-0 rounds 1,1 margin -34 wins 0
+pair 37 seed 2020600037 game1 0-32 game2 27-0 rounds 1,1 margin -5 wins 0
+pair 38 seed 2020600038 game1 20-0 game2 0-45 rounds 1,1 margin -25 wins 0
+pair 39 seed 2020600039 game1 58-0 game2 70-0 rounds 1,1 margin 128 wins 0
+pair 40 seed 2020600040 game1 64-0 game2 34-25 rounds 1,1 margin 73 wins 0
+pair 41 seed 2020600041 game1 16-0 game2 30-0 rounds 1,1 margin 46 wins 0
+pair 42 seed 2020600042 game1 40-0 game2 45-0 rounds 1,1 margin 85 wins 0
+pair 43 seed 2020600043 game1 24-0 game2 25-0 rounds 1,1 margin 49 wins 0
+# summary points per round (A minus B) mean 16.886 sd 21.287 95% CI [10.414, 23.358] over 44 pairs; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 44 pairs, llr 3.085 in [-2.944, 2.944] after 44 pairs
+# capped a=0 b=0
+# time a=94.9,2510.1,1082 b=0.1,3.2,1058
+# run run=R4 row=6 command=runs/bin/ebaa5fd/dominofish+match+--mode+2v2+--unit+round+--target+100+--pairs+1000+--seed+2020600000+--engine-seed+5000400006+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+heaviest"+--out+docs/eval/results/2026-10-26-pimc-r4/row-6-2v2-round-100-pimc-heaviest.txt wall_s=103.59 peak_rss_kb=18624 load=9.27 date=2026-10-26

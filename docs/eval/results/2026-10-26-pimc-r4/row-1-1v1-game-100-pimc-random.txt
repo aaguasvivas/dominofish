@@ -1,0 +1,22 @@
+# header a.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64 a.commit=ebaa5fd a.bench=6121081 a.hash=f14485ac51db0b38 a.budgets=worlds:64,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/ebaa5fd/dominofish+engine+--bot+random b.commit=ebaa5fd b.bench=- b.hash=f14485ac51db0b38 b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=1v1 unit=game target=100 pairs=300
+# seeds deals=2020100000..2020100299 engines=5000400001
+pair 0 seed 2020100000 game1 114-33 game2 103-15 rounds 7,4 margin 169 wins 2
+pair 1 seed 2020100001 game1 184-18 game2 116-0 rounds 5,5 margin 282 wins 2
+pair 2 seed 2020100002 game1 119-0 game2 120-0 rounds 2,5 margin 239 wins 2
+pair 3 seed 2020100003 game1 100-49 game2 113-11 rounds 5,5 margin 153 wins 2
+pair 4 seed 2020100004 game1 154-41 game2 153-37 rounds 4,8 margin 229 wins 2
+pair 5 seed 2020100005 game1 108-45 game2 125-0 rounds 8,4 margin 188 wins 2
+pair 6 seed 2020100006 game1 109-6 game2 106-28 rounds 7,5 margin 181 wins 2
+pair 7 seed 2020100007 game1 102-12 game2 139-30 rounds 5,7 margin 199 wins 2
+pair 8 seed 2020100008 game1 116-0 game2 105-6 rounds 4,5 margin 215 wins 2
+pair 9 seed 2020100009 game1 111-0 game2 123-3 rounds 3,5 margin 231 wins 2
+pair 10 seed 2020100010 game1 146-17 game2 146-0 rounds 5,4 margin 275 wins 2
+pair 11 seed 2020100011 game1 108-0 game2 119-54 rounds 3,9 margin 173 wins 2
+pair 12 seed 2020100012 game1 114-41 game2 125-35 rounds 6,4 margin 163 wins 2
+pair 13 seed 2020100013 game1 136-0 game2 105-0 rounds 2,4 margin 241 wins 2
+pair 14 seed 2020100014 game1 126-40 game2 107-19 rounds 9,4 margin 174 wins 2
+pair 15 seed 2020100015 game1 130-15 game2 169-28 rounds 6,6 margin 256 wins 2
+# summary points per round (A minus B) mean 21.771 sd 8.240 95% CI [17.381, 26.162] over 16 pairs; game-win rate of A 1.000 95% CI [0.893, 1.000]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 16 pairs, llr 7.880 in [-2.944, 2.944] after 16 pairs
+# capped a=15 b=0
+# time a=74.9,4421.1,1641 b=0.1,7.0,1671
+# run run=R4 row=1 command=runs/bin/ebaa5fd/dominofish+match+--mode+1v1+--unit+game+--target+100+--pairs+300+--seed+2020100000+--engine-seed+5000400001+--sprt+0,4+--timeout-ms+120000+--a+"runs/bin/ebaa5fd/dominofish+engine+--bot+pimc+--worlds+64"+--b+"runs/bin/ebaa5fd/dominofish+engine+--bot+random"+--out+docs/eval/results/2026-10-26-pimc-r4/row-1-1v1-game-100-pimc-random.txt wall_s=124.35 peak_rss_kb=18576 load=8.34 date=2026-10-26
