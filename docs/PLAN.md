@@ -11,7 +11,7 @@ Each milestone ends with an exit feature, id M<k>-99, whose verify command runs 
 | M0 | Bootstrap: toolchain, state files, check and regress scripts, random selfplay in both modes | passed 2026-10-25 |
 | M1 | Rules parity with Capi: bitboard core, RULES.md, golden traces, edge cases, perft, differential fuzzer, property tests, 0 allocations, playout bench | passed 2026-10-25 |
 | M2 | Information sets, baseline bots, match harness with duplicate pairs and SPRT, REPORT.md | passed 2026-10-25 |
-| M3 | Exact perfect-information solver, omniscient bot, dominofish bench | not started |
+| M3 | Exact perfect-information solver, omniscient bot, dominofish bench | in progress |
 | M4 | PIMC with an exact consistent-world sampler: the strength-first engine | not started |
 | M5 | Variance reduction (control variates) | not started |
 | M6 | Game equity table W and calibrated win probability | not started |
@@ -145,6 +145,7 @@ Owner decisions, copied word for word from docs/prompts/BUILD.md (written and ap
 4. 2026-10-25. Strength first. After the rules core, the first milestone is a measured engine that beats baseline bots. Capi bots and the analysis tool come later, on top of the engine.
 5. 2026-09-26 to 2026-09-29. The rules are Capi's rules ("regla de patio"), decided after a research pass (/Users/Adelson/Desktop/personal/capi/docs/research/rules-2026-09/README.md). The engine reproduces them exactly as implemented in /Users/Adelson/Desktop/personal/capi/packages/engine and never "corrects" them. Making a rule configurable is fine only where cheap, with Capi's rule as the default.
 6. Durable identifiers beyond item 1 are mine: crate names other than dominofish*, npm package names, domains, crates.io or npm publishing, GitHub repo creation and visibility. Ask first.
+7. 2026-10-25, sent in chat at the start of M3, word for word: "Make sure the look, feel, and all aspects are high quality, polished, professional and cool to look at like stockfish for chess is". Applied as a standing quality bar: the logo (docs/assets/dominofish.svg), README.md, the command-line help and output, the report, and every later deliverable.
 
 Questions sent to the owner on 2026-10-25 (answers go here word for word, dated):
 - Q1. Create github.com/aaguasvivas/dominofish now, public or private until results exist?

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -6 244 146" role="img" aria-labelledby="title">
+  <title id="title">DominoFish: a 1-6 domino tile drawn as a fish, with the 1 as its eye</title>
+  <g stroke="#0B1F3A" stroke-width="7" stroke-linejoin="round" fill="#FAF7F0">
+    <path d="M100 30 Q112 2 156 2 Q144 16 150 30 Z"/>
+    <path d="M166 70 Q196 44 234 16 Q216 48 214 70 Q216 92 234 124 Q196 96 166 70 Z"/>
+    <rect x="16" y="26" width="166" height="88" rx="20"/>
+  </g>
+  <line x1="88" y1="40" x2="88" y2="100" stroke="#0B1F3A" stroke-width="5" stroke-linecap="round"/>
+  <path d="M71 50 Q81 70 71 90" fill="none" stroke="#CE1126" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="46" cy="60" r="10" fill="#0B1F3A"/>
+  <circle cx="49.5" cy="56.5" r="3.2" fill="#FAF7F0"/>
+  <g fill="#0B1F3A">
+    <circle cx="114" cy="48" r="7.5"/>
+    <circle cx="114" cy="70" r="7.5"/>
+    <circle cx="114" cy="92" r="7.5"/>
+    <circle cx="156" cy="48" r="7.5"/>
+    <circle cx="156" cy="70" r="7.5"/>
+    <circle cx="156" cy="92" r="7.5"/>
+  </g>
+</svg>
