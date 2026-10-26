@@ -1,0 +1,20 @@
+# header a.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+omniscient a.commit=f77e9c2 a.bench=6121081 a.hash=14536f890aad16db a.budgets=nodes:10000000 a.threads=1 a.tables=16MB a.view=omniscient b.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+random b.commit=f77e9c2 b.bench=- b.hash=14536f890aad16db b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=round target=100 pairs=1000
+# seeds deals=2010200000..2010200999 engines=5000300002
+pair 0 seed 2010200000 game1 70-0 game2 0-22 rounds 1,1 margin 48 wins 0
+pair 1 seed 2010200001 game1 49-0 game2 38-0 rounds 1,1 margin 87 wins 0
+pair 2 seed 2010200002 game1 21-0 game2 64-0 rounds 1,1 margin 85 wins 0
+pair 3 seed 2010200003 game1 35-0 game2 50-0 rounds 1,1 margin 85 wins 0
+pair 4 seed 2010200004 game1 25-0 game2 82-0 rounds 1,1 margin 107 wins 0
+pair 5 seed 2010200005 game1 87-0 game2 27-25 rounds 1,1 margin 89 wins 0
+pair 6 seed 2010200006 game1 83-0 game2 70-0 rounds 1,1 margin 153 wins 0
+pair 7 seed 2010200007 game1 70-0 game2 96-0 rounds 1,1 margin 166 wins 0
+pair 8 seed 2010200008 game1 91-0 game2 53-0 rounds 1,1 margin 144 wins 0
+pair 9 seed 2010200009 game1 81-0 game2 64-0 rounds 1,1 margin 145 wins 0
+pair 10 seed 2010200010 game1 34-0 game2 48-0 rounds 1,1 margin 82 wins 0
+pair 11 seed 2010200011 game1 24-0 game2 80-0 rounds 1,1 margin 104 wins 0
+pair 12 seed 2010200012 game1 61-25 game2 95-0 rounds 1,1 margin 131 wins 0
+pair 13 seed 2010200013 game1 66-0 game2 60-25 rounds 1,1 margin 101 wins 0
+pair 14 seed 2010200014 game1 43-0 game2 76-0 rounds 1,1 margin 119 wins 0
+pair 15 seed 2010200015 game1 85-0 game2 88-0 rounds 1,1 margin 173 wins 0
+# summary points per round (A minus B) mean 56.844 sd 17.613 95% CI [48.213, 65.474] over 16 pairs; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 16 pairs, llr 5.760 in [-2.944, 2.944] after 16 pairs
+# run run=R3 row=2 command=runs/bin/f77e9c2/dominofish+match+--mode+2v2+--unit+round+--target+100+--pairs+1000+--seed+2010200000+--engine-seed+5000300002+--sprt+0,4+--a+"runs/bin/f77e9c2/dominofish+engine+--bot+omniscient"+--b+"runs/bin/f77e9c2/dominofish+engine+--bot+random"+--out+docs/eval/results/2026-10-25-omniscient-r3/row-2-2v2-round-100-omniscient-random.txt wall_s=1.55 peak_rss_kb=18752 load=3.80 date=2026-10-26

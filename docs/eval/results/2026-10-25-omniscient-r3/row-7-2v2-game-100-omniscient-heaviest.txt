@@ -1,0 +1,20 @@
+# header a.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+omniscient a.commit=f77e9c2 a.bench=6121081 a.hash=14536f890aad16db a.budgets=nodes:10000000 a.threads=1 a.tables=16MB a.view=omniscient b.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+heaviest b.commit=f77e9c2 b.bench=- b.hash=14536f890aad16db b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=game target=100 pairs=300
+# seeds deals=2010700000..2010700299 engines=5000300007
+pair 0 seed 2010700000 game1 140-0 game2 148-0 rounds 2,2 margin 288 wins 2
+pair 1 seed 2010700001 game1 108-0 game2 188-0 rounds 2,3 margin 296 wins 2
+pair 2 seed 2010700002 game1 164-0 game2 113-0 rounds 2,2 margin 277 wins 2
+pair 3 seed 2010700003 game1 125-0 game2 116-0 rounds 2,3 margin 241 wins 2
+pair 4 seed 2010700004 game1 143-0 game2 119-0 rounds 3,2 margin 262 wins 2
+pair 5 seed 2010700005 game1 137-0 game2 106-0 rounds 3,2 margin 243 wins 2
+pair 6 seed 2010700006 game1 108-0 game2 109-0 rounds 2,2 margin 217 wins 2
+pair 7 seed 2010700007 game1 177-0 game2 146-0 rounds 2,3 margin 323 wins 2
+pair 8 seed 2010700008 game1 111-0 game2 156-0 rounds 2,2 margin 267 wins 2
+pair 9 seed 2010700009 game1 126-25 game2 140-0 rounds 3,2 margin 241 wins 2
+pair 10 seed 2010700010 game1 126-25 game2 126-0 rounds 2,2 margin 227 wins 2
+pair 11 seed 2010700011 game1 127-0 game2 182-0 rounds 2,2 margin 309 wins 2
+pair 12 seed 2010700012 game1 142-0 game2 129-0 rounds 2,2 margin 271 wins 2
+pair 13 seed 2010700013 game1 136-0 game2 187-0 rounds 2,3 margin 323 wins 2
+pair 14 seed 2010700014 game1 171-0 game2 139-0 rounds 3,2 margin 310 wins 2
+pair 15 seed 2010700015 game1 139-0 game2 174-0 rounds 2,2 margin 313 wins 2
+# summary points per round (A minus B) mean 61.878 sd 9.887 95% CI [57.034, 66.723] over 16 pairs; game-win rate of A 1.000 95% CI [1.000, 1.000]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 16 pairs, llr 14.351 in [-2.944, 2.944] after 16 pairs
+# run run=R3 row=7 command=runs/bin/f77e9c2/dominofish+match+--mode+2v2+--unit+game+--target+100+--pairs+300+--seed+2010700000+--engine-seed+5000300007+--sprt+0,4+--a+"runs/bin/f77e9c2/dominofish+engine+--bot+omniscient"+--b+"runs/bin/f77e9c2/dominofish+engine+--bot+heaviest"+--out+docs/eval/results/2026-10-25-omniscient-r3/row-7-2v2-game-100-omniscient-heaviest.txt wall_s=3.34 peak_rss_kb=18832 load=3.45 date=2026-10-26

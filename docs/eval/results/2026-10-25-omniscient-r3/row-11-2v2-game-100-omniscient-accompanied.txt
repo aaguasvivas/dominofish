@@ -1,0 +1,20 @@
+# header a.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+omniscient a.commit=f77e9c2 a.bench=6121081 a.hash=14536f890aad16db a.budgets=nodes:10000000 a.threads=1 a.tables=16MB a.view=omniscient b.cmd=runs/bin/f77e9c2/dominofish+engine+--bot+accompanied b.commit=f77e9c2 b.bench=- b.hash=14536f890aad16db b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=2v2 unit=game target=100 pairs=300
+# seeds deals=2011100000..2011100299 engines=5000300011
+pair 0 seed 2011100000 game1 118-0 game2 105-25 rounds 2,3 margin 198 wins 2
+pair 1 seed 2011100001 game1 154-0 game2 121-0 rounds 3,2 margin 275 wins 2
+pair 2 seed 2011100002 game1 153-14 game2 146-0 rounds 5,2 margin 285 wins 2
+pair 3 seed 2011100003 game1 114-0 game2 115-0 rounds 2,1 margin 229 wins 2
+pair 4 seed 2011100004 game1 136-0 game2 155-24 rounds 2,4 margin 267 wins 2
+pair 5 seed 2011100005 game1 176-0 game2 107-0 rounds 3,1 margin 283 wins 2
+pair 6 seed 2011100006 game1 129-0 game2 133-25 rounds 2,2 margin 237 wins 2
+pair 7 seed 2011100007 game1 120-0 game2 153-0 rounds 2,3 margin 273 wins 2
+pair 8 seed 2011100008 game1 124-0 game2 160-0 rounds 2,3 margin 284 wins 2
+pair 9 seed 2011100009 game1 143-17 game2 154-0 rounds 3,2 margin 280 wins 2
+pair 10 seed 2011100010 game1 130-0 game2 112-0 rounds 2,2 margin 242 wins 2
+pair 11 seed 2011100011 game1 141-14 game2 181-0 rounds 4,3 margin 308 wins 2
+pair 12 seed 2011100012 game1 118-0 game2 146-0 rounds 2,2 margin 264 wins 2
+pair 13 seed 2011100013 game1 106-0 game2 154-25 rounds 2,3 margin 235 wins 2
+pair 14 seed 2011100014 game1 162-0 game2 142-0 rounds 2,2 margin 304 wins 2
+pair 15 seed 2011100015 game1 104-0 game2 129-0 rounds 2,3 margin 233 wins 2
+# summary points per round (A minus B) mean 55.853 sd 11.870 95% CI [50.037, 61.669] over 16 pairs; game-win rate of A 1.000 95% CI [1.000, 1.000]; sprt on the pair margin, H0 0 H1 4, alpha 0.05 beta 0.05: H1 after 16 pairs, llr 18.167 in [-2.944, 2.944] after 16 pairs
+# run run=R3 row=11 command=runs/bin/f77e9c2/dominofish+match+--mode+2v2+--unit+game+--target+100+--pairs+300+--seed+2011100000+--engine-seed+5000300011+--sprt+0,4+--a+"runs/bin/f77e9c2/dominofish+engine+--bot+omniscient"+--b+"runs/bin/f77e9c2/dominofish+engine+--bot+accompanied"+--out+docs/eval/results/2026-10-25-omniscient-r3/row-11-2v2-game-100-omniscient-accompanied.txt wall_s=4.88 peak_rss_kb=18512 load=3.91 date=2026-10-26

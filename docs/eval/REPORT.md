@@ -93,3 +93,28 @@ Pre-registered as R2 in docs/PLAN.md. Side A: commit d276826, Bench -, binary ha
 | 2v2 | game | 200 | rule | accompanied | 300 | 4.01 [2.46, 5.57] | 0.583 [0.546, 0.620] | inconclusive (0, 4) | 4.30 | 3.8 | 2003500000..2003500299 | row-35-2v2-game-200-rule-accompanied.txt |
 
 Command of each row: `runs/bin/d276826/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2000000000 --engine-seed 5000100000 --sprt 0,4 --sprt-track --a "runs/bin/d276826/dominofish engine --bot heaviest" --b "runs/bin/d276826/dominofish engine --bot random" --out docs/eval/results/2026-10-25-baselines-r2/row-0-1v1-round-100-heaviest-random.txt`, with the row's options; the files hold every pair.
+
+## 2026-10-25-omniscient-r3 (R3)
+
+Pre-registered as R3 in docs/PLAN.md. Side A: commit f77e9c2, Bench 6121081, binary hash 14536f890aad16db, budgets nodes:10000000, threads 1, tables 16MB, view omniscient (sees every hand: cheating). Side B: commit f77e9c2, Bench -, binary hash 14536f890aad16db, budgets -, threads 1, tables -. Engine seed base: 5000300000 to 5000300015 (one per row). Measured 2026-10-26 at a 1-minute load average of 3.45 to 3.96.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | omniscient (cheating) | random | 19 | 27.58 [19.28, 35.88] | - | H1 at 19 (0, 4) | 0.83 | 18.4 | 2010000000..2010000999 | row-0-1v1-round-100-omniscient-random.txt |
+| 1v1 | game | 100 | omniscient (cheating) | random | 16 | 38.52 [33.71, 43.33] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 1.80 | 18.1 | 2010100000..2010100299 | row-1-1v1-game-100-omniscient-random.txt |
+| 2v2 | round | 100 | omniscient (cheating) | random | 16 | 56.84 [48.21, 65.47] | - | H1 at 16 (0, 4) | 1.55 | 18.3 | 2010200000..2010200999 | row-2-2v2-round-100-omniscient-random.txt |
+| 2v2 | game | 100 | omniscient (cheating) | random | 16 | 63.32 [57.99, 68.66] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 3.70 | 18.1 | 2010300000..2010300299 | row-3-2v2-game-100-omniscient-random.txt |
+| 1v1 | round | 100 | omniscient (cheating) | heaviest | 16 | 29.41 [24.00, 34.81] | - | H1 at 16 (0, 4) | 0.78 | 18.3 | 2010400000..2010400999 | row-4-1v1-round-100-omniscient-heaviest.txt |
+| 1v1 | game | 100 | omniscient (cheating) | heaviest | 16 | 34.87 [31.45, 38.29] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 1.39 | 18.4 | 2010500000..2010500299 | row-5-1v1-game-100-omniscient-heaviest.txt |
+| 2v2 | round | 100 | omniscient (cheating) | heaviest | 17 | 53.29 [41.81, 64.78] | - | H1 at 17 (0, 4) | 1.45 | 18.1 | 2010600000..2010600999 | row-6-2v2-round-100-omniscient-heaviest.txt |
+| 2v2 | game | 100 | omniscient (cheating) | heaviest | 16 | 61.88 [57.03, 66.72] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 3.34 | 18.4 | 2010700000..2010700299 | row-7-2v2-game-100-omniscient-heaviest.txt |
+| 1v1 | round | 100 | omniscient (cheating) | accompanied | 16 | 24.31 [18.03, 30.59] | - | H1 at 16 (0, 4) | 0.64 | 18.4 | 2010800000..2010800999 | row-8-1v1-round-100-omniscient-accompanied.txt |
+| 1v1 | game | 100 | omniscient (cheating) | accompanied | 16 | 33.78 [29.91, 37.66] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 1.13 | 18.4 | 2010900000..2010900299 | row-9-1v1-game-100-omniscient-accompanied.txt |
+| 2v2 | round | 100 | omniscient (cheating) | accompanied | 16 | 53.34 [44.42, 62.26] | - | H1 at 16 (0, 4) | 1.78 | 18.1 | 2011000000..2011000999 | row-10-2v2-round-100-omniscient-accompanied.txt |
+| 2v2 | game | 100 | omniscient (cheating) | accompanied | 16 | 55.85 [50.04, 61.67] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 4.88 | 18.1 | 2011100000..2011100299 | row-11-2v2-game-100-omniscient-accompanied.txt |
+| 1v1 | round | 100 | omniscient (cheating) | rule | 16 | 26.25 [21.27, 31.23] | - | H1 at 16 (0, 4) | 0.64 | 18.4 | 2011200000..2011200999 | row-12-1v1-round-100-omniscient-rule.txt |
+| 1v1 | game | 100 | omniscient (cheating) | rule | 16 | 31.39 [27.79, 34.99] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 0.87 | 18.4 | 2011300000..2011300299 | row-13-1v1-game-100-omniscient-rule.txt |
+| 2v2 | round | 100 | omniscient (cheating) | rule | 16 | 54.47 [47.25, 61.69] | - | H1 at 16 (0, 4) | 1.15 | 18.4 | 2011400000..2011400999 | row-14-2v2-round-100-omniscient-rule.txt |
+| 2v2 | game | 100 | omniscient (cheating) | rule | 16 | 62.52 [56.13, 68.92] | 1.000 [1.000, 1.000] | H1 at 16 (0, 4) | 4.29 | 18.1 | 2011500000..2011500299 | row-15-2v2-game-100-omniscient-rule.txt |
+
+Command of each row: `runs/bin/f77e9c2/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2010000000 --engine-seed 5000300000 --sprt 0,4 --a "runs/bin/f77e9c2/dominofish engine --bot omniscient" --b "runs/bin/f77e9c2/dominofish engine --bot random" --out docs/eval/results/2026-10-25-omniscient-r3/row-0-1v1-round-100-omniscient-random.txt`, with the row's options; the files hold every pair.
