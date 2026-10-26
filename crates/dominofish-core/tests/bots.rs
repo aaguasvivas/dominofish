@@ -9,8 +9,9 @@ use dominofish_core::bots::Bot;
 use dominofish_core::infoset::InfoSet;
 use dominofish_core::record::GameRecord;
 use dominofish_core::referee::play_bots;
-use dominofish_core::rules::{Mode, Move, MoveList, Phase};
-use dominofish_core::tile::SUIT;
+use dominofish_core::rng::Rng;
+use dominofish_core::rules::{End, Mode, Move, MoveList, Phase};
+use dominofish_core::tile::{SUIT, Tile};
 
 /// Every decision of a recorded game: (InfoSet of the seat on turn, the
 /// referee's legal moves, the move made).
@@ -85,11 +86,14 @@ fn each_bot_maximizes_its_criterion() {
             for (k, &bot) in Bot::ALL.iter().enumerate() {
                 let record = play_bots(mode, 100, [bot; 4], 5000 + seed);
                 decisions(&record, |info, legal, mv| {
+                    // Each play as (tile, end it goes to, ends after it).
                     let plays: Vec<_> = legal
                         .as_slice()
                         .iter()
                         .filter_map(|m| match *m {
-                            Move::Play { tile, end } => Some((tile, info.ends_after(tile, end))),
+                            Move::Play { tile, end } => {
+                                Some((tile, end, info.ends_after(tile, end)))
+                            }
                             _ => None,
                         })
                         .collect();
@@ -100,7 +104,7 @@ fn each_bot_maximizes_its_criterion() {
                         );
                         return;
                     };
-                    let chosen = (tile, info.ends_after(tile, end));
+                    let chosen = (tile, end, info.ends_after(tile, end));
                     match bot {
                         Bot::Random => {}
                         Bot::Heaviest => {
@@ -110,18 +114,25 @@ fn each_bot_maximizes_its_criterion() {
                             );
                         }
                         Bot::Accompanied => {
-                            // The pip it exposes is one it keeps the most of.
-                            let kept = |(t, ends): (dominofish_core::tile::Tile, (u8, u8))| {
+                            // The pip it exposes (written here apart from
+                            // bots.rs: the tile's other pip at the end it
+                            // joins, or its high pip on an empty board) is one
+                            // it keeps the most of, then the heaviest.
+                            let score = |(t, e, _): (Tile, End, (u8, u8))| {
                                 let exposed = if info.board == 0 {
-                                    ends.0.max(ends.1)
-                                } else if ends.0 != info.left {
-                                    ends.0
+                                    t.high()
+                                } else if e == End::Left {
+                                    t.other(info.left)
                                 } else {
-                                    ends.1
+                                    t.other(info.right)
                                 };
-                                (info.hand & !t.bit() & SUIT[exposed as usize]).count_ones()
+                                (info.hand & !t.bit() & SUIT[exposed as usize]).count_ones() * 100
+                                    + t.pips()
                             };
-                            assert_eq!(kept(chosen), plays.iter().map(|&p| kept(p)).max().unwrap());
+                            assert_eq!(
+                                score(chosen),
+                                plays.iter().map(|&p| score(p)).max().unwrap()
+                            );
                         }
                         Bot::Rule => {
                             // When a play leaves both ends void for the next
@@ -129,7 +140,7 @@ fn each_bot_maximizes_its_criterion() {
                             // one such play.
                             let next = info.mode.next(info.seat) as usize;
                             let partner = info.mode.next(info.mode.next(info.seat)) as usize;
-                            let forcing = |(_, (l, r)): (dominofish_core::tile::Tile, (u8, u8))| {
+                            let forcing = |(_, _, (l, r)): (Tile, End, (u8, u8))| {
                                 let pips = (1u8 << l) | (1 << r);
                                 info.voids[next] & pips == pips
                                     && !(info.mode == Mode::TwoVsTwo
@@ -153,4 +164,23 @@ fn each_bot_maximizes_its_criterion() {
         "bots criteria: decisions checked random {} heaviest {} accompanied {} rule (forcing plays) {}",
         checked[0], checked[1], checked[2], checked[3]
     );
+}
+
+#[test]
+fn accompanied_exposes_a_doubles_own_pip_on_the_left() {
+    // Ends 3 and 6 (board 3-6 and 6-6), hand 3-3, 3-5, 0-6, 1-6, 2-5. The
+    // double 3-3 on the left exposes 3 (one 3 kept: 3-5), score 106; 3-5
+    // on the left exposes 5 (one 5 kept: 2-5), score 108. The bot plays 3-5.
+    let text = "v=1 mode=2v2 target=100 scores=0,0 seat=n hand=0-6,1-6,2-5,3-3,3-5 board=8200000 ends=36 turn=n starter=e last=w passes=0 phase=P sizes=5,7,7,7 pile=0 opening=- voids=0,0,0,0 excluded=0,0,0,0 history=-";
+    let info = InfoSet::from_text(text).expect("a valid InfoSet text");
+    for seed in 0..20 {
+        let mv = Bot::Accompanied.decide(&info, &mut Rng::new(seed));
+        assert_eq!(
+            mv,
+            Move::Play {
+                tile: Tile::new(3, 5),
+                end: End::Left
+            }
+        );
+    }
 }

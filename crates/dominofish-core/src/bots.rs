@@ -15,7 +15,7 @@
 
 use crate::infoset::InfoSet;
 use crate::rng::Rng;
-use crate::rules::{Mode, Move, MoveList};
+use crate::rules::{End, Mode, Move, MoveList};
 use crate::tile::{SUIT, Tile};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -61,12 +61,12 @@ impl Bot {
 }
 
 /// The play with the highest score, ties uniform by the RNG. The score sees
-/// the InfoSet, the tile, and the ends after the play.
+/// the InfoSet, the tile, and the end it goes to.
 fn best(
     info: &InfoSet,
     moves: &MoveList,
     rng: &mut Rng,
-    score: impl Fn(&InfoSet, Tile, (u8, u8)) -> i64,
+    score: impl Fn(&InfoSet, Tile, End) -> i64,
 ) -> Move {
     let mut top = i64::MIN;
     let mut tied = MoveList::new();
@@ -74,7 +74,7 @@ fn best(
         let Move::Play { tile, end } = mv else {
             continue;
         };
-        let s = score(info, tile, info.ends_after(tile, end));
+        let s = score(info, tile, end);
         if s > top {
             top = s;
             tied.clear();
@@ -91,25 +91,25 @@ fn follow(mask: u32, (left, right): (u8, u8)) -> u32 {
     (mask & (SUIT[left as usize] | SUIT[right as usize])).count_ones()
 }
 
-/// The pip a play exposes: the end it changed; on an empty board the higher
-/// one; a double on its own pip changes nothing and exposes that pip.
-fn exposed(info: &InfoSet, ends: (u8, u8)) -> u8 {
-    if info.board == 0 {
-        ends.0.max(ends.1)
-    } else if ends.0 != info.left {
-        ends.0
-    } else {
-        ends.1
+/// The pip a play exposes: the pip at the end it went to (a double keeps
+/// its own pip there); on an empty board the higher pip.
+fn exposed(info: &InfoSet, tile: Tile, end: End) -> u8 {
+    let (left, right) = info.ends_after(tile, end);
+    match (info.board == 0, end) {
+        (true, _) => left.max(right),
+        (false, End::Left) => left,
+        (false, End::Right) => right,
     }
 }
 
-fn accompanied_score(info: &InfoSet, tile: Tile, ends: (u8, u8)) -> i64 {
+fn accompanied_score(info: &InfoSet, tile: Tile, end: End) -> i64 {
     let rest = info.hand & !tile.bit();
-    let kept = (rest & SUIT[exposed(info, ends) as usize]).count_ones();
+    let kept = (rest & SUIT[exposed(info, tile, end) as usize]).count_ones();
     i64::from(kept) * 100 + i64::from(tile.pips())
 }
 
-fn rule_score(info: &InfoSet, tile: Tile, ends: (u8, u8)) -> i64 {
+fn rule_score(info: &InfoSet, tile: Tile, end: End) -> i64 {
+    let ends = info.ends_after(tile, end);
     let (left, right) = ends;
     let pips = (1u8 << left) | (1 << right);
     let next = info.mode.next(info.seat) as usize;
