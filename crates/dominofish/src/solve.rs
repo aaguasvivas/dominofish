@@ -24,7 +24,7 @@ pub const MAX_TABLE_BITS: u32 = 24;
 /// cache (docs/eval/results/2026-10-26-solver-profile.md; D18).
 pub const PIMC_TABLE_BITS: u32 = 16;
 
-fn thousands(n: u64) -> String {
+pub fn thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
     for (i, c) in s.chars().enumerate() {

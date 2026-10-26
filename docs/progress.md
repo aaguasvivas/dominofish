@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M4 (PIMC) in progress since 2026-10-26; M0, M1, and M2 passed 2026-10-25, M3 passed 2026-10-26
-- Feature in progress: M4-05 (dominofish analyze)
+- Feature in progress: M4-06 (world-stats)
 - Last green commit: d01c873 (check.sh and regress pass; M3-99 passed on it)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
@@ -131,4 +131,5 @@
 - PIMC engine written (M4-03): `engine --bot pimc --worlds N` (budgets worlds:N,nodes:N, a 1 MB table, view=infoset; a forced move without search). The referee now stops a match with a Sampler fault at `info inconsistent` or `info fallback`, and gives every side that reports budgets its binary's Bench (no change for existing sides). Dev check (deal seeds 1,000,000,000 + i, not a claim): PIMC with 8 worlds against the rule bot, 10 round pairs per mode, 0 faults, 1.5 s (1v1) and 2.6 s (2v2), peak RSS 19 MB.
 - M4-03 passed: M4-03: PASS 16 matches of PIMC (8 worlds) against every baseline (1v1 and 2v2, rounds 10 pairs and games to 100 3 pairs), 9,502 moves, illegal 0, crashes 0, timeouts 0, sampler faults 0; header a.budgets=worlds:8,nodes:10000000 a.tables=1MB a.view=infoset with Bench: 6121081; a repeated match gives equal pair lines; PIMC got 0 state lines in both modes; an engine reporting an inconsistent world stops the match with a Sampler fault. The first fast run failed the 2v2 spy count (79 infosets, 78 gos): both engines of a side appended to one log and a line was split between them. scripts/test-engines/spy.sh now takes %p in the log path for one file per engine; the counts then matched (79 and 79).
 - M4-04 passed: never-peeks for PIMC (tests/never_peeks.rs, pimc_never_peeks): 250 (1v1) and 197 (2v2) rearranged worlds with an identical public record give byte-identical InfoSets and the same Analysis, node counts included.
+- M4-05 passed: `dominofish analyze --record FILE --round R --ply K --worlds N` (crates/dominofish/src/analyze.rs) and `selfplay --record FILE`. M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1 4 moves and 2v2 3 moves ranked at ply 4 of seed 5 records; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, a missing --worlds, and a malformed record exit 2 with an ERROR line.
 

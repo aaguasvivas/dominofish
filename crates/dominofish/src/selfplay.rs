@@ -2,11 +2,13 @@
 //! printed as a readable log: each hand as dealt, every move with its tile,
 //! every scoring event with the scores after it, and the line of play at the
 //! end of each round. Round r's deal uses the stream derive(seed, r); moves
-//! use derive(seed, 0).
+//! use derive(seed, 0). The game is also returned as a game record
+//! (docs/FORMATS.md, Game records), which `--record FILE` writes.
 
 use std::collections::VecDeque;
 use std::fmt::Write as _;
 
+use dominofish_core::record::{GameRecord, RoundRecord};
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, End, Event, Mode, Move, MoveList, Phase, State, team};
 use dominofish_core::tile::Tile;
@@ -134,7 +136,7 @@ impl Line {
     }
 }
 
-pub fn run(mode: Mode, seed: u64, target: u16) -> String {
+pub fn run(mode: Mode, seed: u64, target: u16) -> (String, GameRecord) {
     let mut out = String::new();
     let _ = writeln!(
         out,
@@ -144,6 +146,10 @@ pub fn run(mode: Mode, seed: u64, target: u16) -> String {
     let mut moves_rng = Rng::new(derive(seed, 0));
     let mut round = 1u64;
     let deal = Deal::shuffled(&mut Rng::new(derive(seed, round)));
+    let mut rounds = vec![RoundRecord {
+        deal,
+        moves: vec![],
+    }];
     write_round(&mut out, mode, round, &deal, None);
     let (mut state, opening) = State::first_round(mode, target, &deal);
     let _ = writeln!(
@@ -162,6 +168,10 @@ pub fn run(mode: Mode, seed: u64, target: u16) -> String {
                 round += 1;
                 let deal = Deal::shuffled(&mut Rng::new(derive(seed, round)));
                 state = state.next_round(&deal);
+                rounds.push(RoundRecord {
+                    deal,
+                    moves: vec![],
+                });
                 write_round(&mut out, mode, round, &deal, Some(state.starter));
                 line = Line::start(&state);
             }
@@ -172,6 +182,7 @@ pub fn run(mode: Mode, seed: u64, target: u16) -> String {
                 let pile_before = state.boneyard().to_vec();
                 let was_empty = state.board == 0;
                 let event = state.play(mv).event;
+                rounds.last_mut().expect("a round").moves.push(mv);
                 count += 1;
                 let mut text = format!("  {:<3} ", mode.seat_name(seat));
                 match mv {
@@ -216,5 +227,12 @@ pub fn run(mode: Mode, seed: u64, target: u16) -> String {
         scores(mode, &state),
         team_label(mode, winner)
     );
-    out
+    (
+        out,
+        GameRecord {
+            mode,
+            target,
+            rounds,
+        },
+    )
 }

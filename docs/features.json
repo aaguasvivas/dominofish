@@ -722,8 +722,12 @@
   "requires": [
    "M4-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-26",
+   "result": "M4-05: PASS unit tests 2 passed (every legal move ranked, the same twice, impossible requests rejected); 1v1: 4 moves ranked; 2v2: 3 moves ranked; equal bytes on two runs; labeled sampled with world counts; round 0, a ply past the round, a finished round, a missing --worlds, and a malformed record exit 2 with an ERROR line",
+   "log": null
+  }
  },
  {
   "id": "M4-06",

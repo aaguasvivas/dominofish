@@ -1,5 +1,6 @@
 //! The dominofish command line.
 
+mod analyze;
 mod capi_fuzz;
 mod engine;
 mod harness;
@@ -99,18 +100,51 @@ fn run() -> Result<(String, bool), Failure> {
     };
     match command.as_str() {
         "selfplay" => {
-            let (mut mode, mut seed, mut target) = (None, None, 100u16);
+            let (mut mode, mut seed, mut target, mut record) = (None, None, 100u16, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
                     Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
                     Long("target") => target = parse_target(&value(&mut parser)?)?,
+                    Long("record") => record = Some(value(&mut parser)?),
                     _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
             let mode = mode.ok_or("--mode is required")?;
             let seed = seed.ok_or("--seed is required")?;
-            Ok((selfplay::run(mode, seed, target), true))
+            let (log, game) = selfplay::run(mode, seed, target);
+            if let Some(path) = record {
+                std::fs::write(&path, game.to_text())
+                    .map_err(|e| Failure::Run(format!("{path}: {e}")))?;
+            }
+            Ok((log, true))
+        }
+        "analyze" => {
+            let (mut file, mut round, mut ply, mut worlds, mut seed) =
+                (None, None, None, None, 1u64);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::PIMC_TABLE_BITS);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("record") => file = Some(value(&mut parser)?),
+                    Long("round") => round = Some(parse_num(&value(&mut parser)?)?),
+                    Long("ply") => ply = Some(parse_num(&value(&mut parser)?)?),
+                    Long("worlds") => worlds = Some(parse_worlds(&value(&mut parser)?)?),
+                    Long("seed") => seed = parse_num(&value(&mut parser)?)?,
+                    Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    _ => return Err(arg.unexpected().to_string().into()),
+                }
+            }
+            let file = file.ok_or("--record is required")?;
+            let round = round.ok_or("--round is required")?;
+            let ply = ply.ok_or("--ply is required")?;
+            let limits = dominofish_core::pimc::Limits {
+                worlds: worlds.ok_or("--worlds is required")?,
+                nodes,
+                table_bits: bits,
+            };
+            let text = std::fs::read_to_string(&file).map_err(|e| format!("{file}: {e}"))?;
+            Ok((analyze::run(&text, round, ply, &limits, seed)?, true))
         }
         "playout-bench" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);

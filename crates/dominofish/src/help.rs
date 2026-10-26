@@ -14,10 +14,31 @@ pub const COMMANDS: &[Command] = &[
         name: "selfplay",
         group: "Play",
         summary: "Play a random game and print every hand, move, and score",
-        usage: "dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]",
+        usage: "dominofish selfplay --mode 1v1|2v2 --seed N [--target 100|200]
+           [--record FILE]",
         options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
   --seed N            Seed of the deals and the moves
-  --target 100|200    Points that win the game (default 100)",
+  --target 100|200    Points that win the game (default 100)
+  --record FILE       Also write the game as a record (docs/FORMATS.md, Game
+                      records), for dominofish analyze",
+    },
+    Command {
+        name: "analyze",
+        group: "Play",
+        summary: "Rank the legal moves at one point of a game record (PIMC)",
+        usage: "dominofish analyze --record FILE --round R --ply K --worlds N
+           [--seed N] [--nodes N] [--table-bits B]",
+        options: "  --record FILE       A game record (docs/FORMATS.md, Game records)
+  --round R           The round, from 1
+  --ply K             Moves already played in that round; the seat on turn
+                      after them is analyzed, from what it can see
+  --worlds N          Worlds sampled from that seat's information, 1 to 4096
+  --seed N            Seed of the sampling (default 1)
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries (default 16, at most 24)
+
+  Each value is sampled: the mean round points of the seat's team after the
+  move, over worlds each solved exactly, with its standard error.",
     },
     Command {
         name: "engine",
