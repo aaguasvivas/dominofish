@@ -6,7 +6,7 @@
 # a 1v1 round-1 non-opener after the 6-6), the (7-s)(8-s)/2 void counts, the
 # 4-6 worked example, the true world allowed at every decision of seeded
 # games, and equality with a brute-force replay oracle on enumerable
-# positions. --fast runs the same tests (seconds).
+# positions, 1v1 no-double openings included. --fast runs the same tests.
 set -u
 cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
@@ -16,7 +16,7 @@ RUST_TEST_THREADS=4 cargo test -p dominofish-core --test worlds -- --nocapture -
 code=$?
 fail=0
 [ "$code" -eq 0 ] || { echo "ERROR world tests failed (details in $log)"; fail=1; }
-for t in counts_from_the_leads void_counts_and_the_worked_example the_true_world_is_always_counted counts_equal_a_brute_force_oracle; do
+for t in counts_from_the_leads void_counts_and_the_worked_example the_true_world_is_always_counted counts_equal_a_brute_force_oracle no_double_openings_are_counted_exactly; do
   grep -q "test $t ... ok" "$log" || { echo "ERROR test $t did not pass"; fail=1; }
 done
 summary=$(grep -o 'worlds [a-z]*: .*' "$log" | sed 's/^worlds //' | sort | paste -sd ';' -)

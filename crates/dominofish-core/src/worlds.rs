@@ -16,7 +16,7 @@
 //! round-1 exclusions. Each assignment stands for the same number of full
 //! deal orders, so worlds are counted and later sampled per assignment.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::infoset::{Action, InfoSet, NO_END};
 use crate::rules::Mode;
@@ -229,7 +229,9 @@ impl Worlds {
             .iter()
             .enumerate()
             .fold(0u64, |m, (g, &(_, n))| m | u64::from(n) << (4 * g));
-        let mut layer: HashMap<u64, u64> = HashMap::from([(start, 1)]);
+        // A BTreeMap: no hasher seeded from the OS, so the core keeps no
+        // hidden state (lib.rs).
+        let mut layer: BTreeMap<u64, u64> = BTreeMap::from([(start, 1)]);
         // Most constrained tiles first keeps the layers small.
         let mut order: Vec<(Tile, u32)> = self.tiles.clone();
         order.sort_by_key(|&(_, a)| a.count_ones());
@@ -239,7 +241,7 @@ impl Worlds {
             {
                 allowed &= 1 << g;
             }
-            let mut next: HashMap<u64, u64> = HashMap::with_capacity(layer.len() * 2);
+            let mut next: BTreeMap<u64, u64> = BTreeMap::new();
             for (&caps, &ways) in &layer {
                 for g in 0..self.groups.len() {
                     if allowed & (1 << g) != 0 && (caps >> (4 * g)) & 0xF != 0 {

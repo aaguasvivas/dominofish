@@ -72,40 +72,37 @@ fn void_counts_and_the_worked_example() {
             .fold(0u32, |m, p| m | SUIT[p as usize]);
         assert_eq!((ALL & !void).count_ones(), (7 - s) * (8 - s) / 2);
     }
-    // 4-1, 4-3, 4-5 on the board, 4-4 and 4-2 in your hand, partner void in
-    // 4s, one opponent void in 6s: the other opponent holds 4-6.
-    let board = [(4, 1), (4, 3), (4, 5)]
-        .iter()
-        .fold(0u32, |m, &(a, b)| m | Tile::new(a, b).bit());
-    let hand = [(4, 4), (4, 2), (0, 0), (1, 1), (2, 2)]
-        .iter()
-        .fold(0u32, |m, &(a, b)| m | Tile::new(a, b).bit());
-    let hidden = ALL & !board & !hand;
-    let n = hidden.count_ones() as u8;
-    let groups = [
-        (Holder::Hand { seat: 2 }, n / 3),
-        (Holder::Hand { seat: 1 }, n / 3),
-        (Holder::Hand { seat: 3 }, n - 2 * (n / 3)),
-    ];
-    let list: Vec<(Tile, u32)> = tiles(hidden)
-        .map(|t| {
-            let partner = u32::from(!t.has(4));
-            let void_six = u32::from(!t.has(6)) << 1;
-            (t, partner | void_six | 1 << 2)
-        })
-        .collect();
-    let w = Worlds::from_groups(&groups, &list);
+    // The worked example (BUILD.md Leads), counted from an InfoSet through
+    // Worlds::new: board 3-4 4-1 1-6 6-5 5-4 (so 4-1, 4-3, 4-5 are down;
+    // ends 3 and 4), n holds 4-4 and 4-2, the partner s passed on 4|4 (void
+    // in 4s), the opponent e passed on 6|6 (void in 6s). The hidden 4s are
+    // 4-0 and 4-6; s holds neither and e cannot hold 4-6, so w holds 4-6 in
+    // every world, while 4-0 may be with e or w.
+    let text = "v=1 mode=2v2 target=100 scores=0,0 seat=n hand=0-0,1-1,2-2,2-4,4-4 board=4881400 ends=34 turn=n starter=w last=w passes=0 phase=P sizes=5,6,6,6 pile=0 opening=- voids=0,40,10,0 excluded=0,0,0,0 history=-";
+    let info = InfoSet::from_text(text).expect("a valid InfoSet text");
+    let w = Worlds::new(&info).expect("2v2 worlds");
+    let others: Vec<Holder> = w.groups().iter().map(|g| g.0).collect();
+    assert_eq!(
+        others,
+        [
+            Holder::Hand { seat: 1 },
+            Holder::Hand { seat: 2 },
+            Holder::Hand { seat: 3 }
+        ]
+    );
     let total = w.count();
-    let four_six = Tile::new(4, 6);
+    let (four_six, four_zero) = (Tile::new(4, 6), Tile::new(4, 0));
     assert!(total > 0);
     assert_eq!(
         w.count_with(four_six, 2),
         total,
-        "the other opponent holds 4-6 in every world"
+        "w holds 4-6 in every world"
     );
     assert_eq!(w.count_with(four_six, 0) + w.count_with(four_six, 1), 0);
+    assert_eq!(w.count_with(four_zero, 1), 0, "the partner holds no 4");
+    assert!(w.count_with(four_zero, 0) > 0 && w.count_with(four_zero, 2) > 0);
     println!(
-        "worlds deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example holds in all {total} worlds"
+        "worlds deductions: (7-s)(8-s)/2 for all 128 void sets; the 4-6 example, counted from its InfoSet, holds in all {total} worlds"
     );
 }
 
@@ -386,5 +383,85 @@ fn counts_equal_a_brute_force_oracle() {
     println!(
         "worlds oracle: 1v1 positions {} ({} after a draw of the other seat, {} constrained) worlds {}; 2v2 positions {} ({} constrained) worlds {}; counts equal the brute force",
         per_mode[0], after_draw, constrained[0], worlds[0], per_mode[1], constrained[1], worlds[1]
+    );
+}
+
+/// A 1v1 deal with no double in either hand: the seven doubles and seven
+/// other tiles fill the boneyard, so round 1 opens with a pip-sum tile.
+fn no_double_deal(rng: &mut dominofish_core::rng::Rng) -> Deal {
+    let mut others: Vec<Tile> = tiles(ALL).filter(|t| !t.is_double()).collect();
+    for i in (1..others.len()).rev() {
+        others.swap(i, rng.below(i as u32 + 1) as usize);
+    }
+    let mut pile: Vec<Tile> = others.split_off(14);
+    pile.extend((0..=6).map(|d| Tile::new(d, d)));
+    for i in (1..pile.len()).rev() {
+        pile.swap(i, rng.below(i as u32 + 1) as usize);
+    }
+    others.extend(pile);
+    Deal::from_tiles(others.try_into().unwrap()).unwrap()
+}
+
+#[test]
+fn no_double_openings_are_counted_exactly() {
+    use dominofish_core::record::RoundRecord;
+    use dominofish_core::rng::Rng;
+    use dominofish_core::rules::{MoveList, State};
+    let mut rng = Rng::new(424242);
+    let (mut decisions_checked, mut excluded, mut oracle_positions, mut openers) =
+        (0u64, 0u64, 0u64, [0u64; 2]);
+    for _ in 0..300 {
+        let deal = no_double_deal(&mut rng);
+        let (mut state, opening) = State::first_round(Mode::OneVsOne, 100, &deal);
+        assert!(!opening.is_double());
+        openers[state.starter as usize] += 1;
+        let mut record = GameRecord {
+            mode: Mode::OneVsOne,
+            target: 100,
+            rounds: vec![RoundRecord {
+                deal,
+                moves: vec![],
+            }],
+        };
+        let mut moves = MoveList::new();
+        while state.phase == Phase::Playing {
+            let ply = record.rounds[0].moves.len();
+            let info = InfoSet::new(&record, 0, ply, state.turn).unwrap();
+            let w = Worlds::new(&info).unwrap();
+            let truth = true_groups(&record, 0, ply, info.seat);
+            for &(t, allowed) in w.tiles() {
+                let g = truth
+                    .iter()
+                    .find(|(x, _)| *x == t)
+                    .map(|&(_, g)| g)
+                    .unwrap();
+                assert!(
+                    allowed & (1 << g) != 0,
+                    "no-double round, ply {ply}: {t} is really in group {g}"
+                );
+            }
+            excluded += u64::from(info.dealt_excluded.iter().any(|&m| m != 0));
+            if multinomial(&w) <= 3000 && oracle_positions < 60 {
+                assert_eq!(
+                    w.count(),
+                    brute_force(&record, 0, ply, &info, &w),
+                    "no-double oracle, ply {ply}"
+                );
+                oracle_positions += 1;
+            }
+            decisions_checked += 1;
+            state.legal_moves(&mut moves);
+            let mv = moves.as_slice()[rng.below(moves.len() as u32) as usize];
+            state.play(mv);
+            record.rounds[0].moves.push(mv);
+        }
+    }
+    assert!(
+        excluded > 0 && oracle_positions >= 20 && openers.iter().all(|&n| n > 0),
+        "{excluded} {oracle_positions} {openers:?}"
+    );
+    println!(
+        "worlds no-double: decisions {decisions_checked} in 300 no-double 1v1 rounds (opener n {} times, s {}), {excluded} with dealt exclusions, true world allowed at each; {oracle_positions} positions equal the brute force",
+        openers[0], openers[1]
     );
 }
