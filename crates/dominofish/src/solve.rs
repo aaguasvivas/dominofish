@@ -198,8 +198,9 @@ pub fn stats(mode: Mode, games: u64, seed: u64, cap: u64, bits: u32) -> String {
     }
     let _ = write!(
         out,
-        "\nsolve-stats: mode {} solves {solves} capped {capped_all}; round starts (27 or 28 tiles left) {round_starts}, capped {round_start_capped} ({:.2}%); wall {:.1} s\n",
+        "\nsolve-stats: mode {} solves {solves} capped {capped_all} ({:.2}%); round starts (27 or 28 tiles left) {round_starts}, capped {round_start_capped} ({:.2}%); wall {:.1} s\n",
         mode.name(),
+        100.0 * capped_all as f64 / solves.max(1) as f64,
         100.0 * round_start_capped as f64 / round_starts.max(1) as f64,
         start.elapsed().as_secs_f64()
     );
