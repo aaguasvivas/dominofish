@@ -29,8 +29,8 @@ m 1v1 round 3 omniscient random --aivat 2 --out "$dir/omniscient.txt"
 grep -q '^# aivat j=2 .* draws=off ' "$dir/omniscient.txt" || err "an omniscient match does not turn draw terms off"
 cp "$dir/plain-1v1.txt" "$dir/results/x/row-2-1v1-round-100-rule-random.txt"
 "$bin" report --results "$dir/results" --out "$dir/REPORT.md" > /dev/null || err "report failed"
-r0=$(grep '| row-0-1v1-round-100-rule-random.txt |' "$dir/REPORT.md" | awk -F'|' '{print $17 "|" $18}')
-r2=$(grep '| row-2-1v1-round-100-rule-random.txt |' "$dir/REPORT.md" | awk -F'|' '{print $17 "|" $18}')
+r0=$(grep '| row-0-1v1-round-100-rule-random.txt |' "$dir/REPORT.md" | awk -F'|' '{print $16 "|" $17}')
+r2=$(grep '| row-2-1v1-round-100-rule-random.txt |' "$dir/REPORT.md" | awk -F'|' '{print $16 "|" $17}')
 case "$r0" in *"["*"]"*"|"*[0-9]*) ;; *) err "the report lacks the corrected columns for the --aivat file: $r0" ;; esac
 case "$r2" in " - | - ") ;; *) err "the report shows corrected columns for a plain file: $r2" ;; esac
 cargo test -q -p dominofish crossfit > "$dir/crossfit.log" 2>&1 && grep -q 'test result: ok. 1 passed' "$dir/crossfit.log" || err "the cross-fit test failed"

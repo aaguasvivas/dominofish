@@ -3,7 +3,7 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03 (test T5); M5-01 and M5-02 built, their verify scripts next
+- Feature in progress: M5-03 (test T5)
 - Last green commit: a95fdf8 (check.sh passes; regress passes 39 of 39 in 464 s on 2026-10-27)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
@@ -173,4 +173,6 @@
 - Dev measurement (deal seeds 1,000,000,000 + i, J = 8): subtracting the terms whole raised the SD (1v1 rule against random, 40 pairs: 57.4 against 20.4) because the solver's value assumes perfect play afterwards; the fitted coefficients were 0 to 0.55. With two-fold cross-fitting, SD ratios raw / corrected were 1.11 to 1.18 for rule against random, 1.06 to 1.13 for accompanied against heaviest, and 0.90 to 1.04 for the rule bot against itself (400 round pairs and 100 game pairs per matchup). Follow-up: a value from playouts with the actual policies.
 - check.sh took 10,280 s on the commit a6b68b1 (load average near 10): tests/aivat.rs solved whole rounds without a node cap in check.sh's debug build. The tests now run their full sizes only with AIVAT_FULL=1 (release, scripts/verify/M5-01.sh: 2.8 s) and small sizes in check.sh (debug: 2.5 s); the value test warms the table with the previous late position instead of a round start.
 - check.sh took 8,087 s again on fcf23b6. Cause: tests/pimc.rs in check.sh's debug build analyzed round starts (a 2v2 round start is about 28 full-round solves; the debug solver is far slower), 24 minutes and more at load near 10. Without PIMC_FULL=1 the PIMC tests now keep to late positions (8 s in debug); M4-02's full verify keeps its sizes. check.sh logs each step's time. A timestamped run of the whole test suite then took 76 s.
+- M5-01 passed: M5-01: PASS actions: 179 decisions, each bot's choices cover exactly its policy; 21 tied decisions whose action terms sum to 0; values: 544 states equal to the solver without a table; zero: 25 one-tile draws and every round-2 deal against itself give 0; 6 committed R2 rows replay with equal pair lines at HEAD; 0 allocations.
+- M5-02 passed (its first run read report fields 17 and 18; the corrected result and SD ratio are fields 16 and 17): --aivat leaves the pair lines unchanged in 1v1 rounds and 2v2 games; one aivat line per pair; draws=on, and off with the omniscient bot; the report shows corrected 14.93 [6.86, 22.99] with SD ratio 1.11 beside the raw result, and - for a plain file.
 

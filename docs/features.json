@@ -840,8 +840,12 @@
   "requires": [
    "M4-99"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-27",
+   "result": "M5-01: PASS actions: 179 decisions, each bot's choices cover exactly its policy; 21 tied decisions whose action terms sum to 0; values: 544 states, equal to the solver without a table, whatever ran before; zero: 25 draws from a one-tile boneyard and every round-2 deal against itself give 0; 6 committed R2 rows replay with equal pair lines at HEAD; 0 allocations",
+   "log": null
+  }
  },
  {
   "id": "M5-02",
@@ -852,8 +856,12 @@
   "requires": [
    "M5-01"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-27",
+   "result": "M5-02: PASS --aivat leaves the pair lines unchanged (1v1 rounds, 2v2 games); one aivat line per pair; draws=on, and off with the omniscient bot; the report shows corrected 14.93 [6.86, 22.99] , SD ratio 1.11  beside raw and - for a plain file; cross-fit test passes; FORMATS.md documents the lines",
+   "log": null
+  }
  },
  {
   "id": "M5-03",
