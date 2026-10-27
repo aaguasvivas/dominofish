@@ -263,6 +263,7 @@ fn run() -> Result<(String, bool), Failure> {
             let mut engine_seed = None;
             let mut sprt: Option<stats::Sprt> = None;
             let mut track = false;
+            let mut aivat = None;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
@@ -283,6 +284,13 @@ fn run() -> Result<(String, bool), Failure> {
                     Long("b") => b = Some(harness::Side::new(&value(&mut parser)?)?),
                     Long("out") => out = Some(value(&mut parser)?),
                     Long("timeout-ms") => timeout_ms = parse_num(&value(&mut parser)?)?,
+                    Long("aivat") => {
+                        let n = parse_num(&value(&mut parser)?)?;
+                        if !(1..=64).contains(&n) {
+                            return Err(format!("--aivat must be 1 to 64, got {n}").into());
+                        }
+                        aivat = Some(n as u32);
+                    }
                     Long("sprt-track") => track = true,
                     Long("sprt") => {
                         let v = value(&mut parser)?;
@@ -313,6 +321,7 @@ fn run() -> Result<(String, bool), Failure> {
                 b: b.ok_or("--b is required")?,
                 timeout: std::time::Duration::from_millis(timeout_ms),
                 engine_seed: engine_seed.ok_or("--engine-seed is required")?,
+                aivat,
             };
             let out = out.ok_or("--out is required")?;
             // The SPRT runs on each pair's margin and stops the match at a
@@ -513,6 +522,15 @@ fn write_match(
             p.wins(spec.target)
         );
     }
+    for p in &report.pairs {
+        if let Some(a) = p.aivat {
+            let _ = writeln!(
+                text,
+                "aivat {} deal {:.3} draw {:.3} action {:.3}",
+                p.pair, a.deal, a.draw, a.action
+            );
+        }
+    }
     let per_round: Vec<f64> = report.pairs.iter().map(|p| p.margin_per_round()).collect();
     let r = stats::summary(&per_round);
     let mut lines = format!(
@@ -552,6 +570,47 @@ fn write_match(
         );
     }
     let _ = writeln!(text, "# summary {lines}");
+    // The corrected summary has its own line: the summary line stays the
+    // raw result, as every run before M5 wrote it.
+    let mut aivat_line = String::new();
+    if let Some(j) = spec.aivat {
+        let rows: Vec<(f64, [f64; 3])> =
+            report.pairs.iter().filter_map(|p| p.aivat_row()).collect();
+        let (corrected, b) = stats::crossfit(&rows);
+        let c = stats::summary(&corrected);
+        // Corrected minus raw per pair: its mean is 0 when the correction
+        // is unbiased (test T5).
+        let diff: Vec<f64> = corrected.iter().zip(&rows).map(|(c, r)| c - r.0).collect();
+        let d = stats::summary(&diff);
+        let se = d.sd / (d.n as f64).sqrt();
+        aivat_line = format!(
+            "corrected points per round (AIVAT, cross-fitted) mean {:.3} sd {:.3} 95% CI [{:.3}, {:.3}] over {} pairs; raw sd {:.3}; corrected minus raw mean {:.4} se {:.4} t {:.3}; coefficients deal draw action {:.3},{:.3},{:.3} and {:.3},{:.3},{:.3}",
+            c.mean,
+            c.sd,
+            c.lo,
+            c.hi,
+            c.n,
+            r.sd,
+            d.mean,
+            se,
+            if se > 0.0 { d.mean / se } else { 0.0 },
+            b[0][0],
+            b[0][1],
+            b[0][2],
+            b[1][0],
+            b[1][1],
+            b[1][2]
+        );
+        let _ = writeln!(
+            text,
+            "# aivat j={j} nodes={} values={} capped={} draws={} {aivat_line}",
+            harness::AIVAT_NODES,
+            report.aivat_values,
+            report.aivat_capped,
+            if report.aivat_draws { "on" } else { "off" }
+        );
+        aivat_line.push('\n');
+    }
     let _ = writeln!(
         text,
         "# capped a={} b={}",
@@ -577,7 +636,7 @@ fn write_match(
     std::fs::write(out, text).map_err(|e| format!("{out}: {e}"))?;
     let summary = match &report.fault {
         None => format!(
-            "{lines}\nmatch: PASS mode {} unit {} target {} pairs {} moves {}; illegal 0, crashes 0, timeouts 0; results {out}\n",
+            "{lines}\n{aivat_line}match: PASS mode {} unit {} target {} pairs {} moves {}; illegal 0, crashes 0, timeouts 0; results {out}\n",
             spec.mode.name(),
             if spec.unit == harness::Unit::Round {
                 "round"

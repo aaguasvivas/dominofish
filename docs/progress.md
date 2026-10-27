@@ -2,9 +2,9 @@
 
 ## Top block
 
-- Milestone: M5 (variance reduction) next; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: none (next: M5, whose features are appended when it starts)
-- Last green commit: d56468f (check.sh passes; M4-99 passed on it; regress passes 39 of 39 after the M0-04 fix in the next commit)
+- Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
+- Feature in progress: M5-03 (test T5); M5-01 and M5-02 built, their verify scripts next
+- Last green commit: a95fdf8 (check.sh passes; regress passes 39 of 39 in 464 s on 2026-10-27)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
 - Open questions: none (Q9 answered 2026-10-26: the repository is public)
@@ -162,4 +162,13 @@
 - History check before making the repository public (Q1: public at the M4 exit): 88 commits, 15.2 MB of history, no secret pattern, no work name; 131 lines with /Users/Adelson paths (25 files at HEAD), the author email on every commit, and 48 lines of notes on Capi's plans. Asked as Q9; the repository stays private until the owner answers.
 - Next: M5 (variance reduction). Follow-ups from M4: bound PIMC's 1v1 time per move (single moves up to 119 s); move generation and ordering take 35% of the solver's time with the small table.
 - Q9 answered ("Q9: make the repository public now, with the history as it is."): `gh repo edit aaguasvivas/dominofish --visibility public` at 996954a; gh reports PUBLIC, and anonymous requests for https://github.com/aaguasvivas/dominofish and the raw README return 200. Checked on GitHub in the browser: the README renders with its logo and board image loaded, and GitHub detects both licenses (MIT and Apache-2.0).
+
+## 2026-10-27
+
+- Start: check.sh PASS (164 s), regress PASS 39 of 39 in 464 s. Task-observer scan: 375 observation files parsed; the review (last 2026-09-24) is offered to the owner.
+- M5 started; M5-01 to M5-04 appended to docs/features.json; D19 (AIVAT) and test T5 in docs/PLAN.md, committed before T5's first run.
+- Bot::policy (core/src/bots.rs): each bot's tied best moves, which decide samples uniformly with the same random numbers as before (a forced draw or pass takes none). Six committed R2 rows (all four bots, both modes, rounds and games) replay with equal pair lines.
+- core/src/aivat.rs: Valuer (the solver's value with a cold 2^16 table and a 2,000,000-node cap), action_term, draw_term, deal_term; State::with_boneyard. tests/aivat.rs: 179 bot decisions choose exactly their policy over 64 seeds; 21 tied decisions' action terms sum to 0; one-tile draws and a deal against itself give 0; 544 values equal the solver without a table.
+- match --aivat J (harness.rs, main.rs): per-pair `aivat` lines and a `# aivat` summary with cross-fitted coefficients (stats::crossfit) and the corrected-minus-raw t; the report adds the corrected points per round and the SD ratio raw / corrected (REPORT.md regenerated, two new columns, "-" for earlier runs).
+- Dev measurement (deal seeds 1,000,000,000 + i, J = 8): subtracting the terms whole raised the SD (1v1 rule against random, 40 pairs: 57.4 against 20.4) because the solver's value assumes perfect play afterwards; the fitted coefficients were 0 to 0.55. With two-fold cross-fitting, SD ratios raw / corrected were 1.11 to 1.18 for rule against random, 1.06 to 1.13 for accompanied against heaviest, and 0.90 to 1.04 for the rule bot against itself (400 round pairs and 100 game pairs per matchup). Follow-up: a value from playouts with the actual policies.
 

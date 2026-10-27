@@ -830,5 +830,53 @@
    "result": "M4-11: PASS README.md shows R4, R5, and R6 for PIMC with their settings, command, and files, and 20 rows equal to their REPORT.md rows; readme-fast: PASS 20 rows reproduce docs/eval/results/2026-10-26-pimc-r4-fast.txt docs/eval/results/2026-10-26-pimc-curve-r5-fast.txt docs/eval/results/2026-10-26-pimc-gap-r6-fast.txt; REPORT.md current and checked by check.sh",
    "log": null
   }
+ },
+ {
+  "id": "M5-01",
+  "milestone": "M5",
+  "description": "AIVAT terms (core/src/aivat.rs, docs/PLAN.md D19) and exact bot policies: Bot::policy gives each baseline bot's move set, which decide samples uniformly, with every recorded bot game unchanged (committed R2 pair lines replay exactly); a value is the exact solver's with a cold table per call; the action term of a bot's choice sums to exactly 0 over its policy; draw terms (1v1, against sampled reshuffles of the boneyard) only when no engine sees hidden state; deal terms for the rounds after the first, with the same sampled deals in both games of a pair; 0 allocations unchanged in the hot path.",
+  "verify": "scripts/verify/M5-01.sh",
+  "fast": "scripts/verify/M5-01.sh --fast",
+  "requires": [
+   "M4-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M5-02",
+  "milestone": "M5",
+  "description": "dominofish match --aivat J writes each pair's deal, draw, and action terms and a cross-fitted corrected summary (stats::crossfit: coefficients fitted on the other half of the pairs, D19); the play is unchanged (pair lines equal to the same match without --aivat); REPORT.md shows each --aivat run's corrected points per round with its 95% CI and the SD ratio raw / corrected beside the raw result; docs/FORMATS.md documents the lines.",
+  "verify": "scripts/verify/M5-02.sh",
+  "fast": "scripts/verify/M5-02.sh --fast",
+  "requires": [
+   "M5-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M5-03",
+  "milestone": "M5",
+  "description": "Test T5 (stated in docs/PLAN.md before its first run): the correction is unbiased on null matches and against raw results, per row and pooled; a mutant whose action terms are biased fails the same test; the variance reduction (SD of raw over SD of corrected points per round) is measured per row and reported in docs/eval/REPORT.md.",
+  "verify": "scripts/verify/M5-03.sh",
+  "fast": "scripts/verify/M5-03.sh --fast",
+  "requires": [
+   "M5-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M5-04",
+  "milestone": "M5",
+  "description": "Later results show raw beside corrected: every strength run registered from M5 on runs with --aivat (docs/PLAN.md), REPORT.md shows the corrected result beside the raw one, and README.md shows T5's unbiasedness and variance reduction with their settings.",
+  "verify": "scripts/verify/M5-04.sh",
+  "fast": "scripts/verify/M5-04.sh --fast",
+  "requires": [
+   "M5-03"
+  ],
+  "passes": false,
+  "evidence": null
  }
 ]

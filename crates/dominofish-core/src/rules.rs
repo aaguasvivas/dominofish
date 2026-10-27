@@ -363,6 +363,20 @@ impl State {
         &self.boneyard[..self.boneyard_len as usize]
     }
 
+    /// The same state with the boneyard in another order of the same tiles
+    /// (the last tile is drawn first). The hash is unchanged: it covers each
+    /// tile's place, not the boneyard's order.
+    pub fn with_boneyard(&self, order: &[Tile]) -> State {
+        assert_eq!(order.len(), self.boneyard_len as usize);
+        debug_assert_eq!(
+            order.iter().fold(0u32, |m, t| m | t.bit()),
+            self.boneyard().iter().fold(0u32, |m, t| m | t.bit())
+        );
+        let mut s = *self;
+        s.boneyard[..order.len()].copy_from_slice(order);
+        s
+    }
+
     /// The canonical legal moves of the seat on turn (docs/RULES.md, Moves).
     pub fn legal_moves(&self, out: &mut MoveList) {
         out.len = 0;

@@ -42,34 +42,49 @@ impl Bot {
         Bot::ALL.into_iter().find(|b| b.name() == name)
     }
 
-    /// The bot's move for its seat, which must be on turn.
+    /// The bot's move for its seat, which must be on turn: uniform over
+    /// `policy`.
     pub fn decide(self, info: &InfoSet, rng: &mut Rng) -> Move {
         let mut moves = MoveList::new();
-        info.legal_moves(&mut moves);
-        assert!(!moves.is_empty(), "decide needs the seat on turn");
+        self.policy(info, &mut moves);
         let first = moves.as_slice()[0];
+        // A draw or a pass takes no random number, as before policy existed,
+        // so every recorded bot game replays the same.
         if !matches!(first, Move::Play { .. }) {
             return first;
         }
+        moves.as_slice()[rng.below(moves.len() as u32) as usize]
+    }
+
+    /// The moves the bot chooses among, each with the same probability: its
+    /// exact policy (the AIVAT action terms of M5 need it). A draw or a pass
+    /// is the only legal move when it is legal.
+    pub fn policy(self, info: &InfoSet, out: &mut MoveList) {
+        info.legal_moves(out);
+        assert!(!out.is_empty(), "the bot's seat must be on turn");
+        if !matches!(out.as_slice()[0], Move::Play { .. }) || self == Bot::Random {
+            return;
+        }
+        let legal = *out;
         match self {
-            Bot::Random => moves.as_slice()[rng.below(moves.len() as u32) as usize],
-            Bot::Heaviest => best(info, &moves, rng, |_, tile, _| i64::from(tile.pips())),
-            Bot::Accompanied => best(info, &moves, rng, accompanied_score),
-            Bot::Rule => best(info, &moves, rng, rule_score),
+            Bot::Random => {}
+            Bot::Heaviest => best(info, &legal, out, |_, tile, _| i64::from(tile.pips())),
+            Bot::Accompanied => best(info, &legal, out, accompanied_score),
+            Bot::Rule => best(info, &legal, out, rule_score),
         }
     }
 }
 
-/// The play with the highest score, ties uniform by the RNG. The score sees
-/// the InfoSet, the tile, and the end it goes to.
+/// The plays with the highest score into `tied`, in generator order. The
+/// score sees the InfoSet, the tile, and the end it goes to.
 fn best(
     info: &InfoSet,
     moves: &MoveList,
-    rng: &mut Rng,
+    tied: &mut MoveList,
     score: impl Fn(&InfoSet, Tile, End) -> i64,
-) -> Move {
+) {
     let mut top = i64::MIN;
-    let mut tied = MoveList::new();
+    tied.clear();
     for &mv in moves.as_slice() {
         let Move::Play { tile, end } = mv else {
             continue;
@@ -83,7 +98,6 @@ fn best(
             tied.push(mv);
         }
     }
-    tied.as_slice()[rng.below(tied.len() as u32) as usize]
 }
 
 /// Tiles of `mask` that show `left` or `right`.

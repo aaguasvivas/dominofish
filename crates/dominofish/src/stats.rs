@@ -55,6 +55,87 @@ pub fn wilson(wins: f64, n: f64) -> (f64, f64) {
 }
 
 /// Mean, sample SD, and the 95% t interval of the mean.
+/// Coefficients b of the least-squares fit y ~ a + b . x over `rows`, one
+/// per column; a column constant over the rows gets 0, and so does every
+/// column when the fit is singular or the rows are fewer than columns + 2.
+fn fit(rows: &[(f64, [f64; 3])]) -> [f64; 3] {
+    let n = rows.len() as f64;
+    let mean_y = rows.iter().map(|r| r.0).sum::<f64>() / n.max(1.0);
+    let mut mean_x = [0.0; 3];
+    for r in rows {
+        for (m, x) in mean_x.iter_mut().zip(r.1) {
+            *m += x / n;
+        }
+    }
+    let live: Vec<usize> = (0..3)
+        .filter(|&c| rows.iter().any(|r| (r.1[c] - mean_x[c]).abs() > 1e-9))
+        .collect();
+    let k = live.len();
+    let mut b = [0.0; 3];
+    if k == 0 || rows.len() < k + 2 {
+        return b;
+    }
+    // The normal equations on centered data, solved by elimination with
+    // partial pivoting.
+    let mut m = vec![vec![0.0; k + 1]; k];
+    for r in rows {
+        for (i, &ci) in live.iter().enumerate() {
+            let xi = r.1[ci] - mean_x[ci];
+            for (j, &cj) in live.iter().enumerate() {
+                m[i][j] += xi * (r.1[cj] - mean_x[cj]);
+            }
+            m[i][k] += xi * (r.0 - mean_y);
+        }
+    }
+    for i in 0..k {
+        let p = (i..k)
+            .max_by(|&a, &b| m[a][i].abs().total_cmp(&m[b][i].abs()))
+            .expect("rows remain");
+        m.swap(i, p);
+        if m[i][i].abs() < 1e-9 {
+            return [0.0; 3];
+        }
+        let pivot = m[i].clone();
+        for (r, row) in m.iter_mut().enumerate() {
+            if r != i {
+                let f = row[i] / pivot[i];
+                for (x, p) in row.iter_mut().zip(&pivot).skip(i) {
+                    *x -= f * p;
+                }
+            }
+        }
+    }
+    for (i, &ci) in live.iter().enumerate() {
+        b[ci] = m[i][k] / m[i][i];
+    }
+    b
+}
+
+/// AIVAT-corrected values with two-fold cross-fitting (docs/PLAN.md D19):
+/// row i is y_i - b . x_i, where b is fitted on the rows of the other fold
+/// (pairs of the other parity), so b is independent of row i's terms and
+/// each corrected value keeps the mean of y. Also returns each fold's b.
+pub fn crossfit(rows: &[(f64, [f64; 3])]) -> (Vec<f64>, [[f64; 3]; 2]) {
+    let folds: [Vec<(f64, [f64; 3])>; 2] = [0, 1].map(|f| {
+        rows.iter()
+            .enumerate()
+            .filter(|(i, _)| i % 2 == f)
+            .map(|(_, r)| *r)
+            .collect()
+    });
+    // Fold f's rows use the coefficients fitted on the other fold.
+    let b = [fit(&folds[1]), fit(&folds[0])];
+    let corrected = rows
+        .iter()
+        .enumerate()
+        .map(|(i, r)| {
+            let c = b[i % 2];
+            r.0 - (0..3).map(|j| c[j] * r.1[j]).sum::<f64>()
+        })
+        .collect();
+    (corrected, b)
+}
+
 pub fn summary(xs: &[f64]) -> Summary {
     let n = xs.len();
     let mean = xs.iter().sum::<f64>() / (n.max(1) as f64);
@@ -352,5 +433,34 @@ mod tests {
             0.05 - band,
             0.05 + band
         );
+    }
+
+    #[test]
+    fn crossfit_recovers_the_coefficients_and_keeps_the_mean() {
+        // y = 3 + 0.5 x0 - 0.2 x2 + noise; x1 is constant.
+        let mut rng = dominofish_core::rng::Rng::new(5);
+        let mut u = || f64::from(rng.below(10_000)) / 100.0 - 50.0;
+        let rows: Vec<(f64, [f64; 3])> = (0..400)
+            .map(|_| {
+                let (x0, x2, e) = (u(), u(), u() / 10.0);
+                (3.0 + 0.5 * x0 - 0.2 * x2 + e, [x0, 7.0, x2])
+            })
+            .collect();
+        let (c, b) = crossfit(&rows);
+        for fold in b {
+            assert!(
+                (fold[0] - 0.5).abs() < 0.02 && fold[1] == 0.0 && (fold[2] + 0.2).abs() < 0.02,
+                "{fold:?}"
+            );
+        }
+        let raw = summary(&rows.iter().map(|r| r.0).collect::<Vec<_>>());
+        let cor = summary(&c);
+        assert!(
+            cor.sd < raw.sd / 5.0 && (cor.mean - 3.0).abs() < 0.5,
+            "{cor:?}"
+        );
+        // Too few rows: no correction.
+        let few = &rows[..4];
+        assert_eq!(crossfit(few).0, few.iter().map(|r| r.0).collect::<Vec<_>>());
     }
 }

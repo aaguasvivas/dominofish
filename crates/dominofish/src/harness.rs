@@ -16,11 +16,13 @@ use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use dominofish_core::aivat::{self, Valuer};
+use dominofish_core::bots::Bot;
 use dominofish_core::infoset::{Action, InfoSet};
 use dominofish_core::protocol::{FromEngine, ToEngine, VERSION, View};
 use dominofish_core::record::{GameRecord, RoundRecord};
 use dominofish_core::rng::{Rng, derive};
-use dominofish_core::rules::{Deal, Mode, Move, Phase, State, team};
+use dominofish_core::rules::{Deal, Mode, Move, MoveList, Phase, State, team};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Unit {
@@ -35,6 +37,9 @@ pub struct Side {
     pub command: Vec<String>,
     pub commit: String,
     pub hash: u64,
+    /// The baseline bot the command runs (`engine --bot <name>`), whose
+    /// policy the AIVAT action terms use; None for any other engine.
+    pub bot: Option<Bot>,
 }
 
 fn fnv64(bytes: &[u8]) -> u64 {
@@ -65,10 +70,15 @@ impl Side {
             [.., runs, bin, commit] if runs == "runs" && bin == "bin" => commit.clone(),
             _ => "-".into(),
         };
+        let bot = command
+            .windows(2)
+            .find(|w| w[0] == "--bot")
+            .and_then(|w| Bot::from_name(&w[1]));
         Ok(Side {
             command,
             commit,
             hash: fnv64(&bytes),
+            bot,
         })
     }
 }
@@ -100,6 +110,8 @@ struct Engine {
     /// Time from each `go` to its move: total and slowest, in nanoseconds,
     /// and the number of moves.
     think: Think,
+    /// The side's baseline bot, if any (`Side::bot`).
+    bot: Option<Bot>,
 }
 
 /// Reply times to `go`: a record, not a budget (budgets are nodes or
@@ -181,6 +193,7 @@ impl Engine {
             view: View::InfoSet,
             capped: 0,
             think: Think::default(),
+            bot: side.bot,
         })
     }
 
@@ -288,16 +301,37 @@ pub struct Spec {
     /// pair i gets derive(derive(engine_seed, i), 100 + s), keyed by pair
     /// and seat, so no engine message is a function of a deal.
     pub engine_seed: u64,
+    /// AIVAT with this many sampled deals and boneyard orders per term
+    /// (docs/PLAN.md D19); None leaves the result uncorrected.
+    pub aivat: Option<u32>,
+}
+
+/// A finished game: its final scores, its rounds, and team 0's AIVAT
+/// terms (deal, draw, action).
+type GameEnd = ([u16; 2], u32, [f64; 3]);
+
+/// The node cap of each AIVAT value (D19).
+pub const AIVAT_NODES: u64 = 2_000_000;
+
+/// A pair's AIVAT terms, each summed over both games from side A's view.
+/// The corrected result subtracts them with cross-fitted coefficients
+/// (`stats::crossfit`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PairAivat {
+    pub deal: f64,
+    pub draw: f64,
+    pub action: f64,
 }
 
 /// One duplicate pair: the final scores of each game as [side A, side B],
 /// and the rounds each game lasted.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PairResult {
     pub pair: u64,
     pub deal_seed: u64,
     pub scores: [[u16; 2]; 2],
     pub rounds: [u32; 2],
+    pub aivat: Option<PairAivat>,
 }
 
 impl PairResult {
@@ -318,6 +352,18 @@ impl PairResult {
     pub fn margin_per_round(&self) -> f64 {
         f64::from(self.margin()) / f64::from(self.rounds[0] + self.rounds[1])
     }
+
+    /// The pair's margin per round and its AIVAT terms per round (deal,
+    /// draw, action), the row `stats::crossfit` takes.
+    pub fn aivat_row(&self) -> Option<(f64, [f64; 3])> {
+        let rounds = f64::from(self.rounds[0] + self.rounds[1]);
+        self.aivat.map(|a| {
+            (
+                self.margin_per_round(),
+                [a.deal / rounds, a.draw / rounds, a.action / rounds],
+            )
+        })
+    }
 }
 
 pub struct Report {
@@ -329,6 +375,11 @@ pub struct Report {
     pub capped: [u64; 2],
     /// Each side's reply times to `go`.
     pub think: [Think; 2],
+    /// AIVAT values computed, those that reached the node cap, and whether
+    /// draw terms were on (off when an engine sees hidden state).
+    pub aivat_values: u64,
+    pub aivat_capped: u64,
+    pub aivat_draws: bool,
 }
 
 /// An engine's own settings, from its ready line.
@@ -415,6 +466,9 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
         fault: None,
         capped: [0, 0],
         think: [Think::default(); 2],
+        aivat_values: 0,
+        aivat_capped: 0,
+        aivat_draws: false,
     };
     let per_side = (spec.mode.seats() / 2) as usize;
     let mut engines: Vec<Engine> = Vec::new();
@@ -430,11 +484,17 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
             }
         }
     }
+    let mut valuer = spec.aivat.map(|_| Valuer::new(16, AIVAT_NODES));
     let result = handshake(spec, &mut engines, per_side, &mut report.header).and_then(|_| {
+        // A draw term needs a boneyard order no engine sees.
+        let draws = engines.iter().all(|e| e.view == View::InfoSet);
+        report.aivat_draws = spec.aivat.is_some() && draws;
         for i in 0..spec.pairs {
             let deal_seed = spec.seed + i;
             let mut scores = [[0u16; 2]; 2];
             let mut rounds = [0u32; 2];
+            // Side A's terms over both games: deal, draw, action.
+            let mut terms = [0.0f64; 3];
             for g in 0..2 {
                 // engine_at[seat]: side A's engines take team g's seats.
                 let engine_at: Vec<usize> = (0..spec.mode.seats())
@@ -444,22 +504,34 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
                         if a_side { k } else { per_side + k }
                     })
                     .collect();
-                let (final_scores, played) = play_game(
+                let (final_scores, played, team0_terms) = play_game(
                     spec,
                     &mut engines,
                     &engine_at,
                     i,
                     deal_seed,
                     &mut report.moves,
+                    valuer.as_mut().map(|v| (v, draws)),
                 )?;
                 scores[g] = [final_scores[g], final_scores[1 - g]];
                 rounds[g] = played;
+                // Side A holds team g's seats: team 0's terms count for A
+                // in game 0 and against A in game 1.
+                let sign = if g == 0 { 1.0 } else { -1.0 };
+                for (t, x) in terms.iter_mut().zip(team0_terms) {
+                    *t += sign * x;
+                }
             }
             let pair = PairResult {
                 pair: i,
                 deal_seed,
                 scores,
                 rounds,
+                aivat: spec.aivat.map(|_| PairAivat {
+                    deal: terms[0],
+                    draw: terms[1],
+                    action: terms[2],
+                }),
             };
             let done = stop(&pair);
             report.pairs.push(pair);
@@ -475,6 +547,10 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
     for (k, e) in engines.iter().enumerate() {
         report.capped[k / per_side] += e.capped;
         report.think[k / per_side].add(e.think);
+    }
+    if let Some(v) = &valuer {
+        report.aivat_values = v.values;
+        report.aivat_capped = v.capped;
     }
     engines.into_iter().for_each(Engine::stop);
     report
@@ -551,9 +627,15 @@ fn play_game(
     pair: u64,
     deal_seed: u64,
     moves: &mut u64,
-) -> Result<([u16; 2], u32), (Fault, String)> {
+    mut aivat: Option<(&mut Valuer, bool)>,
+) -> Result<GameEnd, (Fault, String)> {
     let mode = spec.mode;
     let deal_for = |r: u64| Deal::shuffled(&mut Rng::new(derive(deal_seed, r)));
+    // AIVAT (D19): team 0's deal, draw, and action terms, the sampled
+    // deals and boneyard orders keyed by the deal seed, apart from it.
+    let mut terms = [0.0f64; 3];
+    let j = spec.aivat.unwrap_or(0);
+    let mut reshuffle = Rng::new(derive(deal_seed, 1_000_000));
     for seat in 0..mode.seats() {
         let msg = ToEngine::Game {
             mode,
@@ -600,6 +682,16 @@ fn play_game(
             let e = engine_at[mover as usize];
             let ply = record.rounds[r].moves.len();
             let info = InfoSet::new(&record, r, ply, mover).expect("the record so far is valid");
+            // A baseline bot's exact policy, for its action term.
+            let policy = match (&aivat, engines[e].bot) {
+                (Some(_), Some(bot)) => {
+                    let mut p = MoveList::new();
+                    bot.policy(&info, &mut p);
+                    Some(p)
+                }
+                _ => None,
+            };
+            let before = state;
             engines[e].expect_quiet()?;
             engines[e].send(&ToEngine::InfoSet(Box::new(info)).to_line(mode))?;
             if engines[e].view == View::Omniscient {
@@ -632,6 +724,14 @@ fn play_game(
                         r + 1
                     ),
                 ));
+            }
+            if let Some((v, draws)) = aivat.as_mut() {
+                if let Some(p) = &policy {
+                    terms[2] += aivat::action_term(v, &before, mv, p.as_slice());
+                }
+                if mv == Move::Draw && *draws {
+                    terms[1] += aivat::draw_term(v, &before, &mut reshuffle, j);
+                }
             }
             let pile = state.boneyard().to_vec();
             state.play(mv);
@@ -675,9 +775,17 @@ fn play_game(
             engines[engine_at[seat as usize]].send(&msg.to_line(mode))?;
         }
         if done {
-            return Ok((state.scores, record.rounds.len() as u32));
+            return Ok((state.scores, record.rounds.len() as u32, terms));
         }
-        let deal = deal_for(record.rounds.len() as u64);
+        let next = record.rounds.len() as u64;
+        let deal = deal_for(next);
+        if let Some((v, _)) = aivat.as_mut() {
+            // The same sampled deals in both games of the pair.
+            let others: Vec<Deal> = (0..u64::from(j))
+                .map(|k| Deal::shuffled(&mut Rng::new(derive(derive(deal_seed, next), 500 + k))))
+                .collect();
+            terms[0] += aivat::deal_term(v, &state, &deal, &others);
+        }
         state = state.next_round(&deal);
         record.rounds.push(RoundRecord {
             deal,
