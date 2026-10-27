@@ -3,7 +3,10 @@
 //! sum to exactly 0 over its policy, and its decisions over many seeds use
 //! every move of its policy and no other; a draw term from a boneyard of
 //! one tile and a deal term against the real deal are 0; and a value is a
-//! function of the state (the same with any table history).
+//! function of the state (the same with any table history). With
+//! AIVAT_FULL=1 (scripts/verify/M5-01.sh, release mode) the tests run at
+//! full size; without it they use positions near the end of a round, so
+//! check.sh's debug build stays fast.
 
 mod common;
 
@@ -14,6 +17,10 @@ use dominofish_core::referee::play_bots;
 use dominofish_core::rng::Rng;
 use dominofish_core::rules::{Mode, Move, MoveList, Phase};
 use dominofish_core::solver::{self, NO_CAP};
+
+fn full() -> bool {
+    std::env::var("AIVAT_FULL").as_deref() == Ok("1")
+}
 
 #[test]
 fn action_terms_sum_to_zero_over_the_policy() {
@@ -49,7 +56,8 @@ fn action_terms_sum_to_zero_over_the_policy() {
                     policy.len(),
                     "{bot:?} never chose some tied move"
                 );
-                if policy.len() > 1 && solver::tiles_left(&state) <= 20 {
+                let deepest = if full() { 20 } else { 12 };
+                if policy.len() > 1 && solver::tiles_left(&state) <= deepest {
                     let sum: f64 = policy
                         .as_slice()
                         .iter()
@@ -63,7 +71,7 @@ fn action_terms_sum_to_zero_over_the_policy() {
             }
         }
     }
-    assert!(ties > 20, "{ties}");
+    assert!(ties > if full() { 20 } else { 5 }, "{ties}");
     println!(
         "aivat actions: {decisions} decisions, each bot's choices cover exactly its policy; {ties} tied decisions whose action terms sum to 0"
     );
@@ -84,7 +92,8 @@ fn deterministic_events_give_zero_terms() {
             }
             state.play(mv);
         }
-        if record.rounds.len() > 1 {
+        // A deal term solves whole rounds: a few games unless full.
+        if record.rounds.len() > 1 && (full() || seed < 3) {
             let (over, _) = {
                 let (mut s, _) = record.round_start(0).unwrap();
                 for &mv in &record.rounds[0].moves {
@@ -107,16 +116,20 @@ fn a_value_is_a_function_of_the_state() {
     let mut v = Valuer::new(16, NO_CAP);
     let mut checked = 0;
     for mode in [Mode::OneVsOne, Mode::TwoVsTwo] {
-        for seed in 78..84 {
+        for seed in 78..if full() { 84 } else { 80 } {
             let record = common::random_record(mode, 100, seed, false);
-            let start = record.round_start(0).unwrap().0;
+            let mut previous = None;
             for (r, round) in record.rounds.iter().enumerate() {
                 let (mut state, _) = record.round_start(r).unwrap();
                 for &mv in &round.moves {
-                    if solver::tiles_left(&state) <= 14 {
+                    if solver::tiles_left(&state) <= if full() { 14 } else { 10 } {
                         let a = v.value(&state);
-                        // Another state's search in between leaves the table warm.
-                        let _ = v.value(&start);
+                        // Another state's search in between leaves the table
+                        // warm: the previous checked state's.
+                        if let Some(p) = &previous {
+                            let _ = v.value(p);
+                        }
+                        previous = Some(state);
                         let mut s = state;
                         let exact = solver::solve(&mut s, None, NO_CAP).value;
                         assert_eq!((a, v.value(&state)), (exact, exact));
@@ -127,7 +140,7 @@ fn a_value_is_a_function_of_the_state() {
             }
         }
     }
-    assert!(checked > 100, "{checked}");
+    assert!(checked > if full() { 100 } else { 20 }, "{checked}");
     println!(
         "aivat values: {checked} states, equal to the solver without a table, whatever ran before"
     );
