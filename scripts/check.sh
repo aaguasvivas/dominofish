@@ -14,13 +14,16 @@ start=$(date +%s)
 step() {
   local name=$1
   shift
+  local t0
+  t0=$(date +%s)
   echo "== $name: $*" >> "$log"
   if "$@" >> "$log" 2>&1; then
-    echo "ok $name"
+    echo "ok $name in $(($(date +%s) - t0))s"
   else
     echo "ERROR $name failed (details in $log)"
     fail=1
   fi
+  echo "== $name took $(($(date +%s) - t0))s" >> "$log"
 }
 
 step rustfmt cargo fmt --all --check

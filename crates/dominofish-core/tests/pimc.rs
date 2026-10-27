@@ -1,6 +1,9 @@
 //! M4-02: PIMC analysis (core/src/pimc.rs). With PIMC_FULL=1
 //! (scripts/verify/M4-02.sh, release mode) the sweep plays 20 games per
-//! mode; without it, 2, so check.sh stays fast.
+//! mode; without it, 2, and every test keeps to positions near the end of
+//! a round (check.sh runs the debug build, where a 2v2 round start takes
+//! minutes), so check.sh stays fast. PIMC_FULL=1 runs the sizes M4-02
+//! passed with.
 
 mod common;
 
@@ -72,7 +75,7 @@ fn the_same_seed_gives_the_same_analysis() {
     let mut checked = 0;
     for mode in [Mode::OneVsOne, Mode::TwoVsTwo] {
         each_decision(mode, 1, 900_000, |_, state, info| {
-            if solver::tiles_left(state) > 18 {
+            if solver::tiles_left(state) > if full() { 18 } else { 12 } {
                 return;
             }
             let a = analyze(info, &LIMITS, 5);
@@ -80,7 +83,7 @@ fn the_same_seed_gives_the_same_analysis() {
             checked += 1;
         });
     }
-    assert!(checked > 20);
+    assert!(checked > if full() { 20 } else { 5 }, "{checked}");
     println!("pimc determinism: {checked} decisions, equal analyses from equal seeds");
 }
 
@@ -115,7 +118,7 @@ fn per_world_values_equal_the_solver() {
     let mut checked = 0u64;
     for mode in [Mode::OneVsOne, Mode::TwoVsTwo] {
         each_decision(mode, 3, 920_000, |_, state, info| {
-            if solver::tiles_left(state) > 16 {
+            if solver::tiles_left(state) > if full() { 16 } else { 12 } {
                 return;
             }
             let seed = 7 + checked;
@@ -139,7 +142,7 @@ fn per_world_values_equal_the_solver() {
             checked += 1;
         });
     }
-    assert!(checked > 100);
+    assert!(checked > if full() { 100 } else { 20 }, "{checked}");
     println!(
         "pimc per world: {checked} decisions, every move's values equal the solver's without a table on the same worlds"
     );
@@ -154,6 +157,9 @@ fn every_decision_is_legal_with_no_inconsistent_world() {
             (0u64, 0u64, 0u64, 0u64, 0u64);
         let mut seed = Rng::new(930_000);
         each_decision(mode, games, 930_000, |_, state, info| {
+            if !full() && solver::tiles_left(state) > 14 {
+                return;
+            }
             let a = analyze(info, &LIMITS, seed.next_u64());
             let mut legal = MoveList::new();
             state.legal_moves(&mut legal);
@@ -190,7 +196,7 @@ fn a_table_does_not_change_the_values() {
     // entries give the same sums.
     let mut checked = 0;
     each_decision(Mode::TwoVsTwo, 1, 940_000, |_, state, info| {
-        if solver::tiles_left(state) > 20 {
+        if solver::tiles_left(state) > if full() { 20 } else { 12 } {
             return;
         }
         let small = Limits {
@@ -210,6 +216,6 @@ fn a_table_does_not_change_the_values() {
         assert_eq!(sums(&a), sums(&b));
         checked += 1;
     });
-    assert!(checked > 10);
+    assert!(checked > if full() { 10 } else { 3 }, "{checked}");
     println!("pimc tables: {checked} decisions, equal values with 2^12 and 2^16 entries");
 }
