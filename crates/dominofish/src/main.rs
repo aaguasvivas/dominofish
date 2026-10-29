@@ -579,7 +579,7 @@ fn write_match(
         let (corrected, b) = stats::crossfit(&rows);
         let c = stats::summary(&corrected);
         // Corrected minus raw per pair: its mean is 0 when the correction
-        // is unbiased (test T5).
+        // is unbiased (tests T5 and T6).
         let diff: Vec<f64> = corrected.iter().zip(&rows).map(|(c, r)| c - r.0).collect();
         let d = stats::summary(&diff);
         let se = d.sd / (d.n as f64).sqrt();

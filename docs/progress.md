@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03 (test T5): fails its power criterion (d); waits for Q11
+- Feature in progress: M5-03, judged by test T6 (Q11 answered 2026-10-29)
 - Last green commit: 64e01e8 (check.sh passes; regress passes 41 of 41 in 527 s on 2026-10-29)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q11 (T5's power check, 2026-10-29); Q10 answered 2026-10-29 (Worker dominofish, deployed from this Mac)
+- Open questions: none (Q10 and Q11 answered 2026-10-29)
 - Stashes: none
 
 ## 2026-10-25
@@ -190,3 +190,5 @@
 - Q10 answered (PLAN.md): Worker dominofish, deployed from this Mac. wrangler.jsonc (assets web/dist; web/dist/.assetsignore keeps artifact.html off the site) and scripts/deploy-web.sh (clean tree only; nvm's Node 22, since wrangler 4.156.0 needs Node 22). The wrangler login is the owner's personal account (a gmail.com address). Deployed 64e01e8 to https://dominofish.adelsonaguasvivas.workers.dev, version d688dae7-435d-46ba-8be6-2e35eee102ab; the live page's SHA-256 equals the build's (7b28120d...). Live: brotli, 126,924 bytes on the wire; HTML cache-control public, max-age=0, must-revalidate; a missing path returns 404 with an empty body (plain and navigation requests); /artifact.html and /.assetsignore return 404; the hint and the exact analysis work at 375x667 with no console errors. README links the live board ("Play now").
 - Ship-audit report: docs/audit/2026-10-29/report.md.
 - regress after the deploy (64e01e8 plus this entry's README and CLAUDE.md edits): regress: PASS 41 of 41 fast commands in 527s.
+- Q11 answered, word for word: "lets do a, your recommendation". T6 is stated in PLAN.md (Pre-registered runs) and committed before its first run: T5's 14 rows, criteria, and mutant on new seeds (deal seeds 620,000,000 + 1,000,000 k + i, engine seed base 5,000,800,000 + k), with rows 2, 3, 9, and 10 at 16,000 pairs, so the true run and the mutant replay test those rows at the same size. scripts/run-t6.sh runs it; scripts/verify/M5-03.sh now judges T6: its full run builds the mutant from the commit in T6's COMMIT file, replays rows 2, 3, 9, and 10 on the same seeds, and requires equal pair lines (the same games) and |t| > 3.29 in one row. Design check on T5's data: the T5 mutant's pair lines equal T5's in all four rows (1,000 each) and 835 to 1,000 of each row's aivat lines differ, so the mutant changes only the terms. Known-bad: the verify fails while T6's files are missing.
+
