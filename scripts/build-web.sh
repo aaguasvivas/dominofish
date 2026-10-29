@@ -31,6 +31,7 @@ open("web/dist/index.html", "w").write(page)
 head = page[page.index("<head>") + 6:page.index("</head>")]
 head = re.sub(r'<meta charset="utf-8">\s*|<meta name="viewport"[^>]*>\s*', "", head)
 body = page[page.index("<body>") + 6:page.rindex("</body>")]
-open("web/dist/artifact.html", "w").write(head.strip() + "\n" + body.strip() + "\n")
+head = '<meta name="claude:viewport-fit-sides" content="cover">\n' + head.strip()
+open("web/dist/artifact.html", "w").write(head + "\n" + body.strip() + "\n")
 PY
 echo "web/dist/index.html $(wc -c < web/dist/index.html | tr -d ' ') bytes"

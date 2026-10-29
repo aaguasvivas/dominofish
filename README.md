@@ -107,10 +107,10 @@ scripts/check.sh
 
 ## Web board
 
-Play Dominican dominoes against the DominoFish bots in your browser, in English or Spanish, 1v1 or 2v2. Ask for a hint from the rule bot, which sees only your hand and the public moves, or turn on the exact analysis: the solver scores every legal move for the rest of the round. The solver sees every hand, so the board labels its values as perfect information. The engine runs in your browser as WebAssembly; nothing leaves the page.
+Play Dominican dominoes in your browser, in English or Spanish, 1v1 or 2v2, against DominoFish or the four baseline bots. Ask DominoFish for a hint: it sees only your hand and the public moves, samples 32 deals of the hands you cannot see, and ranks your moves by their mean points with a sampling error. Or turn on the exact analysis: the solver scores every legal move for the rest of the round. The solver sees every hand, so the board labels its values as perfect information. The engine runs in your browser as WebAssembly; your games never leave the page.
 
 <p align="center">
-  <img src="docs/assets/board.png" alt="The DominoFish web board in dark mode: a 2v2 round on green felt, your hand below, and the exact analysis scoring each legal move" width="800">
+  <img src="docs/assets/board.png" alt="The DominoFish web board in dark mode: a 2v2 round on green felt, your hand below, DominoFish's hint ranking your moves, and the exact analysis scoring each legal move" width="800">
 </p>
 
 Build it into one self-contained page, then open the page in a browser:

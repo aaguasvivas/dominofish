@@ -24,7 +24,7 @@ case "$build" in "web/dist/index.html "*" bytes") ;; *) echo "ERROR $build"; ech
 grep -q 'const DOMINOFISH_WASM = "' web/dist/index.html || err "the page does not embed the wasm module"
 if grep -q 'fetch(' web/dist/index.html; then err "the page fetches a file"; fi
 cargo test -q -p dominofish-wasm > runs/M11-01/board-tests.log 2>&1 || err "board request tests failed (runs/M11-01/board-tests.log)"
-grep -q 'test result: ok. 3 passed' runs/M11-01/board-tests.log || err "the 3 board request tests did not all run"
+grep -q 'test result: ok. 4 passed' runs/M11-01/board-tests.log || err "the 4 board request tests did not all run"
 smoke=$("$NODE" tools/board-smoke.mjs "$games" 2>&1 | tail -1)
 case "$smoke" in "board-smoke: games $((2 * games)) "*"errors 0") ;; *) err "smoke: $smoke" ;; esac
 keys=$("$NODE" -e '
@@ -36,7 +36,7 @@ console.log(missing.length ? "missing " + missing.join(",") : "keys " + en.lengt
 ')
 case "$keys" in "keys "*) ;; *) err "strings: $keys" ;; esac
 if [ "$fail" -eq 0 ]; then
-  echo "M11-01: PASS $build; ${smoke#board-smoke: }; board request tests 3 passed; English and Spanish ${keys}"
+  echo "M11-01: PASS $build; ${smoke#board-smoke: }; board request tests 4 passed; English and Spanish ${keys}"
 else
   echo "M11-01: FAIL"
 fi

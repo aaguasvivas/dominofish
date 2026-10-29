@@ -3,7 +3,7 @@
 // the engine for every view, move, hint, and analysis.
 
 const HUMAN = 0;
-const BOTS = ["random", "heaviest", "accompanied", "rule"];
+const BOTS = ["random", "heaviest", "accompanied", "rule", "pimc"];
 const BOT_DELAY_MS = 550;
 
 const $ = (id) => document.getElementById(id);
@@ -21,7 +21,7 @@ const store = {
 
 const app = {
   lang: store.get("lang", (navigator.language || "en").toLowerCase().startsWith("es") ? "es" : "en"),
-  settings: store.get("settings", { mode: "2v2", target: 100, opponents: "rule", partner: "rule", seed: null }),
+  settings: store.get("settings", { mode: "2v2", target: 100, opponents: "pimc", partner: "pimc", seed: null }),
   analysisOn: store.get("analysis", false),
   reveal: store.get("reveal", false),
   record: null,
@@ -51,6 +51,11 @@ function seatName(seat) {
   if (seat === HUMAN) return t("you");
   if (!isTwo()) return t("rival");
   return [t("you"), t("east"), t("partnerSeat"), t("west")][seat];
+}
+
+// A sentence whose subject is a seat takes the second person for the human.
+function ts(key, seat, vars) {
+  return t(seat === HUMAN ? key + "You" : key, vars);
 }
 
 function teamName(tm) {
@@ -95,14 +100,14 @@ function moveText(item) {
   const m = item.move.split(" ");
   if (m[0] === "play") {
     const lead = app.view && item.end === "lead";
-    const key = lead ? "playsLead" : m[2] === "left" ? "playsLeft" : "playsRight";
-    return t(key, { tile: chip(m[1]) });
+    if (lead) return ts("playsLead", item.seat, { tile: chip(m[1]) });
+    return t(m[2] === "left" ? "playsLeft" : "playsRight", { tile: chip(m[1]) });
   }
   if (m[0] === "draw") {
-    if (item.drawn && (item.seat === HUMAN || app.reveal)) return t("drewTiles", { tiles: item.drawn.map((x) => chip(x)).join(" ") });
-    return t("drew", { n: item.drawn ? item.drawn.length : 1 });
+    if (item.drawn && (item.seat === HUMAN || app.reveal)) return ts("drewTiles", item.seat, { tiles: item.drawn.map((x) => chip(x)).join(" ") });
+    return ts("drew", item.seat, { n: item.drawn ? item.drawn.length : 1 });
   }
-  return t("passed");
+  return ts("passed", item.seat);
 }
 
 function eventText(ev) {
@@ -159,7 +164,7 @@ function renderBoard() {
   const v = app.view;
   const board = $("board");
   if (v.line.length === 0) {
-    board.innerHTML = `<div class="empty-board">${esc(t("emptyBoard", { seat: seatName(v.turn) }))}</div>` + boneyardChip();
+    board.innerHTML = `<div class="empty-board">${esc(ts("emptyBoard", v.turn, { seat: seatName(v.turn) }))}</div>` + boneyardChip();
     return;
   }
   const width = board.clientWidth || 600;
@@ -241,7 +246,7 @@ function renderStatus() {
 function renderMoves() {
   const v = app.view;
   const items = [];
-  if (v.opening) items.push(`<li><span class="who">${esc(seatName(v.opening.seat))}</span><span class="what">${t("opensShort", { tile: chip(v.opening.tile) })}</span></li>`);
+  if (v.opening) items.push(`<li><span class="who">${esc(seatName(v.opening.seat))}</span><span class="what">${ts("opensShort", v.opening.seat, { tile: chip(v.opening.tile) })}</span></li>`);
   for (const h of v.history) {
     const tag = h.event ? `<span class="tag">${esc(t("ev_" + h.event.kind))} +${h.event.points}</span>` : "";
     items.push(`<li><span class="who">${esc(seatName(h.seat))}</span><span class="what">${moveText(h)} ${tag}</span></li>`);
@@ -306,7 +311,7 @@ async function renderAnalysis() {
   const pv = a.line.slice(0, 12).map((s) => `<span class="step" title="${esc(seatName(s.seat))}" aria-label="${esc(seatName(s.seat))}"><span class="dot ${team(s.seat) === 0 ? "us" : "them"}"></span>${s.tile ? chip(s.tile, 11) : esc(s.move === "draw" ? t("draw") : t("pass"))}</span>`).join("");
   box.innerHTML = `
     <div class="evalbar" role="img" aria-label="${esc(teamName(0))} ${fmt(a.value)}"><div class="fill" style="width:${fill}%"></div><div class="label">${fmt(a.value)}</div></div>
-    <p class="small muted">${esc(t("analysisFor", { seat: seatName(mover) }))}</p>
+    <p class="small muted">${esc(ts("analysisFor", mover, { seat: seatName(mover) }))}</p>
     <ul class="mv-list">${list}</ul>
     <p class="pv-title">${esc(t("lineTitle"))}</p>
     <div class="pv">${pv}</div>
@@ -376,18 +381,41 @@ function chooseEnd(end) {
   if (m) humanMove(m.move);
 }
 
+// The hint comes from DominoFish (PIMC), which sees only your hand and the
+// public moves: every legal move with its expected margin for your side.
 async function hint() {
   const v = app.view;
   if (v.phase !== "playing" || v.turn !== HUMAN) { $("hint-out").textContent = t("hintWait"); return; }
-  const res = await app.engine.request(`bot rule ${botSeed()}`, app.record);
+  const record = app.record;
+  $("hint").disabled = true;
+  $("hint-out").innerHTML = `<span class="thinking-line">${esc(t("hintThinking"))}<span class="thinking" aria-hidden="true"><i></i><i></i><i></i></span></span>`;
+  const res = await app.engine.request(`engine ${botSeed()}`, record);
+  // A move made while the engine thought makes this answer stale.
+  if (record !== app.record) return;
+  render();
   if (!res.ok) { $("hint-out").textContent = res.error; return; }
-  const m = v.legal.find((x) => x.move === res.body) || { move: res.body };
+  const a = JSON.parse(res.body);
+  const top = a.moves[0];
+  const m = v.legal.find((x) => x.move === top.move) || top;
   app.hint = m;
-  if (m.tile) {
-    $("hint-out").innerHTML = m.end === "lead" ? t("hintLead", { tile: chip(m.tile, 14) }) : t("hintPlay", { tile: chip(m.tile, 14), end: esc(t(m.end)) });
-  } else {
-    $("hint-out").textContent = m.move === "draw" ? t("hintDraw") : t("hintPass");
-  }
+  const fmt = (x) => (x > 0 ? `+${x.toFixed(1)}` : x.toFixed(1));
+  let choice;
+  if (m.tile) choice = m.end === "lead" ? t("hintLead", { tile: chip(m.tile, 14) }) : t("hintPlay", { tile: chip(m.tile, 14), end: esc(t(m.end)) });
+  else choice = esc(m.move === "draw" ? t("hintDraw") : t("hintPass"));
+  const desc = (x) => {
+    const parts = x.move.split(" ");
+    if (parts[0] === "play") return `${chip(parts[1], 13)} <span>${esc(t(x.end))}</span>`;
+    return esc(parts[0] === "draw" ? t("draw") : t("pass"));
+  };
+  const list = a.moves.length < 2 ? "" : `<ul class="mv-list">${a.moves.map((x, i) => `
+    <li class="mv-item ${i === 0 ? "best" : ""}">
+      <span class="mv-desc">${desc(x)}${i === 0 ? `<span class="tag">${esc(t("best"))}</span>` : ""}</span>
+      <span class="se">${x.se === null ? "" : `± ${x.se.toFixed(1)}`}</span>
+      <span class="val ${x.mean > 0 ? "pos" : x.mean < 0 ? "neg" : ""}">${fmt(x.mean)}</span>
+    </li>`).join("")}</ul>`;
+  $("hint-out").innerHTML = `<span class="hint-choice">${choice}</span>${a.moves.length < 2 ? "" : `${list}
+    <span class="small muted">${esc(t("hintExpected"))} ${esc(t("hintSamples", { worlds: a.worlds }))}</span>
+    ${a.capped > 0 ? `<span class="small muted">${esc(t("capped"))}</span>` : ""}`}`;
   render();
 }
 
@@ -399,13 +427,13 @@ function showRoundEnd() {
   const finished = v.phase === "finished";
   const winner = r.team;
   $("round-title").textContent = finished
-    ? t(isTwo() ? "gameTitle" : "gameTitle1", { team: teamName(winner), a: Math.max(...v.scores), b: Math.min(...v.scores) })
+    ? t((isTwo() ? ["gameWonUs", "gameWonThem"] : ["gameWonYou", "gameWonRival"])[winner], { a: Math.max(...v.scores), b: Math.min(...v.scores) })
     : t("roundTitle", { team: teamName(winner), points: r.points });
   let detail = "";
   if (r.kind === "tranque") {
-    detail = t("detail_tranque", { a: seatName(r.blocker), ap: r.blocker_pips, b: seatName(r.rival), bp: r.rival_pips, winner: seatName(r.seat) });
+    detail = `${t("detail_tranque", { a: seatName(r.blocker), ap: r.blocker_pips, b: seatName(r.rival), bp: r.rival_pips })} ${ts("takesRound", r.seat, { winner: seatName(r.seat) })}`;
   } else {
-    detail = t("detail_" + r.kind, { seat: seatName(r.seat) });
+    detail = ts("detail_" + r.kind, r.seat, { seat: seatName(r.seat) });
   }
   $("round-detail").textContent = detail;
   $("round-hands").innerHTML = `<p class="pv-title">${esc(t("remaining"))}</p>` + v.hands.map((h, s) => `

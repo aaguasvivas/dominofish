@@ -4,8 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DominoFish Board</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Play Dominican dominoes against the DominoFish bots, ask for a hint, and see the exact value of every move. The engine runs in your browser.">
+<meta name="description" content="Play Dominican dominoes against DominoFish, get its best move from your own hand, and see the exact value of every move. The engine runs in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DominoFish Board">
+<meta property="og:description" content="Play Dominican dominoes against DominoFish, get its best move from your own hand, and see the exact value of every move. The engine runs in your browser.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111b2e" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -21,11 +25,12 @@ __STYLE__
     <span class="brand-text"><span class="brand-name">DominoFish</span><span class="brand-tag" data-i18n="tagline"></span></span>
   </a>
   <div class="top-actions">
-    <button class="btn btn-primary" id="new-game" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="newGame"></span></button>
+    <button class="btn btn-primary" id="new-game" type="button" data-i18n-label="newGame"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="newGame"></span></button>
     <button class="btn btn-icon" id="lang" type="button" aria-label="Language"><span id="lang-label">ES</span></button>
     <button class="btn btn-icon" id="theme" type="button" data-i18n-label="theme"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   </div>
 </header>
+<noscript><p class="noscript">DominoFish needs JavaScript: the engine runs in your browser.<br><span lang="es">DominoFish necesita JavaScript: el motor corre en tu navegador.</span></p></noscript>
 
 <main class="layout">
   <section class="table-wrap" aria-labelledby="table-title">
@@ -52,7 +57,7 @@ __STYLE__
         <button class="btn btn-gold" id="hint" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="hint"></span></button>
       </div>
       <p class="muted small" data-i18n="hintNote"></p>
-      <p class="hint-out" id="hint-out"></p>
+      <div class="hint-out" id="hint-out" aria-live="polite"></div>
     </div>
 
     <div class="card">
@@ -105,7 +110,7 @@ __STYLE__
       <select name="partner" id="partner"></select>
     </label>
     <label class="field"><span data-i18n="dealNumber"></span>
-      <span class="inline"><input name="seed" id="seed" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off"><button class="btn btn-ghost" type="button" id="seed-random" data-i18n="random"></button></span>
+      <span class="inline"><input name="seed" id="seed" data-i18n-label="dealNumber" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off"><button class="btn btn-ghost" type="button" id="seed-random" data-i18n="random"></button></span>
     </label>
     <div class="modal-actions">
       <button class="btn btn-ghost" value="cancel" type="submit" formnovalidate data-i18n="cancel"></button>

@@ -1,7 +1,8 @@
 // Web board smoke test (M11-01): loads the wasm module embedded in the built
 // page web/dist/index.html, the same bytes the browser runs, and plays full
 // games through the board requests (docs/FORMATS.md, Board requests): every
-// seat a bot, an analysis every few moves, checks on every reply.
+// seat a bot (DominoFish every fourth move, the rule bot otherwise), an exact
+// analysis and a DominoFish analysis every few moves, checks on every reply.
 // Usage: node tools/board-smoke.mjs <games per mode>
 
 import { readFileSync } from "node:fs";
@@ -28,7 +29,7 @@ function ok(text) {
   return out.slice(3);
 }
 
-let moves = 0, rounds = 0, analyses = 0, finished = 0;
+let moves = 0, rounds = 0, analyses = 0, finished = 0, engines = 0, pimcMoves = 0;
 for (const mode of ["2v2", "1v1"]) {
   for (let g = 0; g < games; g++) {
     let record = ok(`new ${mode} 100 ${1000 + g}`);
@@ -52,7 +53,18 @@ for (const mode of ["2v2", "1v1"]) {
         if (best !== (v.turn % 2 === 0 ? a.value : -a.value)) throw new Error("the position value is not the best move's value");
         analyses++;
       }
-      const mv = ok(`bot rule ${moves}\n${record}`);
+      if (moves % 15 === 7 && v.legal.length > 1) {
+        const e = JSON.parse(ok(`engine ${moves}\n${record}`));
+        if (e.seat !== v.turn) throw new Error(`engine for seat ${e.seat}, not ${v.turn}`);
+        if (e.worlds !== 32) throw new Error(`engine used ${e.worlds} worlds`);
+        if (e.moves.length !== v.legal.length) throw new Error("the engine does not rank every legal move");
+        for (let i = 1; i < e.moves.length; i++) if (e.moves[i].mean > e.moves[i - 1].mean) throw new Error("engine moves not ranked");
+        engines++;
+      }
+      // DominoFish plays every fourth move, the rule bot the others.
+      const bot = moves % 4 === 0 ? "pimc" : "rule";
+      if (bot === "pimc") pimcMoves++;
+      const mv = ok(`bot ${bot} ${moves}\n${record}`);
       if (!v.legal.some((m) => m.move === mv)) throw new Error(`bot move ${mv} is not legal`);
       record = ok(`play ${mv}\n${record}`);
       moves++;
@@ -62,4 +74,4 @@ for (const mode of ["2v2", "1v1"]) {
 for (const bad of ["", "new 3v3 100 1", "view\nnot a record", "fly\n" + ok("new 2v2 100 1")]) {
   if (!call(bad).startsWith("error ")) throw new Error(`accepted: ${JSON.stringify(bad)}`);
 }
-console.log(`board-smoke: games ${finished} (${games} per mode) rounds ${rounds + finished} moves ${moves} analyses ${analyses} errors 0`);
+console.log(`board-smoke: games ${finished} (${games} per mode) rounds ${rounds + finished} moves ${moves} (DominoFish ${pimcMoves}) analyses ${analyses} engine analyses ${engines} errors 0`);

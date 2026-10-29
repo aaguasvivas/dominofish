@@ -7,7 +7,7 @@
 - Last green commit: a95fdf8 (check.sh passes; regress passes 39 of 39 in 464 s on 2026-10-27)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q9 answered 2026-10-26: the repository is public)
+- Open questions: Q10 (the Worker name for hosting the board, 2026-10-29)
 - Stashes: none
 
 ## 2026-10-25
@@ -175,4 +175,12 @@
 - check.sh took 8,087 s again on fcf23b6. Cause: tests/pimc.rs in check.sh's debug build analyzed round starts (a 2v2 round start is about 28 full-round solves; the debug solver is far slower), 24 minutes and more at load near 10. Without PIMC_FULL=1 the PIMC tests now keep to late positions (8 s in debug); M4-02's full verify keeps its sizes. check.sh logs each step's time. A timestamped run of the whole test suite then took 76 s.
 - M5-01 passed: M5-01: PASS actions: 179 decisions, each bot's choices cover exactly its policy; 21 tied decisions whose action terms sum to 0; values: 544 states equal to the solver without a table; zero: 25 one-tile draws and every round-2 deal against itself give 0; 6 committed R2 rows replay with equal pair lines at HEAD; 0 allocations.
 - M5-02 passed (its first run read report fields 17 and 18; the corrected result and SD ratio are fields 16 and 17): --aivat leaves the pair lines unchanged in 1v1 rounds and 2v2 games; one aivat line per pair; draws=on, and off with the omniscient bot; the report shows corrected 14.93 [6.86, 22.99] with SD ratio 1.11 beside the raw result, and - for a plain file.
+
+## 2026-10-29
+
+- Owner request (decision 9 in PLAN.md): finish, polish, and host the board like SWARMGEDDON. Board upgrade: DominoFish (PIMC, 32 worlds, 2,000,000 nodes per solve, 2^16 table) gives the hint and plays as the Expert opponent and partner, the new default; the old hint copy named the rule bot as the strongest engine here, false since M4. New board request `engine <seed>` (docs/FORMATS.md); the reply carries the capped solves, and the hint then shows the "approximate" note. Wasm timing of the engine at 32 worlds: 2v2 p90 0.63 s, max 3.7 s; 1v1 p90 0.15 s.
+- Ship-audit fixes, each checked in the browser pane at 320x568, 568x320, 375x667, 375x548, 667x375, 430x932, and 1440x900 (overflow probe: 0 offenders at every size; a 2000 px known-bad element is caught): the brand name truncated to "DominoF..." at 320 px (needs 95 px, had 88); the sampling error broke into two lines at 320 px; "Compañero" overran the tile in the round's move list (73 px name in a 58 px column); in short landscape the table's row template had four sizes for three rows (a 100 px row held one name plate at 667x375) and the line of play started under the docked hand at 568x320; the narrow-screen rule for the header's icon button also squeezed every dialog's primary button to 44 px ("Reparti"); the round dialog's two buttons overflowed its left edge at 320 px; the New game dialog's buttons sat below its visible area at 320x568 (now a sticky footer); bot names truncated in the selects ("Experto (DominoFish, el mot..."; now shorter names); the Partner select stayed visible in 1v1 (`.field` display overrode `hidden`); the header's New game button and the deal number field had no accessible name at phone width.
+- Copy fixes in both languages: sentences whose subject is the human seat now use the second person ("Tú tiene 29", "You wins the game", "Us win the game", "Jugadas de Tú" before); the tranque detail lists the pips and then names who takes the round; the hint's margin sentence explains the values instead of repeating the best one (its number wrapped alone onto a second line). The unused "opens" string is gone; 104 keys in each language.
+- Page: a noscript notice, theme-color and Open Graph tags; the claude.ai artifact meta tag moved into artifact.html only. README: the board section names DominoFish's hint (it named the rule bot), and docs/assets/board.png is a new capture of the current board (deal 2026, dark, hint and exact analysis shown).
+- M11-01 re-verified on the changed board: M11-01: PASS web/dist/index.html 366932 bytes; games 10 (5 per mode) rounds 50 moves 1213 (DominoFish 304) analyses 81 engine analyses 46 errors 0; board request tests 4 passed; English and Spanish keys 104.
 
