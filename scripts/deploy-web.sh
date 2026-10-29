@@ -9,5 +9,9 @@ set -u
 cd "$(dirname "$0")/.."
 [ -z "$(/usr/bin/git status --porcelain)" ] || { echo "ERROR uncommitted changes; deploy only a committed tree"; exit 1; }
 scripts/build-web.sh || exit 1
+# Wrangler 4 needs Node 22 or later; use nvm's Node 22 when the default is older.
+if [ "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)" -lt 22 ]; then
+  . "${NVM_DIR:-$HOME/.nvm}/nvm.sh" && nvm use --silent 22 || { echo "ERROR wrangler needs Node 22 or later"; exit 1; }
+fi
 npx --yes wrangler@4.156.0 deploy || { echo "ERROR wrangler deploy failed"; exit 1; }
 echo "deployed $(/usr/bin/git rev-parse --short HEAD); page sha256 $(shasum -a 256 web/dist/index.html | cut -d' ' -f1)"
