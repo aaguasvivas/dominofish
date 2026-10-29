@@ -177,3 +177,26 @@ Pre-registered as R4 in docs/PLAN.md. Side A: commit ebaa5fd, Bench 6121081, bin
 | 2v2 | game | 100 | pimc (64 worlds) | rule | 70 | 18.47 [13.80, 23.14] | 0.771 [0.695, 0.833] | H1 at 70 (0, 4) | 2291.63 | 18.1 | 2021500000..2021500299 | row-15-2v2-game-100-pimc-rule.txt | 363.1 / 21096.6 | - | - |
 
 Command of each row: `runs/bin/ebaa5fd/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 2020000000 --engine-seed 5000400000 --sprt 0,4 --timeout-ms 120000 --a "runs/bin/ebaa5fd/dominofish engine --bot pimc --worlds 64" --b "runs/bin/ebaa5fd/dominofish engine --bot random" --out docs/eval/results/2026-10-26-pimc-r4/row-0-1v1-round-100-pimc-random.txt`, with the row's options; the files hold every pair.
+
+## 2026-10-27-aivat-t5 (T5)
+
+Pre-registered as T5 in docs/PLAN.md. Side A: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Side B: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Engine seed base: 5000700000 to 5000700013 (one per row). Measured 2026-10-27 at a 1-minute load average of 4.52 to 21.83.
+
+| Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) | A corrected points per round [95% CI] | SD raw / corrected |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1v1 | round | 100 | rule | rule | 1000 | -0.07 [-0.33, 0.19] | - | - | 51.73 | 4.1 | 610000000..610000999 | row-0-1v1-round-100-rule-rule.txt | 0.1 / 21.7 | 0.01 [-0.22, 0.24] | 1.12 |
+| 1v1 | round | 100 | random | random | 1000 | 0.03 [-1.08, 1.15] | - | - | 75.85 | 5.2 | 611000000..611000999 | row-1-1v1-round-100-random-random.txt | 0.1 / 19.0 | -0.18 [-1.12, 0.77] | 1.18 |
+| 1v1 | round | 100 | rule | random | 1000 | 13.19 [11.90, 14.48] | - | - | 62.27 | 3.9 | 612000000..612000999 | row-2-1v1-round-100-rule-random.txt | 0.1 / 16.7 | 13.14 [12.02, 14.26] | 1.16 |
+| 1v1 | round | 100 | accompanied | heaviest | 1000 | 2.53 [1.56, 3.50] | - | - | 48.80 | 5.2 | 613000000..613000999 | row-3-1v1-round-100-accompanied-heaviest.txt | 0.1 / 15.2 | 2.48 [1.61, 3.36] | 1.11 |
+| 1v1 | round | 100 | pimc (8 worlds) | rule | 300 | 5.25 [2.96, 7.55] | - | - | 50.73 | 18.2 | 614000000..614000299 | row-4-1v1-round-100-pimc8-rule.txt | 5.4 / 9647.3 | 4.91 [2.88, 6.94] | 1.13 |
+| 1v1 | game | 100 | rule | random | 300 | 15.34 [14.08, 16.61] | 0.878 [0.850, 0.902] | - | 186.54 | 4.1 | 615000000..615000299 | row-5-1v1-game-100-rule-random.txt | 0.0 / 12.6 | 14.89 [13.88, 15.91] | 1.24 |
+| 1v1 | game | 100 | rule | rule | 300 | 0.00 [-0.35, 0.36] | 0.502 [0.462, 0.542] | - | 179.09 | 4.2 | 616000000..616000299 | row-6-1v1-game-100-rule-rule.txt | 0.0 / 14.3 | 0.06 [-0.19, 0.31] | 1.41 |
+| 2v2 | round | 100 | rule | rule | 1000 | 0.18 [-0.25, 0.60] | - | - | 3.47 | 4.4 | 617000000..617000999 | row-7-2v2-round-100-rule-rule.txt | 0.0 / 1.3 | 0.22 [-0.18, 0.61] | 1.08 |
+| 2v2 | round | 100 | random | random | 1000 | 0.95 [-0.72, 2.63] | - | - | 76.84 | 4.4 | 618000000..618000999 | row-8-2v2-round-100-random-random.txt | 0.1 / 8.7 | 0.75 [-0.63, 2.13] | 1.21 |
+| 2v2 | round | 100 | rule | random | 1000 | 11.91 [10.08, 13.74] | - | - | 35.90 | 5.3 | 619000000..619000999 | row-9-2v2-round-100-rule-random.txt | 0.0 / 21.3 | 11.58 [9.95, 13.21] | 1.12 |
+| 2v2 | round | 100 | accompanied | heaviest | 1000 | 4.20 [2.84, 5.57] | - | - | 13.50 | 5.5 | 620000000..620000999 | row-10-2v2-round-100-accompanied-heaviest.txt | 0.1 / 223.2 | 4.44 [3.19, 5.68] | 1.10 |
+| 2v2 | round | 100 | pimc (8 worlds) | rule | 300 | 10.02 [6.84, 13.19] | - | - | 76.89 | 18.2 | 621000000..621000299 | row-11-2v2-round-100-pimc8-rule.txt | 10.2 / 546.8 | 10.14 [6.93, 13.34] | 0.99 |
+| 2v2 | game | 100 | rule | random | 300 | 15.16 [12.93, 17.38] | 0.738 [0.702, 0.772] | - | 526.15 | 4.2 | 622000000..622000299 | row-12-2v2-game-100-rule-random.txt | 0.0 / 13.3 | 14.01 [11.98, 16.03] | 1.10 |
+| 2v2 | game | 100 | rule | rule | 300 | -0.21 [-0.73, 0.32] | 0.500 [0.460, 0.540] | - | 447.71 | 5.3 | 623000000..623000299 | row-13-2v2-game-100-rule-rule.txt | 0.0 / 9.6 | -0.21 [-0.75, 0.32] | 0.98 |
+
+Command of each row: `runs/bin/4696b5f/dominofish match --mode 1v1 --unit round --target 100 --pairs 1000 --seed 610000000 --engine-seed 5000700000 --aivat 8 --timeout-ms 120000 --a "runs/bin/4696b5f/dominofish engine --bot rule --salt 1" --b "runs/bin/4696b5f/dominofish engine --bot rule --salt 2" --out docs/eval/results/2026-10-27-aivat-t5/row-0-1v1-round-100-rule-rule.txt`, with the row's options; the files hold every pair.

@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03 (test T5)
+- Feature in progress: M5-03 (test T5): fails its power criterion (d); waits for Q11
 - Last green commit: a95fdf8 (check.sh passes; regress passes 39 of 39 in 464 s on 2026-10-27)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q10 (the Worker name for hosting the board, 2026-10-29)
+- Open questions: Q10 (the Worker name for hosting the board) and Q11 (T5's power check), both 2026-10-29
 - Stashes: none
 
 ## 2026-10-25
@@ -183,4 +183,7 @@
 - Copy fixes in both languages: sentences whose subject is the human seat now use the second person ("Tú tiene 29", "You wins the game", "Us win the game", "Jugadas de Tú" before); the tranque detail lists the pips and then names who takes the round; the hint's margin sentence explains the values instead of repeating the best one (its number wrapped alone onto a second line). The unused "opens" string is gone; 104 keys in each language.
 - Page: a noscript notice, theme-color and Open Graph tags; the claude.ai artifact meta tag moved into artifact.html only. README: the board section names DominoFish's hint (it named the rule bot), and docs/assets/board.png is a new capture of the current board (deal 2026, dark, hint and exact analysis shown).
 - M11-01 re-verified on the changed board: M11-01: PASS web/dist/index.html 366932 bytes; games 10 (5 per mode) rounds 50 moves 1213 (DominoFish 304) analyses 81 engine analyses 46 errors 0; board request tests 4 passed; English and Spanish keys 104.
+- T5 rows 5, 6, 8, 11, 12, and 13 reran with runs/bin/4696b5f, the same seeds and settings, from 17:58 to 18:07, no fault. All 14 rows are in docs/eval/results/2026-10-27-aivat-t5/ (COMMIT 4696b5f); REPORT.md is regenerated with them.
+- M5-03 criteria (a) to (c), scripts/verify/M5-03.sh --fast: PASS T5 as registered (commit 4696b5f, 14 rows, no fault): |t| of corrected minus raw at most 3.29 in every row, sum of t^2 11.4784 (at most 36.12), null rows' corrected means within 3.29 se of 0; SD ratio raw / corrected by row: 0:1.12 1:1.18 2:1.16 3:1.11 4:1.13 5:1.24 6:1.41 7:1.08 8:1.21 9:1.12 10:1.10 11:0.99 12:1.10 13:0.98.
+- M5-03 full run (nohup nice -n 10 scripts/mark-pass.sh M5-03, log runs/M5-03-full.log): FAIL on criterion (d). The mutant (action terms against the policy's maximum) replayed rows 2, 3, 9, and 10 with corrected-minus-raw t 1.542, 0.852, 0.525, and 1.080 (target: above 3.29 in at least one row). The mutant was in the binary: row 2, pair 0 has action term -609.000 against -209.440 in the true run. Cause: the cross-fitted action coefficients are 0.08 to 0.28, so a biased term moves the corrected mean by that fraction of its bias, 0.16 to 0.42 points per round, with standard errors 0.21 to 0.30. T5 at 1,000 pairs cannot show that it catches this bug. M5-03 stays failing (passes false); the test is unchanged; asked as Q11. The mutant's result files are in runs/M5-03/mutant/ (not committed); their four `# aivat` lines give the numbers above.
 
