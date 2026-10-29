@@ -7,7 +7,7 @@
 - Last green commit: a95fdf8 (check.sh passes; regress passes 39 of 39 in 464 s on 2026-10-27)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q10 (the Worker name for hosting the board) and Q11 (T5's power check), both 2026-10-29
+- Open questions: Q11 (T5's power check, 2026-10-29); Q10 answered 2026-10-29 (Worker dominofish, deployed from this Mac)
 - Stashes: none
 
 ## 2026-10-25

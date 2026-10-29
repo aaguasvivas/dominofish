@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Builds the web board (web/src) into one self-contained page,
 # web/dist/index.html (and web/dist/artifact.html, the same page without
-# document tags, for publishing as an artifact): the CSS, the scripts, the logo, and the
+# document tags, for publishing as an artifact; web/dist/.assetsignore keeps
+# it off the hosted site): the CSS, the scripts, the logo, and the
 # dominofish-wasm module (base64) inline, so it opens from disk with no
 # server. Prints the page's path and size.
 set -u
@@ -34,4 +35,5 @@ body = page[page.index("<body>") + 6:page.rindex("</body>")]
 head = '<meta name="claude:viewport-fit-sides" content="cover">\n' + head.strip()
 open("web/dist/artifact.html", "w").write(head + "\n" + body.strip() + "\n")
 PY
+printf 'artifact.html\n' > web/dist/.assetsignore
 echo "web/dist/index.html $(wc -c < web/dist/index.html | tr -d ' ') bytes"

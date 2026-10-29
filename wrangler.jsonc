@@ -1,0 +1,11 @@
+// The web board on Cloudflare Workers static assets (docs/PLAN.md decision 9
+// and Q10): https://dominofish.adelsonaguasvivas.workers.dev. The page is
+// web/dist/index.html from scripts/build-web.sh; deploy with
+// scripts/deploy-web.sh.
+{
+  "name": "dominofish",
+  "compatibility_date": "2026-10-29",
+  "assets": {
+    "directory": "./web/dist"
+  }
+}
