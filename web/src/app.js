@@ -561,17 +561,21 @@ async function main() {
 
   app.engine = new Engine(DOMINOFISH_WASM);
   try {
-    await app.engine.start();
-  } catch (err) {
-    $("status").textContent = t("engineError");
-    return;
+    try {
+      await app.engine.start();
+    } catch (err) {
+      $("status").textContent = t("engineError");
+      return;
+    }
+    const saved = store.get("record", null);
+    if (saved && app.settings.seed) {
+      app.record = saved;
+      try { await refresh(); return; } catch { /* a stale or damaged record: start over */ }
+    }
+    await startGame({ ...app.settings, seed: randomSeed() });
+  } finally {
+    document.documentElement.classList.add("ready");
   }
-  const saved = store.get("record", null);
-  if (saved && app.settings.seed) {
-    app.record = saved;
-    try { await refresh(); return; } catch { /* a stale or damaged record: start over */ }
-  }
-  await startGame({ ...app.settings, seed: randomSeed() });
 }
 
 main();

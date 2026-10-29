@@ -12,7 +12,9 @@
 <meta name="theme-color" content="#111b2e" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<!-- The fonts load without blocking the first paint or the script that starts the engine. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&amp;family=IBM+Plex+Mono:wght@500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" media="print" onload="this.media='all'">
+<noscript><style>.boot { display: none; }</style></noscript>
 <link rel="icon" href="data:image/svg+xml,__FAVICON__">
 <style>
 __STYLE__
@@ -31,6 +33,8 @@ __STYLE__
   </div>
 </header>
 <noscript><p class="noscript">DominoFish needs JavaScript: the engine runs in your browser.<br><span lang="es">DominoFish necesita JavaScript: el motor corre en tu navegador.</span></p></noscript>
+
+<div class="boot" aria-hidden="true"><span class="thinking"><i></i><i></i><i></i></span></div>
 
 <main class="layout">
   <section class="table-wrap" aria-labelledby="table-title">
