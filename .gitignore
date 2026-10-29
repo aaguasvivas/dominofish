@@ -2,3 +2,4 @@ target/
 runs/
 tools/capi-oracle/build/
 web/dist/
+.wrangler/

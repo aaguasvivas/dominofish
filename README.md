@@ -17,6 +17,7 @@ Built by the creator of Capi.
 </p>
 
 <p align="center">
+<a href="https://dominofish.adelsonaguasvivas.workers.dev"><b>Play now</b></a> ·
 <a href="#build-and-run">Build and run</a> ·
 <a href="#web-board">Web board</a> ·
 <a href="#what-it-does-now">What it does now</a> ·
@@ -107,13 +108,13 @@ scripts/check.sh
 
 ## Web board
 
-Play Dominican dominoes in your browser, in English or Spanish, 1v1 or 2v2, against DominoFish or the four baseline bots. Ask DominoFish for a hint: it sees only your hand and the public moves, samples 32 deals of the hands you cannot see, and ranks your moves by their mean points with a sampling error. Or turn on the exact analysis: the solver scores every legal move for the rest of the round. The solver sees every hand, so the board labels its values as perfect information. The engine runs in your browser as WebAssembly; your games never leave the page.
+Play Dominican dominoes at [dominofish.adelsonaguasvivas.workers.dev](https://dominofish.adelsonaguasvivas.workers.dev), in English or Spanish, 1v1 or 2v2, against DominoFish or the four baseline bots. Ask DominoFish for a hint: it sees only your hand and the public moves, samples 32 deals of the hands you cannot see, and ranks your moves by their mean points with a sampling error. Or turn on the exact analysis: the solver scores every legal move for the rest of the round. The solver sees every hand, so the board labels its values as perfect information. The engine runs in your browser as WebAssembly; your games never leave the page.
 
 <p align="center">
   <img src="docs/assets/board.png" alt="The DominoFish web board in dark mode: a 2v2 round on green felt, your hand below, DominoFish's hint ranking your moves, and the exact analysis scoring each legal move" width="800">
 </p>
 
-Build it into one self-contained page, then open the page in a browser:
+To run it locally, build it into one self-contained page, then open the page in a browser:
 
 ```bash
 scripts/build-web.sh
