@@ -898,5 +898,66 @@
    "result": "M5-04: PASS 0 strength runs stated from M5 on, all with --aivat; REPORT.md shows the corrected result in 42 rows with aivat terms and '-' in 120 rows without; README.md shows T7's 14 rows equal to REPORT.md and their files, 21 settings and numbers checked (largest |t| 1.732, null rows' corrected |t| at most 2.24, SD ratio up to 1.19, per-round t -5.085 in row 5); readme-fast: PASS 14 rows reproduce docs/eval/results/2026-10-30-aivat-t7-fast.txt, whose 116 pairs equal the full rows' first pairs with their terms",
    "log": null
   }
+ },
+ {
+  "id": "M6-01",
+  "milestone": "M6",
+  "description": "The game equity table W (docs/PLAN.md D20): dominofish equity records every round after the first of self-play games between copies of PIMC at its default limits, on training deal seeds, re-scored without the bonus cap, and builds W(my score, their score, target, who leads next) for targets 100 and 200 in both modes by exact recursion over scores, with the strict cap on pase bonuses, no cap on capicua, and a game won only by winning a round; the rounds and the tables are committed with the command and seed that built them; the recursion equals a direct simulation of games from the same rounds within sampling error, the two teams' values at one state sum to 1, and the build gives the same tables at any thread count.",
+  "verify": "scripts/verify/M6-01.sh",
+  "fast": "scripts/verify/M6-01.sh --fast",
+  "requires": [
+   "M5-99"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M6-02",
+  "milestone": "M6",
+  "description": "The win-probability objective (docs/PLAN.md D21): the solver can value a round's end by W, or by 1 and 0 when it ends the game, instead of the round margin, and then equals naive minimax with those values on positions where naive minimax finishes, with the table on and off agreeing; PIMC with this objective plays the move with the highest mean win probability over its worlds, dominofish analyze shows each move's win probability with its sampling error, never-peeks holds for it, and the points objective and Bench are unchanged.",
+  "verify": "scripts/verify/M6-02.sh",
+  "fast": "scripts/verify/M6-02.sh --fast",
+  "requires": [
+   "M6-01"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M6-03",
+  "milestone": "M6",
+  "description": "Calibration of the win probability (a test stated in docs/PLAN.md first): on held-out games (game seeds from 3,000,000,000) of PIMC with the win objective against itself, per mode and target (100 and 200), the Brier score of the engine's win probability at its decisions, the Brier skill against a score-only W baseline (W at the start of the decision's round), and a reliability table with counts per bin.",
+  "verify": "scripts/verify/M6-03.sh",
+  "fast": "scripts/verify/M6-03.sh --fast",
+  "requires": [
+   "M6-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M6-04",
+  "milestone": "M6",
+  "description": "An SPRT on game-win rate, pre-registered in docs/PLAN.md with its bounds and their reason: PIMC with the win objective against the current best (PIMC with the points objective at the same worlds per move) in full games at 100 and at 200 in both modes, on held-out pairs, with --aivat 8; the result is recorded either way, and the engine's default objective follows it.",
+  "verify": "scripts/verify/M6-04.sh",
+  "fast": "scripts/verify/M6-04.sh --fast",
+  "requires": [
+   "M6-02"
+  ],
+  "passes": false,
+  "evidence": null
+ },
+ {
+  "id": "M6-05",
+  "milestone": "M6",
+  "description": "README.md and docs/eval/REPORT.md show the W table's basis, the calibration results (Brier score, Brier skill, and the reliability table), and the game-win SPRT, each with its settings, and every README number has a --fast reproduction.",
+  "verify": "scripts/verify/M6-05.sh",
+  "fast": "scripts/verify/M6-05.sh --fast",
+  "requires": [
+   "M6-03",
+   "M6-04"
+  ],
+  "passes": false,
+  "evidence": null
  }
 ]

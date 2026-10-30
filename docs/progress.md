@@ -2,8 +2,8 @@
 
 ## Top block
 
-- Milestone: M6 (game equity and calibrated win probability) next; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: none; M6's features are appended next (BUILD.md M6)
+- Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
+- Feature in progress: M6-01: the game equity table W (docs/PLAN.md D20)
 - Last green commit: eda47bb (check.sh passes; M5-01 to M5-04 and M5-99 pass on it); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none (T7 ended 2026-10-30 02:34)
@@ -224,3 +224,4 @@
 - M5-02 passed again on eda47bb: M5-02: PASS --aivat leaves the pair lines unchanged (1v1 rounds, 2v2 games); one aivat line per pair; draws=on, and off with the omniscient bot; actions=a,b with HEAD's sides, and - with sides from another binary, whose games stay the same; the report shows corrected 14.93 [6.86, 22.99] , SD ratio 1.11  beside raw and - for a plain file; cross-fit test passes; FORMATS.md documents the lines
 - M2-09 --fast and M4-11 --fast pass on the changed README.md and REPORT.md.
 - M5-99 passed: M5-99: PASS M5-01 ok; M5-02 ok; M5-03 ok; M5-04 ok; M5 milestone review recorded in docs/progress.md. M5 passed. PLAN.md and README.md mark it passed; exit report docs/reports/2026-10-30-m5-exit.md.
+- M6 started: docs/PLAN.md D20 (the equity table W: the engine's own rounds after the first, re-scored without the cap, and a recursion over scores with the strict pase cap, an uncapped capicua, and a game won only by winning a round) and D21 (the win-probability objective in millionths, an engine option until the game-win SPRT decides); M6-01 to M6-05 appended to docs/features.json, M6-99 unchanged.
