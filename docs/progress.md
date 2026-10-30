@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03: D19 fixed to per-pair term totals (Q12); test T7 registered (Q13); T7 starts after the registration commit
-- Last green commit: 64e01e8 (check.sh passes; regress passes 41 of 41 in 527 s on 2026-10-29)
+- Feature in progress: M5-04: later results show raw beside corrected (M5-03 passed 2026-10-30 on T7)
+- Last green commit: 64e01e8 (check.sh passes; regress passes 41 of 41 in 527 s on 2026-10-29); ff3cdea and the T7 results commit pass check.sh (2026-10-30), regress not yet run on them
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: none
+- Running jobs: none (T7 ended 2026-10-30 02:34)
 - Open questions: none (Q12 answered 2026-10-29, Q13 answered 2026-10-30)
 - Stashes: none
 
@@ -200,3 +200,8 @@
 - Q12 answered 2026-10-29, word for word: "Fix and run T7". Before stating T7, I found that my Q12 sizing was wrong: at 1,000 pairs the per-round version's expected |t| in the 1v1 rule-against-random game row is 2.9 to 3.5, so T7's power check would succeed with a probability of only about 0.5. Asked as Q13 before T7 was stated; answer 2026-10-30, word for word: "1v1 games at 4,000 (Recommended)" (rows 5 and 6 at 4,000 pairs, rows 12 and 13 at 1,000).
 - D19 fix (PLAN.md D19 amended): PairResult::aivat_row (harness.rs) and the report (report.rs) now give stats::crossfit each pair's term totals beside its margin per round, not the terms divided by the pair's rounds. New unit test aivat_row_keeps_the_term_totals. REPORT.md regenerated: only the 8 game rows of T5 and T6 change (round pairs have 2 rounds each); for example, T6 row 5 is corrected to 16.21 [15.10, 17.31] against raw 16.99 (15.30 with the terms per round), SD ratio 1.21. Those rows' result files keep the per-round numbers that the harness wrote then.
 - T7 registered in PLAN.md (Pre-registered runs) with scripts/run-t7.sh; scripts/verify/M5-03.sh now judges T7. Before the registration, tools/aivat-recompute.py reproduced the corrected-minus-raw mean, se, and t of all 14 T5 rows and all 14 T6 rows per round exactly.
+- Committed ff3cdea (the D19 fix and T7's registration; check.sh PASS; Bench: 6121081) and pushed it. T7 started 01:23 (nohup nice -n 10 scripts/run-t7.sh > runs/T7.log 2>&1, PID 58110) with runs/bin/ff3cdea, ETA about 02:35.
+- T7 ran 01:23 to 02:34 as registered: all 14 rows ok, no fault (illegal moves, crashes, and timeouts 0), peak RSS 18.2 MB (the pimc rows), 1-minute load average 6.94 to 21.24. Results in docs/eval/results/2026-10-30-aivat-t7/; REPORT.md regenerated (section 2026-10-30-aivat-t7).
+- M5-03 passed: M5-03: PASS T7 as registered (commit ff3cdea, 14 rows, no fault): |t| of corrected minus raw at most 3.29 in every row, sum of t^2 12.3335 (at most 36.12), null rows' corrected means within 3.29 se of 0; the tool reproduces T6 per round and T7 with totals, and the per-round version on T7's games fails (a): row5:t=-5.085; SD ratio raw / corrected by row: 0:1.01 1:1.18 2:1.16 3:1.11 4:1.19 5:1.14 6:1.10 7:1.03 8:1.19 9:1.11 10:1.08 11:1.00 12:1.09 13:1.02
+- The power check in numbers (tools/aivat-recompute.py on T7's games): with the terms per round, row 5 gives t -5.085 (d -0.4997, se 0.0983), row 12 t -2.626, and rows 6 and 13 t 0.345 and 0.406 (rule against rule, where the per-round bias is zero by symmetry); with the terms as totals, the same rows give t 0.532, -1.375, 0.185, and 0.926.
+- Variance reduction, SD of raw over SD of corrected points per round: 1.00 (row 11, 2v2 pimc8 against rule, 300 pairs) to 1.19 (rows 4 and 8); 1.14 in the 1v1 rule-against-random games (row 5) and 1.16 in the 1v1 rule-against-random rounds (row 2).

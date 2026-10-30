@@ -872,8 +872,12 @@
   "requires": [
    "M5-02"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-30",
+   "result": "M5-03: PASS T7 as registered (commit ff3cdea, 14 rows, no fault): |t| of corrected minus raw at most 3.29 in every row, sum of t^2 12.3335 (at most 36.12), null rows' corrected means within 3.29 se of 0; the tool reproduces T6 per round and T7 with totals, and the per-round version on T7's games fails (a): row5:t=-5.085; SD ratio raw / corrected by row: 0:1.01 1:1.18 2:1.16 3:1.11 4:1.19 5:1.14 6:1.10 7:1.03 8:1.19 9:1.11 10:1.08 11:1.00 12:1.09 13:1.02",
+   "log": null
+  }
  },
  {
   "id": "M5-04",
