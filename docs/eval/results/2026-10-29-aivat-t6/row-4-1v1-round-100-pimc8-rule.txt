@@ -1,0 +1,607 @@
+# header a.cmd=runs/bin/f763c0f/dominofish+engine+--bot+pimc+--worlds+8 a.commit=f763c0f a.bench=6121081 a.hash=32afaf35db21609f a.budgets=worlds:8,nodes:10000000 a.threads=1 a.tables=1MB a.view=infoset b.cmd=runs/bin/f763c0f/dominofish+engine+--bot+rule b.commit=f763c0f b.bench=- b.hash=32afaf35db21609f b.budgets=- b.threads=1 b.tables=- b.view=infoset mode=1v1 unit=round target=100 pairs=300
+# seeds deals=624000000..624000299 engines=5000800004
+pair 0 seed 624000000 game1 0-27 game2 0-16 rounds 1,1 margin -43 wins 0
+pair 1 seed 624000001 game1 20-0 game2 46-0 rounds 1,1 margin 66 wins 0
+pair 2 seed 624000002 game1 0-12 game2 0-80 rounds 1,1 margin -92 wins 0
+pair 3 seed 624000003 game1 25-0 game2 37-0 rounds 1,1 margin 62 wins 0
+pair 4 seed 624000004 game1 0-10 game2 35-0 rounds 1,1 margin 25 wins 0
+pair 5 seed 624000005 game1 31-0 game2 0-66 rounds 1,1 margin -35 wins 0
+pair 6 seed 624000006 game1 41-0 game2 7-0 rounds 1,1 margin 48 wins 0
+pair 7 seed 624000007 game1 10-0 game2 14-0 rounds 1,1 margin 24 wins 0
+pair 8 seed 624000008 game1 63-0 game2 32-0 rounds 1,1 margin 95 wins 0
+pair 9 seed 624000009 game1 0-31 game2 4-0 rounds 1,1 margin -27 wins 0
+pair 10 seed 624000010 game1 0-14 game2 12-0 rounds 1,1 margin -2 wins 0
+pair 11 seed 624000011 game1 0-29 game2 0-29 rounds 1,1 margin -58 wins 0
+pair 12 seed 624000012 game1 15-0 game2 0-15 rounds 1,1 margin 0 wins 0
+pair 13 seed 624000013 game1 17-0 game2 0-10 rounds 1,1 margin 7 wins 0
+pair 14 seed 624000014 game1 0-3 game2 0-0 rounds 1,1 margin -3 wins 0
+pair 15 seed 624000015 game1 0-11 game2 0-19 rounds 1,1 margin -30 wins 0
+pair 16 seed 624000016 game1 66-0 game2 0-20 rounds 1,1 margin 46 wins 0
+pair 17 seed 624000017 game1 25-0 game2 0-42 rounds 1,1 margin -17 wins 0
+pair 18 seed 624000018 game1 0-29 game2 27-0 rounds 1,1 margin -2 wins 0
+pair 19 seed 624000019 game1 0-27 game2 0-21 rounds 1,1 margin -48 wins 0
+pair 20 seed 624000020 game1 0-5 game2 23-0 rounds 1,1 margin 18 wins 0
+pair 21 seed 624000021 game1 5-0 game2 7-0 rounds 1,1 margin 12 wins 0
+pair 22 seed 624000022 game1 7-0 game2 0-22 rounds 1,1 margin -15 wins 0
+pair 23 seed 624000023 game1 15-0 game2 33-0 rounds 1,1 margin 48 wins 0
+pair 24 seed 624000024 game1 0-41 game2 0-11 rounds 1,1 margin -52 wins 0
+pair 25 seed 624000025 game1 0-8 game2 27-0 rounds 1,1 margin 19 wins 0
+pair 26 seed 624000026 game1 0-4 game2 16-0 rounds 1,1 margin 12 wins 0
+pair 27 seed 624000027 game1 0-12 game2 33-0 rounds 1,1 margin 21 wins 0
+pair 28 seed 624000028 game1 22-0 game2 0-8 rounds 1,1 margin 14 wins 0
+pair 29 seed 624000029 game1 6-0 game2 0-25 rounds 1,1 margin -19 wins 0
+pair 30 seed 624000030 game1 85-0 game2 0-85 rounds 1,1 margin 0 wins 0
+pair 31 seed 624000031 game1 0-6 game2 0-25 rounds 1,1 margin -31 wins 0
+pair 32 seed 624000032 game1 2-0 game2 0-13 rounds 1,1 margin -11 wins 0
+pair 33 seed 624000033 game1 0-37 game2 0-22 rounds 1,1 margin -59 wins 0
+pair 34 seed 624000034 game1 0-6 game2 8-0 rounds 1,1 margin 2 wins 0
+pair 35 seed 624000035 game1 0-1 game2 7-0 rounds 1,1 margin 6 wins 0
+pair 36 seed 624000036 game1 0-89 game2 89-0 rounds 1,1 margin 0 wins 0
+pair 37 seed 624000037 game1 0-12 game2 10-0 rounds 1,1 margin -2 wins 0
+pair 38 seed 624000038 game1 15-0 game2 24-0 rounds 1,1 margin 39 wins 0
+pair 39 seed 624000039 game1 0-12 game2 26-0 rounds 1,1 margin 14 wins 0
+pair 40 seed 624000040 game1 34-0 game2 0-36 rounds 1,1 margin -2 wins 0
+pair 41 seed 624000041 game1 33-0 game2 0-2 rounds 1,1 margin 31 wins 0
+pair 42 seed 624000042 game1 17-0 game2 80-0 rounds 1,1 margin 97 wins 0
+pair 43 seed 624000043 game1 0-27 game2 11-0 rounds 1,1 margin -16 wins 0
+pair 44 seed 624000044 game1 0-5 game2 44-0 rounds 1,1 margin 39 wins 0
+pair 45 seed 624000045 game1 16-0 game2 8-0 rounds 1,1 margin 24 wins 0
+pair 46 seed 624000046 game1 0-26 game2 37-0 rounds 1,1 margin 11 wins 0
+pair 47 seed 624000047 game1 0-49 game2 0-36 rounds 1,1 margin -85 wins 0
+pair 48 seed 624000048 game1 0-24 game2 42-0 rounds 1,1 margin 18 wins 0
+pair 49 seed 624000049 game1 0-6 game2 0-5 rounds 1,1 margin -11 wins 0
+pair 50 seed 624000050 game1 54-0 game2 0-32 rounds 1,1 margin 22 wins 0
+pair 51 seed 624000051 game1 0-6 game2 6-0 rounds 1,1 margin 0 wins 0
+pair 52 seed 624000052 game1 21-0 game2 0-42 rounds 1,1 margin -21 wins 0
+pair 53 seed 624000053 game1 0-5 game2 0-6 rounds 1,1 margin -11 wins 0
+pair 54 seed 624000054 game1 0-51 game2 0-26 rounds 1,1 margin -77 wins 0
+pair 55 seed 624000055 game1 52-0 game2 0-20 rounds 1,1 margin 32 wins 0
+pair 56 seed 624000056 game1 22-0 game2 29-0 rounds 1,1 margin 51 wins 0
+pair 57 seed 624000057 game1 0-34 game2 7-0 rounds 1,1 margin -27 wins 0
+pair 58 seed 624000058 game1 5-0 game2 0-27 rounds 1,1 margin -22 wins 0
+pair 59 seed 624000059 game1 20-0 game2 35-0 rounds 1,1 margin 55 wins 0
+pair 60 seed 624000060 game1 16-0 game2 0-23 rounds 1,1 margin -7 wins 0
+pair 61 seed 624000061 game1 29-0 game2 0-10 rounds 1,1 margin 19 wins 0
+pair 62 seed 624000062 game1 0-71 game2 10-0 rounds 1,1 margin -61 wins 0
+pair 63 seed 624000063 game1 0-4 game2 3-0 rounds 1,1 margin -1 wins 0
+pair 64 seed 624000064 game1 0-11 game2 40-0 rounds 1,1 margin 29 wins 0
+pair 65 seed 624000065 game1 0-24 game2 0-21 rounds 1,1 margin -45 wins 0
+pair 66 seed 624000066 game1 0-8 game2 0-4 rounds 1,1 margin -12 wins 0
+pair 67 seed 624000067 game1 0-11 game2 0-0 rounds 1,1 margin -11 wins 0
+pair 68 seed 624000068 game1 0-6 game2 14-0 rounds 1,1 margin 8 wins 0
+pair 69 seed 624000069 game1 10-0 game2 62-0 rounds 1,1 margin 72 wins 0
+pair 70 seed 624000070 game1 44-0 game2 41-0 rounds 1,1 margin 85 wins 0
+pair 71 seed 624000071 game1 0-3 game2 3-0 rounds 1,1 margin 0 wins 0
+pair 72 seed 624000072 game1 0-35 game2 29-0 rounds 1,1 margin -6 wins 0
+pair 73 seed 624000073 game1 0-1 game2 0-1 rounds 1,1 margin -2 wins 0
+pair 74 seed 624000074 game1 52-0 game2 36-0 rounds 1,1 margin 88 wins 0
+pair 75 seed 624000075 game1 0-35 game2 27-0 rounds 1,1 margin -8 wins 0
+pair 76 seed 624000076 game1 0-10 game2 0-51 rounds 1,1 margin -61 wins 0
+pair 77 seed 624000077 game1 0-8 game2 3-0 rounds 1,1 margin -5 wins 0
+pair 78 seed 624000078 game1 94-0 game2 0-4 rounds 1,1 margin 90 wins 0
+pair 79 seed 624000079 game1 0-13 game2 24-0 rounds 1,1 margin 11 wins 0
+pair 80 seed 624000080 game1 90-0 game2 0-26 rounds 1,1 margin 64 wins 0
+pair 81 seed 624000081 game1 0-0 game2 10-0 rounds 1,1 margin 10 wins 0
+pair 82 seed 624000082 game1 0-7 game2 3-0 rounds 1,1 margin -4 wins 0
+pair 83 seed 624000083 game1 6-0 game2 0-6 rounds 1,1 margin 0 wins 0
+pair 84 seed 624000084 game1 25-0 game2 4-0 rounds 1,1 margin 29 wins 0
+pair 85 seed 624000085 game1 7-0 game2 34-0 rounds 1,1 margin 41 wins 0
+pair 86 seed 624000086 game1 73-0 game2 0-79 rounds 1,1 margin -6 wins 0
+pair 87 seed 624000087 game1 28-0 game2 25-0 rounds 1,1 margin 53 wins 0
+pair 88 seed 624000088 game1 14-0 game2 0-4 rounds 1,1 margin 10 wins 0
+pair 89 seed 624000089 game1 46-0 game2 116-0 rounds 1,1 margin 162 wins 1
+pair 90 seed 624000090 game1 12-0 game2 51-0 rounds 1,1 margin 63 wins 0
+pair 91 seed 624000091 game1 0-16 game2 8-0 rounds 1,1 margin -8 wins 0
+pair 92 seed 624000092 game1 33-0 game2 27-0 rounds 1,1 margin 60 wins 0
+pair 93 seed 624000093 game1 0-2 game2 0-11 rounds 1,1 margin -13 wins 0
+pair 94 seed 624000094 game1 0-25 game2 0-27 rounds 1,1 margin -52 wins 0
+pair 95 seed 624000095 game1 22-0 game2 0-41 rounds 1,1 margin -19 wins 0
+pair 96 seed 624000096 game1 0-6 game2 38-0 rounds 1,1 margin 32 wins 0
+pair 97 seed 624000097 game1 0-5 game2 48-0 rounds 1,1 margin 43 wins 0
+pair 98 seed 624000098 game1 0-17 game2 28-0 rounds 1,1 margin 11 wins 0
+pair 99 seed 624000099 game1 0-10 game2 0-55 rounds 1,1 margin -65 wins 0
+pair 100 seed 624000100 game1 0-9 game2 19-0 rounds 1,1 margin 10 wins 0
+pair 101 seed 624000101 game1 0-7 game2 0-6 rounds 1,1 margin -13 wins 0
+pair 102 seed 624000102 game1 0-1 game2 0-7 rounds 1,1 margin -8 wins 0
+pair 103 seed 624000103 game1 0-32 game2 0-4 rounds 1,1 margin -36 wins 0
+pair 104 seed 624000104 game1 39-0 game2 0-25 rounds 1,1 margin 14 wins 0
+pair 105 seed 624000105 game1 37-0 game2 0-7 rounds 1,1 margin 30 wins 0
+pair 106 seed 624000106 game1 27-0 game2 0-11 rounds 1,1 margin 16 wins 0
+pair 107 seed 624000107 game1 10-0 game2 13-0 rounds 1,1 margin 23 wins 0
+pair 108 seed 624000108 game1 0-71 game2 90-0 rounds 1,1 margin 19 wins 0
+pair 109 seed 624000109 game1 31-0 game2 0-33 rounds 1,1 margin -2 wins 0
+pair 110 seed 624000110 game1 40-0 game2 0-5 rounds 1,1 margin 35 wins 0
+pair 111 seed 624000111 game1 37-0 game2 0-30 rounds 1,1 margin 7 wins 0
+pair 112 seed 624000112 game1 0-35 game2 0-37 rounds 1,1 margin -72 wins 0
+pair 113 seed 624000113 game1 35-0 game2 27-0 rounds 1,1 margin 62 wins 0
+pair 114 seed 624000114 game1 48-0 game2 44-0 rounds 1,1 margin 92 wins 0
+pair 115 seed 624000115 game1 2-0 game2 0-2 rounds 1,1 margin 0 wins 0
+pair 116 seed 624000116 game1 0-21 game2 0-0 rounds 1,1 margin -21 wins 0
+pair 117 seed 624000117 game1 0-8 game2 0-7 rounds 1,1 margin -15 wins 0
+pair 118 seed 624000118 game1 0-1 game2 15-0 rounds 1,1 margin 14 wins 0
+pair 119 seed 624000119 game1 0-0 game2 0-4 rounds 1,1 margin -4 wins 0
+pair 120 seed 624000120 game1 0-24 game2 37-0 rounds 1,1 margin 13 wins 0
+pair 121 seed 624000121 game1 0-7 game2 0-85 rounds 1,1 margin -92 wins 0
+pair 122 seed 624000122 game1 0-10 game2 12-0 rounds 1,1 margin 2 wins 0
+pair 123 seed 624000123 game1 0-5 game2 6-0 rounds 1,1 margin 1 wins 0
+pair 124 seed 624000124 game1 0-41 game2 0-23 rounds 1,1 margin -64 wins 0
+pair 125 seed 624000125 game1 0-54 game2 0-12 rounds 1,1 margin -66 wins 0
+pair 126 seed 624000126 game1 0-9 game2 4-0 rounds 1,1 margin -5 wins 0
+pair 127 seed 624000127 game1 5-0 game2 0-12 rounds 1,1 margin -7 wins 0
+pair 128 seed 624000128 game1 33-0 game2 0-9 rounds 1,1 margin 24 wins 0
+pair 129 seed 624000129 game1 21-0 game2 0-35 rounds 1,1 margin -14 wins 0
+pair 130 seed 624000130 game1 0-19 game2 0-48 rounds 1,1 margin -67 wins 0
+pair 131 seed 624000131 game1 12-0 game2 0-58 rounds 1,1 margin -46 wins 0
+pair 132 seed 624000132 game1 0-22 game2 34-0 rounds 1,1 margin 12 wins 0
+pair 133 seed 624000133 game1 28-0 game2 0-22 rounds 1,1 margin 6 wins 0
+pair 134 seed 624000134 game1 0-3 game2 4-0 rounds 1,1 margin 1 wins 0
+pair 135 seed 624000135 game1 0-7 game2 41-0 rounds 1,1 margin 34 wins 0
+pair 136 seed 624000136 game1 34-0 game2 0-5 rounds 1,1 margin 29 wins 0
+pair 137 seed 624000137 game1 4-0 game2 45-0 rounds 1,1 margin 49 wins 0
+pair 138 seed 624000138 game1 35-0 game2 0-29 rounds 1,1 margin 6 wins 0
+pair 139 seed 624000139 game1 0-13 game2 36-0 rounds 1,1 margin 23 wins 0
+pair 140 seed 624000140 game1 7-0 game2 10-0 rounds 1,1 margin 17 wins 0
+pair 141 seed 624000141 game1 20-0 game2 0-24 rounds 1,1 margin -4 wins 0
+pair 142 seed 624000142 game1 0-29 game2 34-0 rounds 1,1 margin 5 wins 0
+pair 143 seed 624000143 game1 13-0 game2 26-0 rounds 1,1 margin 39 wins 0
+pair 144 seed 624000144 game1 30-0 game2 0-9 rounds 1,1 margin 21 wins 0
+pair 145 seed 624000145 game1 68-0 game2 0-19 rounds 1,1 margin 49 wins 0
+pair 146 seed 624000146 game1 29-0 game2 0-25 rounds 1,1 margin 4 wins 0
+pair 147 seed 624000147 game1 0-5 game2 0-6 rounds 1,1 margin -11 wins 0
+pair 148 seed 624000148 game1 54-0 game2 32-0 rounds 1,1 margin 86 wins 0
+pair 149 seed 624000149 game1 0-39 game2 0-13 rounds 1,1 margin -52 wins 0
+pair 150 seed 624000150 game1 24-0 game2 40-0 rounds 1,1 margin 64 wins 0
+pair 151 seed 624000151 game1 0-8 game2 0-8 rounds 1,1 margin -16 wins 0
+pair 152 seed 624000152 game1 0-12 game2 0-10 rounds 1,1 margin -22 wins 0
+pair 153 seed 624000153 game1 0-30 game2 0-33 rounds 1,1 margin -63 wins 0
+pair 154 seed 624000154 game1 17-0 game2 36-0 rounds 1,1 margin 53 wins 0
+pair 155 seed 624000155 game1 0-7 game2 0-2 rounds 1,1 margin -9 wins 0
+pair 156 seed 624000156 game1 0-5 game2 0-4 rounds 1,1 margin -9 wins 0
+pair 157 seed 624000157 game1 35-0 game2 35-0 rounds 1,1 margin 70 wins 0
+pair 158 seed 624000158 game1 27-0 game2 0-36 rounds 1,1 margin -9 wins 0
+pair 159 seed 624000159 game1 0-72 game2 0-3 rounds 1,1 margin -75 wins 0
+pair 160 seed 624000160 game1 29-0 game2 0-10 rounds 1,1 margin 19 wins 0
+pair 161 seed 624000161 game1 29-0 game2 0-1 rounds 1,1 margin 28 wins 0
+pair 162 seed 624000162 game1 0-5 game2 0-27 rounds 1,1 margin -32 wins 0
+pair 163 seed 624000163 game1 0-4 game2 0-1 rounds 1,1 margin -5 wins 0
+pair 164 seed 624000164 game1 42-0 game2 0-28 rounds 1,1 margin 14 wins 0
+pair 165 seed 624000165 game1 4-0 game2 0-1 rounds 1,1 margin 3 wins 0
+pair 166 seed 624000166 game1 0-4 game2 2-0 rounds 1,1 margin -2 wins 0
+pair 167 seed 624000167 game1 0-27 game2 33-0 rounds 1,1 margin 6 wins 0
+pair 168 seed 624000168 game1 2-0 game2 0-21 rounds 1,1 margin -19 wins 0
+pair 169 seed 624000169 game1 0-0 game2 45-0 rounds 1,1 margin 45 wins 0
+pair 170 seed 624000170 game1 0-3 game2 5-0 rounds 1,1 margin 2 wins 0
+pair 171 seed 624000171 game1 0-4 game2 49-0 rounds 1,1 margin 45 wins 0
+pair 172 seed 624000172 game1 33-0 game2 15-0 rounds 1,1 margin 48 wins 0
+pair 173 seed 624000173 game1 0-2 game2 9-0 rounds 1,1 margin 7 wins 0
+pair 174 seed 624000174 game1 0-13 game2 0-22 rounds 1,1 margin -35 wins 0
+pair 175 seed 624000175 game1 39-0 game2 0-63 rounds 1,1 margin -24 wins 0
+pair 176 seed 624000176 game1 17-0 game2 31-0 rounds 1,1 margin 48 wins 0
+pair 177 seed 624000177 game1 16-0 game2 0-4 rounds 1,1 margin 12 wins 0
+pair 178 seed 624000178 game1 0-22 game2 0-16 rounds 1,1 margin -38 wins 0
+pair 179 seed 624000179 game1 31-0 game2 0-12 rounds 1,1 margin 19 wins 0
+pair 180 seed 624000180 game1 41-0 game2 56-0 rounds 1,1 margin 97 wins 0
+pair 181 seed 624000181 game1 15-0 game2 25-0 rounds 1,1 margin 40 wins 0
+pair 182 seed 624000182 game1 0-23 game2 0-49 rounds 1,1 margin -72 wins 0
+pair 183 seed 624000183 game1 0-29 game2 0-56 rounds 1,1 margin -85 wins 0
+pair 184 seed 624000184 game1 0-21 game2 14-0 rounds 1,1 margin -7 wins 0
+pair 185 seed 624000185 game1 14-0 game2 0-0 rounds 1,1 margin 14 wins 0
+pair 186 seed 624000186 game1 50-0 game2 0-7 rounds 1,1 margin 43 wins 0
+pair 187 seed 624000187 game1 17-0 game2 0-17 rounds 1,1 margin 0 wins 0
+pair 188 seed 624000188 game1 66-0 game2 0-66 rounds 1,1 margin 0 wins 0
+pair 189 seed 624000189 game1 0-14 game2 23-0 rounds 1,1 margin 9 wins 0
+pair 190 seed 624000190 game1 60-0 game2 0-32 rounds 1,1 margin 28 wins 0
+pair 191 seed 624000191 game1 0-44 game2 28-0 rounds 1,1 margin -16 wins 0
+pair 192 seed 624000192 game1 0-9 game2 9-0 rounds 1,1 margin 0 wins 0
+pair 193 seed 624000193 game1 9-0 game2 0-8 rounds 1,1 margin 1 wins 0
+pair 194 seed 624000194 game1 19-0 game2 46-0 rounds 1,1 margin 65 wins 0
+pair 195 seed 624000195 game1 0-21 game2 54-0 rounds 1,1 margin 33 wins 0
+pair 196 seed 624000196 game1 28-0 game2 42-0 rounds 1,1 margin 70 wins 0
+pair 197 seed 624000197 game1 10-0 game2 61-0 rounds 1,1 margin 71 wins 0
+pair 198 seed 624000198 game1 0-22 game2 56-0 rounds 1,1 margin 34 wins 0
+pair 199 seed 624000199 game1 16-0 game2 0-36 rounds 1,1 margin -20 wins 0
+pair 200 seed 624000200 game1 2-0 game2 0-54 rounds 1,1 margin -52 wins 0
+pair 201 seed 624000201 game1 0-2 game2 65-0 rounds 1,1 margin 63 wins 0
+pair 202 seed 624000202 game1 31-0 game2 0-6 rounds 1,1 margin 25 wins 0
+pair 203 seed 624000203 game1 51-0 game2 24-0 rounds 1,1 margin 75 wins 0
+pair 204 seed 624000204 game1 0-9 game2 0-75 rounds 1,1 margin -84 wins 0
+pair 205 seed 624000205 game1 31-0 game2 0-6 rounds 1,1 margin 25 wins 0
+pair 206 seed 624000206 game1 0-31 game2 23-0 rounds 1,1 margin -8 wins 0
+pair 207 seed 624000207 game1 0-29 game2 0-6 rounds 1,1 margin -35 wins 0
+pair 208 seed 624000208 game1 0-4 game2 0-10 rounds 1,1 margin -14 wins 0
+pair 209 seed 624000209 game1 8-0 game2 0-3 rounds 1,1 margin 5 wins 0
+pair 210 seed 624000210 game1 26-0 game2 0-7 rounds 1,1 margin 19 wins 0
+pair 211 seed 624000211 game1 13-0 game2 0-16 rounds 1,1 margin -3 wins 0
+pair 212 seed 624000212 game1 0-71 game2 78-0 rounds 1,1 margin 7 wins 0
+pair 213 seed 624000213 game1 0-7 game2 0-11 rounds 1,1 margin -18 wins 0
+pair 214 seed 624000214 game1 37-0 game2 0-37 rounds 1,1 margin 0 wins 0
+pair 215 seed 624000215 game1 6-0 game2 0-6 rounds 1,1 margin 0 wins 0
+pair 216 seed 624000216 game1 0-35 game2 0-23 rounds 1,1 margin -58 wins 0
+pair 217 seed 624000217 game1 0-12 game2 0-55 rounds 1,1 margin -67 wins 0
+pair 218 seed 624000218 game1 0-22 game2 0-6 rounds 1,1 margin -28 wins 0
+pair 219 seed 624000219 game1 3-0 game2 0-3 rounds 1,1 margin 0 wins 0
+pair 220 seed 624000220 game1 41-0 game2 13-0 rounds 1,1 margin 54 wins 0
+pair 221 seed 624000221 game1 0-41 game2 0-12 rounds 1,1 margin -53 wins 0
+pair 222 seed 624000222 game1 19-0 game2 0-68 rounds 1,1 margin -49 wins 0
+pair 223 seed 624000223 game1 14-0 game2 3-0 rounds 1,1 margin 17 wins 0
+pair 224 seed 624000224 game1 0-16 game2 0-69 rounds 1,1 margin -85 wins 0
+pair 225 seed 624000225 game1 0-25 game2 0-0 rounds 1,1 margin -25 wins 0
+pair 226 seed 624000226 game1 0-13 game2 50-0 rounds 1,1 margin 37 wins 0
+pair 227 seed 624000227 game1 5-0 game2 12-0 rounds 1,1 margin 17 wins 0
+pair 228 seed 624000228 game1 17-0 game2 0-12 rounds 1,1 margin 5 wins 0
+pair 229 seed 624000229 game1 0-17 game2 0-4 rounds 1,1 margin -21 wins 0
+pair 230 seed 624000230 game1 0-28 game2 0-0 rounds 1,1 margin -28 wins 0
+pair 231 seed 624000231 game1 71-0 game2 27-0 rounds 1,1 margin 98 wins 0
+pair 232 seed 624000232 game1 62-0 game2 32-0 rounds 1,1 margin 94 wins 0
+pair 233 seed 624000233 game1 0-18 game2 12-0 rounds 1,1 margin -6 wins 0
+pair 234 seed 624000234 game1 4-0 game2 0-4 rounds 1,1 margin 0 wins 0
+pair 235 seed 624000235 game1 0-4 game2 4-0 rounds 1,1 margin 0 wins 0
+pair 236 seed 624000236 game1 66-0 game2 0-40 rounds 1,1 margin 26 wins 0
+pair 237 seed 624000237 game1 0-69 game2 69-0 rounds 1,1 margin 0 wins 0
+pair 238 seed 624000238 game1 0-0 game2 0-52 rounds 1,1 margin -52 wins 0
+pair 239 seed 624000239 game1 0-16 game2 49-0 rounds 1,1 margin 33 wins 0
+pair 240 seed 624000240 game1 0-5 game2 0-8 rounds 1,1 margin -13 wins 0
+pair 241 seed 624000241 game1 27-0 game2 20-0 rounds 1,1 margin 47 wins 0
+pair 242 seed 624000242 game1 33-0 game2 0-12 rounds 1,1 margin 21 wins 0
+pair 243 seed 624000243 game1 0-42 game2 35-0 rounds 1,1 margin -7 wins 0
+pair 244 seed 624000244 game1 0-13 game2 2-0 rounds 1,1 margin -11 wins 0
+pair 245 seed 624000245 game1 0-15 game2 15-0 rounds 1,1 margin 0 wins 0
+pair 246 seed 624000246 game1 0-5 game2 0-3 rounds 1,1 margin -8 wins 0
+pair 247 seed 624000247 game1 0-10 game2 0-62 rounds 1,1 margin -72 wins 0
+pair 248 seed 624000248 game1 36-0 game2 0-36 rounds 1,1 margin 0 wins 0
+pair 249 seed 624000249 game1 0-11 game2 26-0 rounds 1,1 margin 15 wins 0
+pair 250 seed 624000250 game1 8-0 game2 0-8 rounds 1,1 margin 0 wins 0
+pair 251 seed 624000251 game1 0-75 game2 67-0 rounds 1,1 margin -8 wins 0
+pair 252 seed 624000252 game1 0-19 game2 31-0 rounds 1,1 margin 12 wins 0
+pair 253 seed 624000253 game1 0-9 game2 51-0 rounds 1,1 margin 42 wins 0
+pair 254 seed 624000254 game1 38-0 game2 38-0 rounds 1,1 margin 76 wins 0
+pair 255 seed 624000255 game1 39-0 game2 20-0 rounds 1,1 margin 59 wins 0
+pair 256 seed 624000256 game1 35-0 game2 31-0 rounds 1,1 margin 66 wins 0
+pair 257 seed 624000257 game1 17-0 game2 10-0 rounds 1,1 margin 27 wins 0
+pair 258 seed 624000258 game1 26-0 game2 43-0 rounds 1,1 margin 69 wins 0
+pair 259 seed 624000259 game1 25-0 game2 16-0 rounds 1,1 margin 41 wins 0
+pair 260 seed 624000260 game1 0-20 game2 11-0 rounds 1,1 margin -9 wins 0
+pair 261 seed 624000261 game1 1-0 game2 0-0 rounds 1,1 margin 1 wins 0
+pair 262 seed 624000262 game1 0-55 game2 40-0 rounds 1,1 margin -15 wins 0
+pair 263 seed 624000263 game1 0-24 game2 28-0 rounds 1,1 margin 4 wins 0
+pair 264 seed 624000264 game1 29-0 game2 0-10 rounds 1,1 margin 19 wins 0
+pair 265 seed 624000265 game1 8-0 game2 9-0 rounds 1,1 margin 17 wins 0
+pair 266 seed 624000266 game1 0-51 game2 4-0 rounds 1,1 margin -47 wins 0
+pair 267 seed 624000267 game1 0-5 game2 6-0 rounds 1,1 margin 1 wins 0
+pair 268 seed 624000268 game1 30-0 game2 0-43 rounds 1,1 margin -13 wins 0
+pair 269 seed 624000269 game1 29-0 game2 2-0 rounds 1,1 margin 31 wins 0
+pair 270 seed 624000270 game1 35-0 game2 8-0 rounds 1,1 margin 43 wins 0
+pair 271 seed 624000271 game1 20-0 game2 98-0 rounds 1,1 margin 118 wins 0
+pair 272 seed 624000272 game1 0-37 game2 0-8 rounds 1,1 margin -45 wins 0
+pair 273 seed 624000273 game1 0-3 game2 0-12 rounds 1,1 margin -15 wins 0
+pair 274 seed 624000274 game1 0-78 game2 6-0 rounds 1,1 margin -72 wins 0
+pair 275 seed 624000275 game1 31-0 game2 64-0 rounds 1,1 margin 95 wins 0
+pair 276 seed 624000276 game1 0-18 game2 23-0 rounds 1,1 margin 5 wins 0
+pair 277 seed 624000277 game1 0-13 game2 32-0 rounds 1,1 margin 19 wins 0
+pair 278 seed 624000278 game1 33-0 game2 4-0 rounds 1,1 margin 37 wins 0
+pair 279 seed 624000279 game1 101-0 game2 0-56 rounds 1,1 margin 45 wins 1
+pair 280 seed 624000280 game1 0-3 game2 30-0 rounds 1,1 margin 27 wins 0
+pair 281 seed 624000281 game1 10-0 game2 0-10 rounds 1,1 margin 0 wins 0
+pair 282 seed 624000282 game1 0-8 game2 0-10 rounds 1,1 margin -18 wins 0
+pair 283 seed 624000283 game1 28-0 game2 36-0 rounds 1,1 margin 64 wins 0
+pair 284 seed 624000284 game1 0-23 game2 7-0 rounds 1,1 margin -16 wins 0
+pair 285 seed 624000285 game1 21-0 game2 0-4 rounds 1,1 margin 17 wins 0
+pair 286 seed 624000286 game1 0-42 game2 0-34 rounds 1,1 margin -76 wins 0
+pair 287 seed 624000287 game1 7-0 game2 23-0 rounds 1,1 margin 30 wins 0
+pair 288 seed 624000288 game1 66-0 game2 0-41 rounds 1,1 margin 25 wins 0
+pair 289 seed 624000289 game1 19-0 game2 0-43 rounds 1,1 margin -24 wins 0
+pair 290 seed 624000290 game1 38-0 game2 0-9 rounds 1,1 margin 29 wins 0
+pair 291 seed 624000291 game1 60-0 game2 0-61 rounds 1,1 margin -1 wins 0
+pair 292 seed 624000292 game1 8-0 game2 3-0 rounds 1,1 margin 11 wins 0
+pair 293 seed 624000293 game1 11-0 game2 0-11 rounds 1,1 margin 0 wins 0
+pair 294 seed 624000294 game1 0-2 game2 0-13 rounds 1,1 margin -15 wins 0
+pair 295 seed 624000295 game1 0-26 game2 36-0 rounds 1,1 margin 10 wins 0
+pair 296 seed 624000296 game1 0-3 game2 33-0 rounds 1,1 margin 30 wins 0
+pair 297 seed 624000297 game1 0-35 game2 14-0 rounds 1,1 margin -21 wins 0
+pair 298 seed 624000298 game1 38-0 game2 8-0 rounds 1,1 margin 46 wins 0
+pair 299 seed 624000299 game1 30-0 game2 31-0 rounds 1,1 margin 61 wins 0
+aivat 0 deal 0.000 draw -138.750 action 0.000
+aivat 1 deal 0.000 draw 328.625 action 0.000
+aivat 2 deal 0.000 draw -79.750 action 0.000
+aivat 3 deal 0.000 draw 110.125 action 0.000
+aivat 4 deal 0.000 draw -75.250 action 0.000
+aivat 5 deal 0.000 draw -102.750 action 0.000
+aivat 6 deal 0.000 draw 186.875 action 0.000
+aivat 7 deal 0.000 draw 11.000 action 0.000
+aivat 8 deal 0.000 draw 118.750 action 0.000
+aivat 9 deal 0.000 draw -106.250 action 0.000
+aivat 10 deal 0.000 draw 34.250 action 13.500
+aivat 11 deal 0.000 draw -6.750 action 0.000
+aivat 12 deal 0.000 draw -8.875 action 0.000
+aivat 13 deal 0.000 draw 44.250 action 0.000
+aivat 14 deal 0.000 draw 4.750 action 0.000
+aivat 15 deal 0.000 draw -35.750 action 0.000
+aivat 16 deal 0.000 draw 233.000 action 0.000
+aivat 17 deal 0.000 draw -69.125 action 0.000
+aivat 18 deal 0.000 draw 1.500 action 0.000
+aivat 19 deal 0.000 draw -118.125 action 0.000
+aivat 20 deal 0.000 draw 1.625 action 11.000
+aivat 21 deal 0.000 draw 105.125 action 0.000
+aivat 22 deal 0.000 draw -52.000 action 0.000
+aivat 23 deal 0.000 draw 66.500 action 0.000
+aivat 24 deal 0.000 draw -101.625 action 0.000
+aivat 25 deal 0.000 draw 82.125 action 0.000
+aivat 26 deal 0.000 draw -34.000 action 0.000
+aivat 27 deal 0.000 draw 102.250 action 0.000
+aivat 28 deal 0.000 draw 20.750 action 0.000
+aivat 29 deal 0.000 draw -39.250 action 0.000
+aivat 30 deal 0.000 draw 0.000 action 0.000
+aivat 31 deal 0.000 draw -50.250 action 0.000
+aivat 32 deal 0.000 draw -19.625 action 0.000
+aivat 33 deal 0.000 draw -280.750 action 0.000
+aivat 34 deal 0.000 draw 14.000 action 0.000
+aivat 35 deal 0.000 draw 0.000 action 0.000
+aivat 36 deal 0.000 draw -77.375 action 0.000
+aivat 37 deal 0.000 draw -12.875 action 0.000
+aivat 38 deal 0.000 draw 20.125 action 0.000
+aivat 39 deal 0.000 draw 11.875 action 0.000
+aivat 40 deal 0.000 draw -7.250 action 0.000
+aivat 41 deal 0.000 draw 24.000 action 0.000
+aivat 42 deal 0.000 draw 56.125 action 0.000
+aivat 43 deal 0.000 draw -124.750 action 0.000
+aivat 44 deal 0.000 draw 40.750 action 0.000
+aivat 45 deal 0.000 draw 57.875 action 0.000
+aivat 46 deal 0.000 draw 29.625 action 0.000
+aivat 47 deal 0.000 draw -104.000 action 0.000
+aivat 48 deal 0.000 draw 260.500 action 0.000
+aivat 49 deal 0.000 draw -124.375 action 0.000
+aivat 50 deal 0.000 draw -78.375 action 0.000
+aivat 51 deal 0.000 draw -15.125 action 10.500
+aivat 52 deal 0.000 draw -47.875 action 0.000
+aivat 53 deal 0.000 draw -14.500 action 0.000
+aivat 54 deal 0.000 draw -72.875 action 0.000
+aivat 55 deal 0.000 draw -48.750 action 0.000
+aivat 56 deal 0.000 draw -62.750 action 0.000
+aivat 57 deal 0.000 draw -5.000 action 0.000
+aivat 58 deal 0.000 draw -11.625 action 0.000
+aivat 59 deal 0.000 draw 276.500 action 0.000
+aivat 60 deal 0.000 draw 30.000 action 0.000
+aivat 61 deal 0.000 draw 24.000 action 0.000
+aivat 62 deal 0.000 draw -151.125 action 0.000
+aivat 63 deal 0.000 draw -2.125 action 0.000
+aivat 64 deal 0.000 draw 86.000 action 0.000
+aivat 65 deal 0.000 draw 25.875 action 0.000
+aivat 66 deal 0.000 draw -95.125 action 0.000
+aivat 67 deal 0.000 draw -58.125 action 0.000
+aivat 68 deal 0.000 draw 34.500 action 0.000
+aivat 69 deal 0.000 draw 18.875 action 0.000
+aivat 70 deal 0.000 draw 265.250 action 0.000
+aivat 71 deal 0.000 draw 0.000 action 0.000
+aivat 72 deal 0.000 draw 59.125 action 0.000
+aivat 73 deal 0.000 draw 20.750 action 0.000
+aivat 74 deal 0.000 draw 171.750 action 0.000
+aivat 75 deal 0.000 draw 30.000 action 0.000
+aivat 76 deal 0.000 draw -62.125 action 0.000
+aivat 77 deal 0.000 draw 52.750 action 0.000
+aivat 78 deal 0.000 draw 294.500 action 0.000
+aivat 79 deal 0.000 draw 85.500 action 0.000
+aivat 80 deal 0.000 draw -13.500 action 0.000
+aivat 81 deal 0.000 draw 74.375 action 0.000
+aivat 82 deal 0.000 draw 31.250 action 0.000
+aivat 83 deal 0.000 draw 0.000 action 0.000
+aivat 84 deal 0.000 draw 40.500 action 0.000
+aivat 85 deal 0.000 draw 3.750 action 0.000
+aivat 86 deal 0.000 draw 93.250 action 0.000
+aivat 87 deal 0.000 draw 168.500 action 0.000
+aivat 88 deal 0.000 draw 24.875 action 0.000
+aivat 89 deal 0.000 draw 115.375 action 0.000
+aivat 90 deal 0.000 draw -104.125 action 0.000
+aivat 91 deal 0.000 draw -109.375 action 0.000
+aivat 92 deal 0.000 draw 54.375 action 30.500
+aivat 93 deal 0.000 draw 135.125 action 0.000
+aivat 94 deal 0.000 draw -68.000 action 0.000
+aivat 95 deal 0.000 draw -89.375 action 0.000
+aivat 96 deal 0.000 draw 100.000 action 0.000
+aivat 97 deal 0.000 draw 23.000 action 0.000
+aivat 98 deal 0.000 draw -54.625 action 0.000
+aivat 99 deal 0.000 draw -261.250 action 0.000
+aivat 100 deal 0.000 draw 42.750 action 0.000
+aivat 101 deal 0.000 draw -43.250 action 0.000
+aivat 102 deal 0.000 draw -12.500 action 0.000
+aivat 103 deal 0.000 draw -37.250 action 0.000
+aivat 104 deal 0.000 draw 44.000 action 0.000
+aivat 105 deal 0.000 draw -37.250 action 0.000
+aivat 106 deal 0.000 draw 31.125 action 0.000
+aivat 107 deal 0.000 draw 17.125 action 0.000
+aivat 108 deal 0.000 draw 0.000 action 0.000
+aivat 109 deal 0.000 draw 158.000 action 0.000
+aivat 110 deal 0.000 draw 135.625 action 0.000
+aivat 111 deal 0.000 draw 139.125 action 0.000
+aivat 112 deal 0.000 draw -116.125 action 0.000
+aivat 113 deal 0.000 draw 229.500 action 12.500
+aivat 114 deal 0.000 draw -74.000 action 0.000
+aivat 115 deal 0.000 draw 0.000 action 0.000
+aivat 116 deal 0.000 draw -47.875 action 0.000
+aivat 117 deal 0.000 draw -27.625 action -20.000
+aivat 118 deal 0.000 draw -98.625 action 0.000
+aivat 119 deal 0.000 draw -81.125 action 0.000
+aivat 120 deal 0.000 draw -20.125 action 0.000
+aivat 121 deal 0.000 draw -94.500 action 0.000
+aivat 122 deal 0.000 draw -27.750 action 14.000
+aivat 123 deal 0.000 draw -12.625 action 0.000
+aivat 124 deal 0.000 draw -3.375 action 0.000
+aivat 125 deal 0.000 draw -209.375 action 0.000
+aivat 126 deal 0.000 draw 9.750 action 0.000
+aivat 127 deal 0.000 draw 3.000 action 17.000
+aivat 128 deal 0.000 draw -68.500 action 0.000
+aivat 129 deal 0.000 draw -27.625 action 0.000
+aivat 130 deal 0.000 draw -76.125 action 0.000
+aivat 131 deal 0.000 draw -113.250 action 0.000
+aivat 132 deal 0.000 draw -74.625 action 0.000
+aivat 133 deal 0.000 draw 23.000 action 0.000
+aivat 134 deal 0.000 draw 93.250 action 0.000
+aivat 135 deal 0.000 draw 23.125 action 0.000
+aivat 136 deal 0.000 draw -26.750 action 0.000
+aivat 137 deal 0.000 draw 46.875 action 0.000
+aivat 138 deal 0.000 draw -63.125 action 0.000
+aivat 139 deal 0.000 draw 45.750 action 0.000
+aivat 140 deal 0.000 draw 68.250 action -16.000
+aivat 141 deal 0.000 draw -7.375 action -6.000
+aivat 142 deal 0.000 draw 34.375 action 0.000
+aivat 143 deal 0.000 draw 77.750 action 0.000
+aivat 144 deal 0.000 draw 16.000 action 0.000
+aivat 145 deal 0.000 draw -7.750 action 0.000
+aivat 146 deal 0.000 draw 103.125 action 0.000
+aivat 147 deal 0.000 draw -39.250 action 0.000
+aivat 148 deal 0.000 draw 37.125 action 0.000
+aivat 149 deal 0.000 draw -8.375 action 0.000
+aivat 150 deal 0.000 draw 115.000 action 0.000
+aivat 151 deal 0.000 draw -80.750 action 0.000
+aivat 152 deal 0.000 draw 68.375 action 0.000
+aivat 153 deal 0.000 draw -101.625 action 0.000
+aivat 154 deal 0.000 draw -26.750 action 0.000
+aivat 155 deal 0.000 draw -34.500 action 0.000
+aivat 156 deal 0.000 draw -8.375 action 0.000
+aivat 157 deal 0.000 draw -42.125 action 0.000
+aivat 158 deal 0.000 draw -27.375 action 12.000
+aivat 159 deal 0.000 draw -159.000 action 0.000
+aivat 160 deal 0.000 draw -23.875 action 0.000
+aivat 161 deal 0.000 draw 18.750 action 21.500
+aivat 162 deal 0.000 draw -71.375 action 0.000
+aivat 163 deal 0.000 draw -1.875 action 0.000
+aivat 164 deal 0.000 draw -79.000 action 0.000
+aivat 165 deal 0.000 draw -74.250 action 0.000
+aivat 166 deal 0.000 draw 81.125 action 0.000
+aivat 167 deal 0.000 draw -262.375 action -7.500
+aivat 168 deal 0.000 draw -103.875 action 0.000
+aivat 169 deal 0.000 draw 116.500 action 0.000
+aivat 170 deal 0.000 draw -39.625 action 0.000
+aivat 171 deal 0.000 draw -30.750 action 6.500
+aivat 172 deal 0.000 draw -5.625 action 0.000
+aivat 173 deal 0.000 draw -5.750 action 0.000
+aivat 174 deal 0.000 draw -30.000 action 0.000
+aivat 175 deal 0.000 draw 31.875 action 0.000
+aivat 176 deal 0.000 draw -51.000 action 0.000
+aivat 177 deal 0.000 draw 105.250 action 0.000
+aivat 178 deal 0.000 draw -5.625 action 7.500
+aivat 179 deal 0.000 draw -113.250 action 0.000
+aivat 180 deal 0.000 draw -28.250 action 0.000
+aivat 181 deal 0.000 draw 13.000 action 0.000
+aivat 182 deal 0.000 draw -106.000 action 0.000
+aivat 183 deal 0.000 draw -163.500 action 0.000
+aivat 184 deal 0.000 draw 14.250 action 0.000
+aivat 185 deal 0.000 draw 73.250 action 0.000
+aivat 186 deal 0.000 draw -56.125 action 0.000
+aivat 187 deal 0.000 draw 0.000 action 0.000
+aivat 188 deal 0.000 draw 0.000 action 0.000
+aivat 189 deal 0.000 draw -15.875 action 0.000
+aivat 190 deal 0.000 draw -61.875 action 0.000
+aivat 191 deal 0.000 draw -61.625 action -5.000
+aivat 192 deal 0.000 draw 0.000 action 0.000
+aivat 193 deal 0.000 draw 214.375 action 0.000
+aivat 194 deal 0.000 draw 75.125 action 0.000
+aivat 195 deal 0.000 draw 48.750 action 0.000
+aivat 196 deal 0.000 draw -62.000 action 0.000
+aivat 197 deal 0.000 draw 104.000 action 0.000
+aivat 198 deal 0.000 draw 101.750 action 0.000
+aivat 199 deal 0.000 draw 47.500 action 0.000
+aivat 200 deal 0.000 draw -79.250 action 0.000
+aivat 201 deal 0.000 draw -10.875 action 0.000
+aivat 202 deal 0.000 draw -35.875 action 0.000
+aivat 203 deal 0.000 draw 19.625 action 0.000
+aivat 204 deal 0.000 draw -127.875 action 0.000
+aivat 205 deal 0.000 draw 25.375 action 0.000
+aivat 206 deal 0.000 draw -14.125 action 0.000
+aivat 207 deal 0.000 draw 5.625 action 0.000
+aivat 208 deal 0.000 draw -29.250 action 0.000
+aivat 209 deal 0.000 draw 12.500 action 0.000
+aivat 210 deal 0.000 draw 4.125 action 0.000
+aivat 211 deal 0.000 draw 39.250 action 0.000
+aivat 212 deal 0.000 draw 33.250 action 0.000
+aivat 213 deal 0.000 draw -6.125 action 0.000
+aivat 214 deal 0.000 draw 0.000 action 0.000
+aivat 215 deal 0.000 draw 0.000 action 0.000
+aivat 216 deal 0.000 draw -102.250 action 0.000
+aivat 217 deal 0.000 draw 16.250 action 0.000
+aivat 218 deal 0.000 draw 63.250 action 0.000
+aivat 219 deal 0.000 draw 0.000 action 0.000
+aivat 220 deal 0.000 draw 66.750 action 0.000
+aivat 221 deal 0.000 draw -146.250 action -1.500
+aivat 222 deal 0.000 draw -170.875 action 0.000
+aivat 223 deal 0.000 draw 15.375 action -41.000
+aivat 224 deal 0.000 draw 7.625 action 0.000
+aivat 225 deal 0.000 draw 0.000 action 0.000
+aivat 226 deal 0.000 draw 133.375 action 0.000
+aivat 227 deal 0.000 draw 45.875 action 0.000
+aivat 228 deal 0.000 draw 131.000 action 0.000
+aivat 229 deal 0.000 draw -86.125 action 0.000
+aivat 230 deal 0.000 draw -86.375 action 0.000
+aivat 231 deal 0.000 draw 162.125 action 0.000
+aivat 232 deal 0.000 draw -46.500 action 0.000
+aivat 233 deal 0.000 draw -53.875 action 0.000
+aivat 234 deal 0.000 draw 0.000 action 0.000
+aivat 235 deal 0.000 draw 0.000 action 0.000
+aivat 236 deal 0.000 draw -2.500 action 0.000
+aivat 237 deal 0.000 draw 0.000 action 0.000
+aivat 238 deal 0.000 draw -116.250 action 0.000
+aivat 239 deal 0.000 draw 28.250 action 0.000
+aivat 240 deal 0.000 draw 12.375 action 0.000
+aivat 241 deal 0.000 draw 64.000 action 26.500
+aivat 242 deal 0.000 draw 15.500 action 0.000
+aivat 243 deal 0.000 draw -32.250 action 0.000
+aivat 244 deal 0.000 draw 151.375 action -22.500
+aivat 245 deal 0.000 draw 0.000 action 0.000
+aivat 246 deal 0.000 draw -109.750 action 0.000
+aivat 247 deal 0.000 draw -8.250 action 0.000
+aivat 248 deal 0.000 draw 24.875 action 0.000
+aivat 249 deal 0.000 draw -66.250 action 0.000
+aivat 250 deal 0.000 draw -22.125 action 0.000
+aivat 251 deal 0.000 draw 128.500 action 0.000
+aivat 252 deal 0.000 draw 18.375 action 0.000
+aivat 253 deal 0.000 draw 119.375 action 0.000
+aivat 254 deal 0.000 draw -68.125 action 0.000
+aivat 255 deal 0.000 draw 81.000 action 0.000
+aivat 256 deal 0.000 draw 173.625 action 0.000
+aivat 257 deal 0.000 draw 15.625 action 0.000
+aivat 258 deal 0.000 draw 219.625 action 0.000
+aivat 259 deal 0.000 draw -12.750 action 0.000
+aivat 260 deal 0.000 draw 12.875 action 0.000
+aivat 261 deal 0.000 draw 0.625 action 0.000
+aivat 262 deal 0.000 draw -358.750 action 0.000
+aivat 263 deal 0.000 draw -31.375 action 0.000
+aivat 264 deal 0.000 draw 45.250 action 0.000
+aivat 265 deal 0.000 draw 18.750 action 0.000
+aivat 266 deal 0.000 draw -196.625 action 0.000
+aivat 267 deal 0.000 draw -11.125 action 0.000
+aivat 268 deal 0.000 draw 35.625 action 0.000
+aivat 269 deal 0.000 draw 105.750 action 0.000
+aivat 270 deal 0.000 draw 15.500 action 0.000
+aivat 271 deal 0.000 draw -0.125 action 0.000
+aivat 272 deal 0.000 draw -192.500 action 0.000
+aivat 273 deal 0.000 draw 2.250 action -14.000
+aivat 274 deal 0.000 draw -130.500 action 0.000
+aivat 275 deal 0.000 draw 19.125 action 0.000
+aivat 276 deal 0.000 draw 48.375 action 0.000
+aivat 277 deal 0.000 draw 73.750 action 0.000
+aivat 278 deal 0.000 draw 93.625 action 0.000
+aivat 279 deal 0.000 draw -0.875 action 0.000
+aivat 280 deal 0.000 draw 150.625 action 0.000
+aivat 281 deal 0.000 draw 0.000 action 0.000
+aivat 282 deal 0.000 draw 7.875 action 0.000
+aivat 283 deal 0.000 draw -78.250 action 0.000
+aivat 284 deal 0.000 draw -39.875 action 0.000
+aivat 285 deal 0.000 draw 49.625 action 0.000
+aivat 286 deal 0.000 draw -218.625 action 0.000
+aivat 287 deal 0.000 draw 7.875 action 0.000
+aivat 288 deal 0.000 draw 0.000 action 0.000
+aivat 289 deal 0.000 draw 74.875 action 0.000
+aivat 290 deal 0.000 draw -97.250 action 0.000
+aivat 291 deal 0.000 draw 11.000 action 0.000
+aivat 292 deal 0.000 draw -27.750 action 0.000
+aivat 293 deal 0.000 draw 0.000 action 0.000
+aivat 294 deal 0.000 draw -61.375 action 0.000
+aivat 295 deal 0.000 draw -17.375 action 0.000
+aivat 296 deal 0.000 draw 35.375 action 0.000
+aivat 297 deal 0.000 draw -1.250 action 0.000
+aivat 298 deal 0.000 draw 83.875 action 0.000
+aivat 299 deal 0.000 draw 127.875 action 0.000
+# summary points per round (A minus B) mean 3.293 sd 20.197 95% CI [0.999, 5.588] over 300 pairs
+# aivat j=8 nodes=2000000 values=18628 capped=29 draws=on corrected points per round (AIVAT, cross-fitted) mean 3.172 sd 17.153 95% CI [1.223, 5.121] over 300 pairs; raw sd 20.197; corrected minus raw mean -0.1215 se 0.6323 t -0.192; coefficients deal draw action 0.000,0.242,0.248 and 0.000,0.228,0.822
+# capped a=18 b=0
+# time a=8.3,16228.5,6419 b=0.1,53.2,6437
+# run run=T6 row=4 command=runs/bin/f763c0f/dominofish+match+--mode+1v1+--unit+round+--target+100+--pairs+300+--seed+624000000+--engine-seed+5000800004+--aivat+8+--timeout-ms+120000+--a+"runs/bin/f763c0f/dominofish+engine+--bot+pimc+--worlds+8"+--b+"runs/bin/f763c0f/dominofish+engine+--bot+rule"+--out+docs/eval/results/2026-10-29-aivat-t6/row-4-1v1-round-100-pimc8-rule.txt wall_s=74.17 peak_rss_kb=18592 load=25.96 date=2026-10-29

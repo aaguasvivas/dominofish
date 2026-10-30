@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03, judged by test T6 (Q11 answered 2026-10-29)
+- Feature in progress: M5-03: T6 fails (row 5 in (a), and (d)); waits for Q12
 - Last green commit: 64e01e8 (check.sh passes; regress passes 41 of 41 in 527 s on 2026-10-29)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q10 and Q11 answered 2026-10-29)
+- Open questions: Q12 (T6 failed; a defect in D19 for full games), 2026-10-29
 - Stashes: none
 
 ## 2026-10-25
@@ -191,4 +191,7 @@
 - Ship-audit report: docs/audit/2026-10-29/report.md.
 - regress after the deploy (64e01e8 plus this entry's README and CLAUDE.md edits): regress: PASS 41 of 41 fast commands in 527s.
 - Q11 answered, word for word: "lets do a, your recommendation". T6 is stated in PLAN.md (Pre-registered runs) and committed before its first run: T5's 14 rows, criteria, and mutant on new seeds (deal seeds 620,000,000 + 1,000,000 k + i, engine seed base 5,000,800,000 + k), with rows 2, 3, 9, and 10 at 16,000 pairs, so the true run and the mutant replay test those rows at the same size. scripts/run-t6.sh runs it; scripts/verify/M5-03.sh now judges T6: its full run builds the mutant from the commit in T6's COMMIT file, replays rows 2, 3, 9, and 10 on the same seeds, and requires equal pair lines (the same games) and |t| > 3.29 in one row. Design check on T5's data: the T5 mutant's pair lines equal T5's in all four rows (1,000 each) and 835 to 1,000 of each row's aivat lines differ, so the mutant changes only the terms. Known-bad: the verify fails while T6's files are missing.
+- T6 ran 19:58 to about 20:20 at f763c0f (14 rows, no fault); the chained full verify ran to 20:38: M5-03: FAIL. (a): row 5 (1v1 games to 100, rule against random, 300 pairs) has corrected minus raw -1.6900 points per round, se 0.4775, t -3.539; the other rows are within 3.29 (t by row: 0 -0.662, 1 1.424, 2 -0.915, 3 0.964, 4 -0.192, 6 0.084, 7 0.884, 8 -0.445, 9 0.505, 10 -0.433, 11 -1.140, 12 -0.152, 13 -1.719). (b) passes (sum of t^2 22.50, at most 36.12) and (c) passes. (d): the mutant built from f763c0f replayed rows 2, 3, 9, and 10 on the same games (pair lines equal) with t 3.127, 0.305, 1.950, and -0.805 (target above 3.29 in one row). The mutant's files are in runs/M5-03/t6-mutant/ (not committed); its summaries give these numbers. REPORT.md is regenerated with T6's rows.
+- Diagnosis on T5's and T6's committed data (a diagnostic, not a claim; tools/aivat-recompute.py re-implements stats::crossfit and reproduces the harness's numbers exactly, row 5: -1.6900, 0.4775, -3.539). Each term's own mean is near 0 in every row (largest |t| 2.30). The harness divides each pair's terms by its number of rounds (aivat_row). In full games that number depends on the luck: in the rule-against-random game rows the term totals correlate with it (-0.14 to -0.39), so the per-round terms lose their zero mean (T6 row 5: totals t +1.20, per round t +2.99) and the correction moves the result. With per-pair totals, those four rows (5 and 12 of T5 and T6) give t +0.56, -1.00, -1.91, and +0.61 (per round: -1.11, -2.31, -3.54, -0.15): the per-round version sits 0.46 to 0.90 points per round lower (mean 0.68); round rows are unchanged (2 rounds in every pair). SD ratio raw / corrected in game rows: 0.98 to 1.36 with totals, 0.98 to 1.41 per round. The mutant's bias mostly cancels between the two sides of a duplicate pair: 0.21 points per round in row 2 at 16,000 pairs. T5's 1,000-pair estimate there (t 1.54) was high by chance; 16,000 pairs imply about 0.78 at 1,000, so Q11's sizing (expected t 6.2) was too optimistic.
+- M5-03 stays failing (passes false); T6 is unchanged; asked as Q12.
 
