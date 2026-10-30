@@ -91,6 +91,8 @@ pub const COMMANDS: &[Command] = &[
   --sprt MU0,MU1      SPRT on the pair margin, alpha = beta = 0.05; stops at
                       a decision
   --sprt-track        Play every pair and report the first decision
+  --sprt-on ON        margin (default), or wins: the SPRT on each pair's share
+                      of games A won (unit game; MU0 and MU1 are shares)
   --aivat J           Also report the result corrected by AIVAT control
                       variates: each deal and draw against J sampled
                       outcomes (1 to 64), each baseline bot's choice against

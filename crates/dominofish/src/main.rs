@@ -498,6 +498,7 @@ fn run() -> Result<(String, bool), Failure> {
             let (mut a, mut b, mut out, mut timeout_ms) = (None, None, None, 10_000u64);
             let mut engine_seed = None;
             let mut sprt: Option<stats::Sprt> = None;
+            let mut sprt_wins = false;
             let mut track = false;
             let mut aivat = None;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
@@ -528,6 +529,17 @@ fn run() -> Result<(String, bool), Failure> {
                         aivat = Some(n as u32);
                     }
                     Long("sprt-track") => track = true,
+                    Long("sprt-on") => {
+                        sprt_wins = match value(&mut parser)?.as_str() {
+                            "margin" => false,
+                            "wins" => true,
+                            x => {
+                                return Err(
+                                    format!("--sprt-on must be margin or wins, got {x}").into()
+                                );
+                            }
+                        }
+                    }
                     Long("sprt") => {
                         let v = value(&mut parser)?;
                         let (h0, h1) = v.split_once(',').ok_or("--sprt takes mu0,mu1")?;
@@ -560,16 +572,25 @@ fn run() -> Result<(String, bool), Failure> {
                 aivat,
             };
             let out = out.ok_or("--out is required")?;
-            // The SPRT runs on each pair's margin and stops the match at a
+            if sprt_wins && (sprt.is_none() || spec.unit != harness::Unit::Game) {
+                return Err("--sprt-on wins needs --sprt and --unit game".into());
+            }
+            // The SPRT runs on each pair's margin, or with --sprt-on wins on
+            // its share of games won by A, and stops the match at a
             // decision; --pairs is then the maximum. With --sprt-track the
             // match plays every pair and the outcome is the first decision.
+            let target = spec.target;
             let report = harness::run(&spec, &mut |pair| {
                 sprt.as_mut().is_some_and(|t| {
-                    t.push(f64::from(pair.margin()));
+                    t.push(if sprt_wins {
+                        f64::from(pair.wins(target)) / 2.0
+                    } else {
+                        f64::from(pair.margin())
+                    });
                     !track && t.decision().is_some()
                 })
             });
-            write_match(&spec, &report, sprt.as_ref(), &out).map_err(Failure::Run)
+            write_match(&spec, &report, sprt.as_ref(), sprt_wins, &out).map_err(Failure::Run)
         }
         "report" => {
             let (mut results, mut out, mut check) = (
@@ -746,6 +767,7 @@ fn write_match(
     spec: &harness::Spec,
     report: &harness::Report,
     sprt: Option<&stats::Sprt>,
+    sprt_wins: bool,
     out: &str,
 ) -> Result<(String, bool), String> {
     let mut text = format!(
@@ -809,7 +831,12 @@ fn write_match(
         };
         let _ = write!(
             lines,
-            "; sprt on the pair margin, H0 {} H1 {}, alpha 0.05 beta 0.05: {outcome} after {at} pairs, llr {:.3} in [{:.3}, {:.3}] after {} pairs",
+            "; sprt on the {}, H0 {} H1 {}, alpha 0.05 beta 0.05: {outcome} after {at} pairs, llr {:.3} in [{:.3}, {:.3}] after {} pairs",
+            if sprt_wins {
+                "game-win share"
+            } else {
+                "pair margin"
+            },
             t.mu0,
             t.mu1,
             t.llr(),
