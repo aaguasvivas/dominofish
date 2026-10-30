@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-01: 1v1 equity recorded and committed; the 2v2 run (Q14: 10,000 rounds, about 8 hours) starts after regress
-- Last green commit: dc27c3b (check.sh passes); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
+- Feature in progress: M6-01: the 2v2 equity run is going (Q14: 10,000 rounds, about 8 hours); then M6-01 and M6-02 verify, then T8 (M6-03)
+- Last green commit: a79e5ed (check.sh passes; regress passes 43 of 43 in 474 s on 2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: none (the 1v1 equity run ended 2026-10-30 16:01; regress runs next, then the 2v2 equity run)
+- Running jobs: equity 2v2 (nohup nice -n 10 scripts/run-equity.sh 2v2 > runs/equity-2v2.log 2>&1), PID 3306 with runs/bin/a79e5ed, started 2026-10-30 16:12 at a load average of 7.6; ETA about 00:15 (8 hours at 4 threads)
 - Open questions: none (Q14 answered 2026-10-30)
 - Stashes: none
 
@@ -240,3 +240,4 @@
 - M6-04 prepared: `match --sprt-on wins` runs the SPRT on each pair's share of its two games won by A (unit game only; the summary says `sprt on the game-win share`), and REPORT.md marks such rows (wins h0, h1). Smoke: the rule bot against the random bot in 1v1 games with bounds 0.5 and 0.6 accepts H1 after 16 pairs, the first pair it may decide at; --unit round is refused. Sizing data from T7's committed pairs: rule against rule (salts 1 and 2), 93% of pairs split 1 to 1 and the per-pair variance of the win share is 0.0175 in 1v1 (4,000 pairs) and 0.0167 in 2v2 (1,000 pairs); rule against random 0.046. PIMC with two objectives will differ more often than two salts of one bot, so M6-04's bounds and pair count need a pilot of PIMC against PIMC at 64 worlds on dev seeds before its registration; its run will likely pass 6 hours (ask the owner).
 - Q14 answered 2026-10-30, word for word: "10,000 rounds, ~8 h (Recommended)". The 2v2 equity run (scripts/run-equity.sh 2v2, 10,000 rounds at 64 worlds on 4 threads, about 8 hours) starts when the 1v1 run ends, so at most 4 threads run.
 - The 1v1 equity run ended 16:01: 10,000 rounds after the first from 883 games (234,340 moves, 110,888 searched decisions, 2,306 capped solves) in 3,657 s on 4 threads, peak RSS 10.5 MB, load average 12.74 at its start (runs/bin/8b26cde). W(0, 0, lead) = 0.5153 and W(0, 0, other) = 0.4847 in 1v1 to 100; the tables from the two halves of the rounds differ by at most 17,998 millionths at 100 and 17,998 at 200 (sampling precision, no threshold). Committed docs/eval/equity/rounds-1v1.txt, w-1v1-100.txt, and w-1v1-200.txt.
+- regress (a79e5ed): PASS 43 of 43 fast commands in 474 s. The 2v2 equity run started 16:12 (scripts/run-equity.sh 2v2, PID 3306, runs/bin/a79e5ed), ETA about 00:15.
