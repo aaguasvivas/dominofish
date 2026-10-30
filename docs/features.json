@@ -888,7 +888,11 @@
   "requires": [
    "M5-03"
   ],
-  "passes": false,
-  "evidence": null
+  "passes": true,
+  "evidence": {
+   "date": "2026-10-30",
+   "result": "M5-04: PASS 0 strength runs stated from M5 on, all with --aivat; REPORT.md shows the corrected result in 42 rows with aivat terms and '-' in 120 rows without; README.md shows T7's 14 rows equal to REPORT.md and their files, 21 settings and numbers checked (largest |t| 1.732, null rows' corrected |t| at most 2.24, SD ratio up to 1.19, per-round t -5.085 in row 5); readme-fast: PASS 14 rows reproduce docs/eval/results/2026-10-30-aivat-t7-fast.txt, whose 116 pairs equal the full rows' first pairs with their terms",
+   "log": null
+  }
  }
 ]

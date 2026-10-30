@@ -27,7 +27,7 @@ Built by the creator of Capi.
 <a href="#roadmap">Roadmap</a>
 </p>
 
-DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under the rules of the game Capi. It aims to find the best move and a calibrated win probability from one player's information alone. This version plays from one seat's information with PIMC: it samples the hands that seat cannot see, solves each sampled deal exactly, and plays the move with the best average. Under it sit the rules core, the information sets, an exact sampler, an exact solver, four baseline bots, the match harness that measures them, and a web board where you play the bots in your browser. Variance reduction (M5) comes next, then a calibrated win probability (M6).
+DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under the rules of the game Capi. It aims to find the best move and a calibrated win probability from one player's information alone. This version plays from one seat's information with PIMC: it samples the hands that seat cannot see, solves each sampled deal exactly, and plays the move with the best average. Under it sit the rules core, the information sets, an exact sampler, an exact solver, four baseline bots, the match harness that measures them, and a web board where you play the bots in your browser. The harness also corrects each match result for part of its luck, with AIVAT control variates (M5). A calibrated win probability (M6) comes next.
 
 | Area | Where it stands |
 |---|---|
@@ -37,6 +37,7 @@ DominoFish is a Rust engine for Dominican dominoes, 1v1 and 2v2 (parejas), under
 | **Engine** | PIMC at 64 worlds per move beats every baseline by SPRT in all 16 rows of R4; against the rule bot it gains 8.98 [4.43, 13.54] points per round in 2v2 rounds and wins 0.771 [0.695, 0.833] of its 2v2 games to 100 |
 | **Sampling** | Exact: on 360 positions small enough to enumerate, the sampled deals match the exact distribution (chi-square), 1v1 boneyard orders and openings without a double included, and the true placement of the unseen tiles comes up at the uniform rate |
 | **Information** | Every engine runs as its own process and sees only its own seat's information |
+| **Variance reduction** | AIVAT control variates: no bias detected in the 14 rows of test T7 (corrected minus raw within 1.732 standard errors of 0), and the SD of a result falls by a factor of up to 1.19 |
 | **Best baseline** | The rule bot beats the other baselines by SPRT in 16 of 18 R2 rows and gains 11.99 [10.69, 13.29] points per round on the random bot in 1v1 rounds |
 
 ## Build and run
@@ -133,6 +134,7 @@ open web/dist/index.html
 - **Sampling.** It draws placements of the unseen tiles in exact proportion to the deals each one stands for, from a count over the tiles. It never falls back to the true hands, which it cannot see. It draws again under one rule only: after a 1v1 opening without a double, a placement that gives the opener several tiles of the opening tile's pip sum stands for fewer deals ([docs/PLAN.md](docs/PLAN.md) D17).
 - **PIMC.** For each legal move it averages the exact result over the same sampled worlds, 64 by default, and plays the best mean. `dominofish analyze` prints that ranking, with its sampling error, for any point of a game record.
 - **Match harness.** It plays duplicate pairs: one deal played twice, with the sides swapping seats. Every seat runs as its own process and gets only its own information; engine seeds come from a base apart from the deal seeds, and no engine sees a deal seed. The harness reports 95% confidence intervals and runs a sequential probability ratio test (SPRT).
+- **Variance reduction.** The referee sees every hand, so it can value part of each match's luck with the exact solver: each new deal after round 1, each 1v1 draw when no engine sees the hidden tiles, and each random choice a baseline bot makes among its tied best moves. It subtracts these terms from the result with coefficients fitted on the other half of the pairs, which keeps the result's mean (AIVAT control variates, [docs/PLAN.md](docs/PLAN.md) D19). `dominofish match --aivat 8` reports the corrected result beside the raw one.
 
 ## Results
 
@@ -191,15 +193,42 @@ The omniscient bot sees every hand and plays the exact solver's move. It cheats 
 
 R3 stops each row at its SPRT decision, so these intervals rest on 16 pairs each.
 
+### Variance reduction (AIVAT)
+
+`dominofish match --aivat 8` values the luck of a match with the exact solver (the terms under [What it does now](#what-it-does-now)). A term is the value after an event minus its mean over 8 samples of the event, so it has mean 0. The harness subtracts the terms from the result with coefficients fitted on the other half of the pairs. Test T7, pre-registered in [docs/PLAN.md](docs/PLAN.md), checks on 14 matchups that the correction keeps each result's mean, and it measures how much the correction narrows the result:
+
+| Row | Mode | Unit | A | B | Pairs | Raw points per round [95% CI] | Corrected [95% CI] | Corrected minus raw, t | SD raw / corrected |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | 1v1 | round | rule | rule | 1,000 | 0.02 [-0.31, 0.34] | -0.02 [-0.35, 0.30] | -0.335 | 1.01 |
+| 1 | 1v1 | round | random | random | 1,000 | 0.46 [-0.71, 1.62] | 0.65 [-0.33, 1.63] | 0.600 | 1.18 |
+| 2 | 1v1 | round | rule | random | 16,000 | 12.44 [12.13, 12.76] | 12.38 [12.10, 12.65] | -0.794 | 1.16 |
+| 3 | 1v1 | round | accompanied | heaviest | 16,000 | 2.71 [2.47, 2.96] | 2.73 [2.51, 2.95] | 0.242 | 1.11 |
+| 4 | 1v1 | round | pimc (8 worlds) | rule | 300 | 4.50 [2.11, 6.88] | 4.39 [2.39, 6.40] | -0.146 | 1.19 |
+| 5 | 1v1 | game to 100 | rule | random | 4,000 | 16.16 [15.82, 16.51] | 16.21 [15.91, 16.51] | 0.532 | 1.14 |
+| 6 | 1v1 | game to 100 | rule | rule | 4,000 | 0.05 [-0.06, 0.16] | 0.06 [-0.05, 0.16] | 0.185 | 1.10 |
+| 7 | 2v2 | round | rule | rule | 1,000 | 0.57 [0.13, 1.00] | 0.48 [0.06, 0.90] | -1.199 | 1.03 |
+| 8 | 2v2 | round | random | random | 1,000 | -0.05 [-1.76, 1.65] | -0.87 [-2.30, 0.57] | -1.732 | 1.19 |
+| 9 | 2v2 | round | rule | random | 16,000 | 12.08 [11.64, 12.52] | 12.17 [11.77, 12.57] | 0.887 | 1.11 |
+| 10 | 2v2 | round | accompanied | heaviest | 16,000 | 3.90 [3.55, 4.24] | 4.00 [3.68, 4.31] | 1.548 | 1.08 |
+| 11 | 2v2 | round | pimc (8 worlds) | rule | 300 | 6.71 [3.21, 10.21] | 6.61 [3.11, 10.11] | -0.682 | 1.00 |
+| 12 | 2v2 | game to 100 | rule | random | 1,000 | 15.22 [14.04, 16.40] | 14.88 [13.80, 15.96] | -1.375 | 1.09 |
+| 13 | 2v2 | game to 100 | rule | rule | 1,000 | 0.19 [-0.22, 0.60] | 0.24 [-0.17, 0.65] | 0.926 | 1.02 |
+
+Corrected minus raw stays within 1.732 standard errors of 0 in every row, against a limit of 3.29 per row (two-sided, 0.001), and the sum of t² over the 14 rows is 12.33, against a limit of 36.12 (the 0.999 quantile of chi-square with 14 df). In rows 0, 1, 6, 7, 8, and 13 a bot plays itself, so the true mean is 0, and the corrected means lie within 2.24 standard errors of 0. Row 7's raw and corrected intervals both miss 0; with 6 such rows, at least one interval at 95% misses 0 with a probability of about 0.26. The test can also catch a bias. T5 and T6, the first two tests, used a version that divided each pair's terms by its number of rounds, which biases full games: a lucky side reaches 100 in fewer rounds. T6's row 5 exposed that bias, and on T7's games the same version gives t -5.085 in row 5.
+
+The SD ratio gives the gain. At 1.14, as in row 5, a corrected result needs 1.31 times fewer pairs for the same interval width; at 1.19, as in rows 4 and 8, it needs 1.41 times fewer. AIVAT needed more than 10 times fewer hands in no-limit poker (Burch, Schmid, Moravcik, and Bowling, AAAI 2018). One reason for the smaller gain here, not verified: the solver values each position for perfect play afterwards, which the bots do not play ([docs/PLAN.md](docs/PLAN.md) D19). The SPRT stays on the raw pair margin. R1 to R6 came before M5 and report raw results only; from M5 on, every strength run reports both.
+
+Settings: both sides from commit ff3cdea (Bench 6,121,081), one thread each; PIMC at 8 worlds per move in rows 4 and 11; `--aivat 8`; target 100; deal seeds 640,000,000 + 1,000,000 k + i for pair i of row k, from the test range, so no row here is a strength result; engine seed base 5,000,900,000 + k; no SPRT; a 120 s safety limit per move. Command: `scripts/run-t7.sh` (71 minutes at 4 rows at once). Results: docs/eval/results/2026-10-30-aivat-t7/, every pair with its terms; every row is also in [docs/eval/REPORT.md](docs/eval/REPORT.md).
+
 ### Reproduce
 
-To reproduce the first pairs of every README row (2 to 30 pairs, the same seeds and budgets, about 3 minutes), run:
+To reproduce the first pairs of every README row (2 to 30 pairs, the same seeds and budgets, about 2 minutes), run:
 
 ```bash
 scripts/readme-fast.sh --check
 ```
 
-It builds commits d276826 (R2), f77e9c2 (R3), ebaa5fd (R4), and e3f9a4f (R5 and R6) and compares 28 summary lines with the `-fast.txt` files in [docs/eval/results/](docs/eval/results/). To rerun a whole run, then its report:
+It builds commits d276826 (R2), f77e9c2 (R3), ebaa5fd (R4), e3f9a4f (R5 and R6), and ff3cdea (T7) and compares 42 summary lines with the `-fast.txt` files in [docs/eval/results/](docs/eval/results/). To rerun a whole run, then its report:
 
 ```bash
 scripts/run-pimc.sh R4
@@ -213,12 +242,19 @@ scripts/run-baselines.sh
 target/release/dominofish report
 ```
 
+To judge T7 again from its committed pairs (about 5 seconds):
+
+```bash
+scripts/verify/M5-03.sh
+```
+
 ## Testing
 
 - **Capi parity.** The Rust core replays 117,456 golden-trace moves from Capi's engine, 87 edge scenarios, and 200 perft queries, with 0 mismatches. A lockstep fuzzer compares the legal moves and a 32-bit digest of the full state with Capi's after every move: 0 mismatches over 1,000,000 rounds per mode.
 - **Never-peeks.** Rearranging tiles a seat cannot see, behind the same public record, leaves its information set byte-identical, every bot's move unchanged, and PIMC's analysis unchanged down to its node counts.
 - **Sampler.** On 230 positions small enough to enumerate (100 per mode and 30 openings without a double), a chi-square test at a fixed seed finds the sampled deals in the exact proportions. Over 53,259 decisions, 100 draws each, the true placement of the unseen tiles came up 167,890 times against 168,195.9 expected. On 100 more 1v1 positions the boneyard orders match their exact distribution too, and so do the placements after 30 openings without a double, where the weights differ (test T4). Two broken samplers, one without the boneyard shuffle and one without that weight, fail these tests. Every sampled deal replays the public record exactly.
 - **SPRT.** On synthetic data its error rates match alpha and beta (0.05). Of 200 null runs between two copies of one bot, 12 accepted H1, where 10 is the expected count.
+- **AIVAT.** On 14 matchups, test T7 detects no bias in the corrected results (the limit is 3.29 standard errors per row), and a version with a known bias fails the same test ([Variance reduction](#variance-reduction-aivat)).
 - **Solver.** The solver equals naive minimax on every position of the first two rounds of 30 seeded games per mode wherever naive minimax finishes, including scores where a bonus pays or not, and its table on and off agree everywhere else.
 - **Every commit.** `scripts/check.sh` runs formatting, lint, all tests, the wasm32 build, the report check, Bench determinism, and an em dash scan. `scripts/regress.sh` reruns the fast check of every passing feature.
 
@@ -246,7 +282,7 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 | M2 | Information sets, baseline bots, match harness | passed |
 | M3 | Exact perfect-information solver, omniscient bot | passed |
 | M4 | Sampling over hidden hands, each world solved exactly | passed |
-| M5 | Variance reduction for smaller measured gains | next |
+| M5 | Variance reduction for smaller measured gains | in progress |
 | M6 | Game equity and a calibrated win probability | planned |
 | M7 | Exact endgames | planned |
 | M8 | Inference from plays and passes, partner modeling | planned |
