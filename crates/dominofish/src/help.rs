@@ -134,6 +134,35 @@ pub const COMMANDS: &[Command] = &[
   --table-bits B      Table of 2^B entries (default 16, at most 24)",
     },
     Command {
+        name: "calibrate",
+        group: "Measure",
+        summary: "Calibration of PIMC's win probability in self-play games",
+        usage: "dominofish calibrate --mode 1v1|2v2 --target 100|200 --games N --seed N
+           --engine-seed N --out FILE [--threads N] [--worlds N] [--nodes N]
+           [--table-bits B] [--equity DIR]
+       dominofish calibrate --from FILE",
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --target 100|200    The game's target score
+  --games N           Self-play games between copies of PIMC with the win
+                      objective
+  --seed N            Game g deals from the seed N + g
+  --engine-seed N     Base of the engines' own seeds, apart from the deals
+  --out FILE          Every searched decision's prediction and baseline, and
+                      the summary (docs/FORMATS.md, Calibration)
+  --threads N         Games at once, 1 to 4 (default 1); the file is the same
+                      at any count
+  --worlds N          Worlds per move, 1 to 4096 (default 64)
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries (default 16, at most 24)
+  --equity DIR        Where the W tables are (default docs/eval/equity)
+  --from FILE         Print the summary of a calibration file instead
+
+  The summary: the Brier score of the engine's win probability and of the
+  score-only baseline (W at the round's start), the Brier skill, each with
+  a 95% interval from bootstrap resamples of whole games, and a
+  reliability table in ten bins.",
+    },
+    Command {
         name: "equity",
         group: "Measure",
         summary: "The game equity table W from the engine's own rounds",

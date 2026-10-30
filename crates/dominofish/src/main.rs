@@ -1,6 +1,7 @@
 //! The dominofish command line.
 
 mod analyze;
+mod calibrate;
 mod capi_fuzz;
 mod engine;
 mod equity;
@@ -263,6 +264,89 @@ fn run() -> Result<(String, bool), Failure> {
                     }
                 }
             }
+            Ok((log, true))
+        }
+        "calibrate" => {
+            let (mut mode, mut target, mut games, mut seed, mut engine_seed) =
+                (None, None, None, None, None);
+            let (mut from, mut out, mut equity_dir) = (None, None, None);
+            let (mut threads, mut worlds) = (1u64, solve::PIMC_WORLDS);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::PIMC_TABLE_BITS);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("target") => target = Some(parse_num(&value(&mut parser)?)?),
+                    Long("games") => games = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("engine-seed") => engine_seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("threads") => threads = parse_num(&value(&mut parser)?)?,
+                    Long("worlds") => worlds = parse_worlds(&value(&mut parser)?)?,
+                    Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    Long("equity") => equity_dir = Some(value(&mut parser)?),
+                    Long("from") => from = Some(value(&mut parser)?),
+                    Long("out") => out = Some(value(&mut parser)?),
+                    _ => return Err(arg.unexpected().to_string().into()),
+                }
+            }
+            if let Some(path) = from {
+                let text = std::fs::read_to_string(&path)
+                    .map_err(|e| Failure::Run(format!("{path}: {e}")))?;
+                let games = calibrate::parse(&text).map_err(|e| format!("{path}: {e}"))?;
+                return Ok((calibrate::summary(&games), true));
+            }
+            let mode = mode.ok_or("--mode is required without --from")?;
+            let target = match target.ok_or("--target is required without --from")? {
+                100 => 100u16,
+                200 => 200,
+                t => return Err(format!("--target must be 100 or 200, got {t}").into()),
+            };
+            let games = games.ok_or("--games is required without --from")?;
+            if games == 0 {
+                return Err("--games must be at least 1".into());
+            }
+            let seed = seed.ok_or("--seed is required without --from")?;
+            let engine_seed = engine_seed.ok_or("--engine-seed is required without --from")?;
+            let out = out.ok_or("--out is required without --from")?;
+            if !(1..=4).contains(&threads) {
+                return Err(format!("--threads must be 1 to 4, got {threads}").into());
+            }
+            let dir = std::path::Path::new(equity_dir.as_deref().unwrap_or(EQUITY_DIR));
+            let tables = equity::load_tables(dir)?;
+            let table_hash =
+                equity::file_hash(&dir.join(format!("w-{}-{target}.txt", mode.name())))?;
+            let w = tables
+                .get(mode, target)
+                .ok_or_else(|| format!("no W table for {} target {target}", mode.name()))?;
+            let limits = dominofish_core::pimc::Limits {
+                worlds,
+                nodes,
+                table_bits: bits,
+            };
+            let start = std::time::Instant::now();
+            let (played, work) = calibrate::run(
+                mode,
+                target,
+                games,
+                seed,
+                engine_seed,
+                &limits,
+                w,
+                threads as usize,
+            )?;
+            let settings = format!(
+                "deals={seed}+game engines={engine_seed} worlds={worlds} nodes={nodes} table_bits={bits} table={table_hash:016x}"
+            );
+            let text = calibrate::text(mode, target, &settings, &played, &work);
+            std::fs::write(&out, &text).map_err(|e| Failure::Run(format!("{out}: {e}")))?;
+            let mut log = format!(
+                "calibrate: {games} games ({} moves, {} searched decisions, {} capped solves) in {:.1} s on {threads} threads; wrote {out}\n",
+                work.moves,
+                work.decisions,
+                work.capped,
+                start.elapsed().as_secs_f64()
+            );
+            log.push_str(&calibrate::summary(&played));
             Ok((log, true))
         }
         "world-stats" => {

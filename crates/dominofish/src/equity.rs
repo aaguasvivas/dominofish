@@ -17,6 +17,7 @@ use dominofish_core::pimc::{self, Limits};
 use dominofish_core::record::{GameRecord, RoundRecord};
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Deal, Mode, MoveList, Phase, State};
+use dominofish_core::solver::Objective;
 
 /// The target of the recorded games: many rounds after the first per game.
 pub const GAME_TARGET: u16 = 200;
@@ -43,28 +44,47 @@ pub struct Work {
     pub capped: u64,
 }
 
-/// Game `g`: round r deals from derive(deal_base + g, r), as the harness
-/// deals; seat s searches with seeds from derive(derive(engine_base, g),
-/// 100 + s), reseeded each round as an engine is (engine.rs). A world that
-/// disagrees with its InfoSet, or none at all, voids the run.
-fn play_game(
+/// A searched decision of a self-play game: its round (from 0) and ply, the
+/// seat on turn, the mean value over the worlds of the move it plays, for
+/// its team (`pimc::MoveValue`), and the scores and leader at the start of
+/// the round.
+pub struct Decision {
+    pub round: usize,
+    pub ply: usize,
+    pub seat: u8,
+    pub value: f64,
+    pub start_scores: [u16; 2],
+    pub leader: u8,
+}
+
+/// Game `g` to `target` between copies of PIMC with `objective`: round r
+/// deals from derive(deal_base + g, r), as the harness deals; seat s
+/// searches with seeds from derive(derive(engine_base, g), 100 + s),
+/// reseeded each round as an engine is (engine.rs). `decision` sees every
+/// searched decision. A world that disagrees with its InfoSet, or none at
+/// all, voids the run. Returns the record, the final state, and the work.
+#[allow(clippy::too_many_arguments)]
+pub fn play_game(
     mode: Mode,
+    target: u16,
     g: u64,
     deal_base: u64,
     engine_base: u64,
     limits: &Limits,
-) -> Result<(GameRecord, Work), String> {
+    objective: Objective,
+    decision: &mut dyn FnMut(&Decision),
+) -> Result<(GameRecord, State, Work), String> {
     let deal_seed = deal_base + g;
     let deal_for = |r: u64| Deal::shuffled(&mut Rng::new(derive(deal_seed, r)));
     let mut record = GameRecord {
         mode,
-        target: GAME_TARGET,
+        target,
         rounds: vec![RoundRecord {
             deal: deal_for(0),
             moves: vec![],
         }],
     };
-    let (mut state, _) = State::first_round(mode, GAME_TARGET, &record.rounds[0].deal);
+    let (mut state, _) = State::first_round(mode, target, &record.rounds[0].deal);
     let mut work = Work {
         games: 1,
         ..Work::default()
@@ -72,6 +92,7 @@ fn play_game(
     let mut legal = MoveList::new();
     loop {
         let r = record.rounds.len() - 1;
+        let start = state;
         let mut rngs: Vec<Rng> = (0..mode.seats())
             .map(|s| {
                 let seat = derive(derive(engine_base, g), 100 + u64::from(s));
@@ -87,7 +108,12 @@ fn play_game(
                 let ply = record.rounds[r].moves.len();
                 let info = InfoSet::new(&record, r, ply, seat)
                     .map_err(|e| format!("game {g} round {} ply {ply}: {e:?}", r + 1))?;
-                let a = pimc::analyze(&info, limits, rngs[usize::from(seat)].next_u64());
+                let a = pimc::analyze_with(
+                    &info,
+                    limits,
+                    objective,
+                    rngs[usize::from(seat)].next_u64(),
+                );
                 if a.inconsistent > 0 || a.fallback > 0 {
                     return Err(format!(
                         "game {g} round {} ply {ply}: {} inconsistent worlds, {} fallbacks",
@@ -98,6 +124,14 @@ fn play_game(
                 }
                 work.decisions += 1;
                 work.capped += u64::from(a.capped);
+                decision(&Decision {
+                    round: r,
+                    ply,
+                    seat,
+                    value: a.moves[0].mean(a.worlds),
+                    start_scores: start.scores,
+                    leader: start.starter,
+                });
                 a.best
             };
             state.play(mv);
@@ -105,7 +139,7 @@ fn play_game(
             work.moves += 1;
         }
         if state.phase == Phase::Finished {
-            return Ok((record, work));
+            return Ok((record, state, work));
         }
         let deal = deal_for(record.rounds.len() as u64);
         state = state.next_round(&deal);
@@ -171,8 +205,17 @@ pub fn record(
             scope.spawn(|| {
                 while !stop.load(Ordering::SeqCst) {
                     let g = next.fetch_add(1, Ordering::SeqCst);
-                    let result = play_game(mode, g, deal_base, engine_base, limits)
-                        .map(|(record, work)| (later_rounds(&record, g), work));
+                    let result = play_game(
+                        mode,
+                        GAME_TARGET,
+                        g,
+                        deal_base,
+                        engine_base,
+                        limits,
+                        Objective::Points,
+                        &mut |_| {},
+                    )
+                    .map(|(record, _, work)| (later_rounds(&record, g), work));
                     let mut d = done.lock().expect("the results lock");
                     d.insert(g, result);
                     if complete(&d) {
@@ -457,6 +500,14 @@ pub fn parse_table(text: &str) -> Result<(Mode, Equity), String> {
         ));
     }
     Ok((mode, Equity::from_millionths(target, &lead, &other)))
+}
+
+/// The FNV-1a hash of a file's bytes.
+pub fn file_hash(path: &std::path::Path) -> Result<u64, String> {
+    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(bytes.iter().fold(0xcbf2_9ce4_8422_2325u64, |h, &b| {
+        (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
+    }))
 }
 
 /// Every table file w-<mode>-<target>.txt in `dir`.

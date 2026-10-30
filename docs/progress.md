@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-01 (paused 2026-10-30 13:08 at the owner's request): the equity runs are not done; M6-02's code is done and waits for M6-01's tables. Resume steps: the last entry of 2026-10-30
+- Feature in progress: M6-01: the 1v1 equity run is going (resumed 2026-10-30 15:00); 2v2 waits for Q14; M6-03's test T8 and its command are written meanwhile
 - Last green commit: dc27c3b (check.sh passes); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: none. The 1v1 equity run (started 12:39, PID 70061) was stopped at 13:08 before its end and wrote nothing; it is deterministic, so it reruns from the start
+- Running jobs: equity 1v1 (nohup nice -n 10 scripts/run-equity.sh 1v1 > runs/equity-1v1.log 2>&1), PID 55449 with runs/bin/8b26cde, started 2026-10-30 15:00 at a load average of 14.8; ETA about 16:15
 - Open questions: Q14 (the 2v2 equity run takes about 8 hours; docs/PLAN.md)
 - Stashes: none
 
@@ -235,3 +235,5 @@
   3. Then the 2v2 run as Q14 decides: nohup nice -n 10 scripts/run-equity.sh 2v2 > runs/equity-2v2.log 2>&1 & (amend D20 first if Q14 changes the round count).
   4. Commit docs/eval/equity/ (the rounds files and the four tables), then run scripts/verify/M6-01.sh and scripts/verify/M6-02.sh and mark each with scripts/mark-pass.sh when it passes; check.sh, commit, push.
   5. Next: M6-03 (state test T8, the calibration of PIMC with the win objective on held-out games from 3,000,000,000, in docs/PLAN.md before its first run), then M6-04, whose game-win SPRT at 64 worlds likely needs one to three days: ask the owner before it.
+- Resumed 2026-10-30 15:00 at the owner's request ("lets keep going here, pick up where we left off"); the machine had restarted (load average 14.8, 14 GB free). The 1v1 equity run restarted with scripts/run-equity.sh 1v1 on runs/bin/8b26cde: its search equals 6b50f1c's (Bench 6121081 unchanged), so the rounds are the same.
+- M6-03 prepared while the 1v1 equity run goes: test T8 registered in docs/PLAN.md (Pre-registered runs) before any run: four rows (1v1 and 2v2, to 100 and 200; 1,000, 500, 400, and 200 games) of self-play between copies of PIMC with the win objective at default limits, held-out game seeds 3,000,000,000 + 1,000,000 k + g, engine seed base 5,001,100,000 + k, 4 threads; predictions at searched decisions, the score-only baseline W at the round's start, Brier scores and skill with bootstrap intervals over games, and a ten-bin reliability table, with no pass threshold. New `dominofish calibrate` (crates/dominofish/src/calibrate.rs; FORMATS.md, Calibration), scripts/run-t8.sh, and scripts/verify/M6-03.sh. The equity self-play loop now takes a target, an objective, and a callback per searched decision. Smoke: 8 1v1 games at 4 worlds on a 30-round smoke table: the same file on 1 and 2 threads, and --from recomputes the same summary. Timing for T8 at 64 worlds with the win objective, under the equity run's load (load average 20 to 44): a 1v1 game to 100 took 15 s on one thread, a 2v2 game to 100 about 40 s of CPU, so each T8 row takes about an hour at 4 threads. The 2v2 rows wait for the 2v2 table (Q14).
