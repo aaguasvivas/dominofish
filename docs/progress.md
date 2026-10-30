@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-01: the 1v1 equity run is going (resumed 2026-10-30 15:00); 2v2 waits for Q14; M6-03's test T8 and its command are written meanwhile
+- Feature in progress: M6-01: the 1v1 equity run is going (resumed 2026-10-30 15:00); the 2v2 run (Q14: 10,000 rounds, about 8 hours) starts when it ends
 - Last green commit: dc27c3b (check.sh passes); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: equity 1v1 (nohup nice -n 10 scripts/run-equity.sh 1v1 > runs/equity-1v1.log 2>&1), PID 55449 with runs/bin/8b26cde, started 2026-10-30 15:00 at a load average of 14.8; ETA about 16:15
-- Open questions: Q14 (the 2v2 equity run takes about 8 hours; docs/PLAN.md)
+- Open questions: none (Q14 answered 2026-10-30)
 - Stashes: none
 
 ## 2026-10-25
@@ -238,3 +238,4 @@
 - Resumed 2026-10-30 15:00 at the owner's request ("lets keep going here, pick up where we left off"); the machine had restarted (load average 14.8, 14 GB free). The 1v1 equity run restarted with scripts/run-equity.sh 1v1 on runs/bin/8b26cde: its search equals 6b50f1c's (Bench 6121081 unchanged), so the rounds are the same.
 - M6-03 prepared while the 1v1 equity run goes: test T8 registered in docs/PLAN.md (Pre-registered runs) before any run: four rows (1v1 and 2v2, to 100 and 200; 1,000, 500, 400, and 200 games) of self-play between copies of PIMC with the win objective at default limits, held-out game seeds 3,000,000,000 + 1,000,000 k + g, engine seed base 5,001,100,000 + k, 4 threads; predictions at searched decisions, the score-only baseline W at the round's start, Brier scores and skill with bootstrap intervals over games, and a ten-bin reliability table, with no pass threshold. New `dominofish calibrate` (crates/dominofish/src/calibrate.rs; FORMATS.md, Calibration), scripts/run-t8.sh, and scripts/verify/M6-03.sh. The equity self-play loop now takes a target, an objective, and a callback per searched decision. Smoke: 8 1v1 games at 4 worlds on a 30-round smoke table: the same file on 1 and 2 threads, and --from recomputes the same summary. Timing for T8 at 64 worlds with the win objective, under the equity run's load (load average 20 to 44): a 1v1 game to 100 took 15 s on one thread, a 2v2 game to 100 about 40 s of CPU, so each T8 row takes about an hour at 4 threads. The 2v2 rows wait for the 2v2 table (Q14).
 - M6-04 prepared: `match --sprt-on wins` runs the SPRT on each pair's share of its two games won by A (unit game only; the summary says `sprt on the game-win share`), and REPORT.md marks such rows (wins h0, h1). Smoke: the rule bot against the random bot in 1v1 games with bounds 0.5 and 0.6 accepts H1 after 16 pairs, the first pair it may decide at; --unit round is refused. Sizing data from T7's committed pairs: rule against rule (salts 1 and 2), 93% of pairs split 1 to 1 and the per-pair variance of the win share is 0.0175 in 1v1 (4,000 pairs) and 0.0167 in 2v2 (1,000 pairs); rule against random 0.046. PIMC with two objectives will differ more often than two salts of one bot, so M6-04's bounds and pair count need a pilot of PIMC against PIMC at 64 worlds on dev seeds before its registration; its run will likely pass 6 hours (ask the owner).
+- Q14 answered 2026-10-30, word for word: "10,000 rounds, ~8 h (Recommended)". The 2v2 equity run (scripts/run-equity.sh 2v2, 10,000 rounds at 64 worlds on 4 threads, about 8 hours) starts when the 1v1 run ends, so at most 4 threads run.
