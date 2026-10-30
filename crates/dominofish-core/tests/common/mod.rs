@@ -390,3 +390,24 @@ pub fn random_record(mode: Mode, target: u16, seed: u64, raw: bool) -> GameRecor
         rounds,
     }
 }
+
+/// W for `target` from the rounds after the first of seeded bot games to
+/// 200 (D20's recursion on bot rounds instead of PIMC's): a table whose
+/// values vary with the scores, for tests of the win objective.
+pub fn bot_equity(mode: Mode, target: u16) -> dominofish_core::equity::Equity {
+    use dominofish_core::bots::Bot;
+    use dominofish_core::equity::{Equity, rescore};
+    let mut rounds = Vec::new();
+    for (k, &bot) in Bot::ALL.iter().enumerate() {
+        for g in 0..15u64 {
+            let record =
+                dominofish_core::referee::play_bots(mode, 200, [bot; 4], 8000 + 100 * k as u64 + g);
+            for r in 1..record.rounds.len() {
+                let (start, _) = record.round_start(r).unwrap();
+                let round = &record.rounds[r];
+                rounds.push(rescore(mode, &round.deal, start.starter, &round.moves));
+            }
+        }
+    }
+    Equity::build(target, &rounds)
+}

@@ -9,12 +9,12 @@ mod common;
 
 use dominofish_core::bots::Bot;
 use dominofish_core::infoset::{Action, InfoSet};
-use dominofish_core::pimc::{Limits, analyze};
+use dominofish_core::pimc::{Limits, analyze, analyze_with};
 use dominofish_core::record::GameRecord;
 use dominofish_core::referee::play_bots;
 use dominofish_core::rng::Rng;
 use dominofish_core::rules::{Deal, Mode, Move, Phase};
-use dominofish_core::solver::tiles_left;
+use dominofish_core::solver::{Objective, tiles_left};
 use dominofish_core::tile::{TILE_COUNT, Tile};
 
 /// The public record: round 1's automatic tile, every move as everyone
@@ -123,6 +123,51 @@ fn pimc_never_peeks() {
     assert!(compared.iter().all(|&n| n >= 100), "{compared:?}");
     println!(
         "never-peeks pimc: rearranged worlds with an identical public record, 1v1 {} and 2v2 {}, in rule-bot games; byte-identical InfoSets and the same PIMC decision, move values, and node counts ({nodes} nodes) at a fixed seed",
+        compared[0], compared[1]
+    );
+}
+
+#[test]
+fn pimc_with_the_win_objective_never_peeks() {
+    // D21: the win objective reads W, which is public, and nothing hidden.
+    let limits = Limits {
+        worlds: 2,
+        nodes: 10_000_000,
+        table_bits: 16,
+    };
+    let mut rng = Rng::new(2028);
+    let mut compared = [0u64; 2];
+    for (m, mode) in [Mode::OneVsOne, Mode::TwoVsTwo].into_iter().enumerate() {
+        let w = common::bot_equity(mode, 100);
+        for seed in 0..20u64 {
+            let record = play_bots(mode, 100, [Bot::Rule; 4], 9200 + seed);
+            for (r, round) in record.rounds.iter().enumerate() {
+                let (mut state, _) = record.round_start(r).unwrap();
+                for ply in 0..round.moves.len() {
+                    let seat = state.turn;
+                    if tiles_left(&state) <= 14 && rng.below(4) == 0 {
+                        let info = InfoSet::new(&record, r, ply, seat).unwrap();
+                        let s = rng.next_u64();
+                        let a = analyze_with(&info, &limits, Objective::Win(&w), s);
+                        rearranged(&record, r, ply, seat, 4, &mut rng, |other, _| {
+                            let info2 = InfoSet::new(other, r, ply, seat).unwrap();
+                            assert_eq!(info2.to_text(), info.to_text(), "InfoSet bytes differ");
+                            let b = analyze_with(&info2, &limits, Objective::Win(&w), s);
+                            assert_eq!(
+                                a, b,
+                                "{mode:?} seed {seed} round {r} ply {ply}: PIMC differs"
+                            );
+                            compared[m] += 1;
+                        });
+                    }
+                    state.play(round.moves[ply]);
+                }
+            }
+        }
+    }
+    assert!(compared.iter().all(|&n| n >= 50), "{compared:?}");
+    println!(
+        "never-peeks win: rearranged worlds with an identical public record, 1v1 {} and 2v2 {}; the same PIMC analysis with the win objective, node counts included",
         compared[0], compared[1]
     );
 }

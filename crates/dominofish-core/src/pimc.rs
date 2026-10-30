@@ -10,7 +10,7 @@ use crate::infoset::InfoSet;
 use crate::rng::Rng;
 use crate::rules::{Move, MoveList, Phase, team};
 use crate::sampler::{SampleError, Sampler};
-use crate::solver::{self, Table};
+use crate::solver::{self, Objective, Table, WIN};
 
 /// The budgets of one analysis.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -23,9 +23,10 @@ pub struct Limits {
     pub table_bits: u32,
 }
 
-/// One legal move's values over the worlds, in round points for the seat's
-/// team: the rest of the round's margin after the move, its own points
-/// included.
+/// One legal move's values over the worlds, for the seat's team: in round
+/// points, the rest of the round's margin after the move, its own points
+/// included; with the win objective (D21), the probability in millionths to
+/// win the game.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct MoveValue {
     pub mv: Move,
@@ -78,6 +79,12 @@ pub struct Analysis {
 /// Ranks the legal moves of the seat on turn in `info` by their mean round
 /// points over `limits.worlds` worlds drawn with an RNG seeded by `seed`.
 pub fn analyze(info: &InfoSet, limits: &Limits, seed: u64) -> Analysis {
+    analyze_with(info, limits, Objective::Points, seed)
+}
+
+/// `analyze` for an objective (D21): with the win objective, by each move's
+/// mean probability to win the game over the same worlds.
+pub fn analyze_with(info: &InfoSet, limits: &Limits, objective: Objective, seed: u64) -> Analysis {
     assert!(
         info.phase == Phase::Playing && info.turn == info.seat,
         "analyze needs the seat on turn"
@@ -125,18 +132,31 @@ pub fn analyze(info: &InfoSet, limits: &Limits, seed: u64) -> Analysis {
         for value in &mut moves {
             let before = state.scores;
             let played = state.play(value.mv);
-            let gain = (i32::from(state.scores[0]) - i32::from(before[0]))
-                - (i32::from(state.scores[1]) - i32::from(before[1]));
+            let gain = match objective {
+                Objective::Points => {
+                    (i32::from(state.scores[0]) - i32::from(before[0]))
+                        - (i32::from(state.scores[1]) - i32::from(before[1]))
+                }
+                Objective::Win(_) => 0,
+            };
             let v = if state.phase == Phase::Playing {
-                let s = solver::solve(state, Some(&mut table), limits.nodes);
+                let s = solver::solve_with(state, Some(&mut table), limits.nodes, objective);
                 out.nodes += s.nodes;
                 out.capped += u32::from(s.capped);
                 gain + s.value
             } else {
-                gain
+                match objective {
+                    Objective::Points => gain,
+                    Objective::Win(w) => solver::win_value(w, state),
+                }
             };
             state.undo(value.mv, played.undo);
-            let v = i64::from(sign * v);
+            // Team 0's value, seen from the seat's team.
+            let v = i64::from(match objective {
+                Objective::Points => sign * v,
+                Objective::Win(_) if sign == 1 => v,
+                Objective::Win(_) => WIN - v,
+            });
             value.sum += v;
             value.sum_squares += v * v;
         }

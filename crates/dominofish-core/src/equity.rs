@@ -122,6 +122,19 @@ impl Equity {
         Equity { target, w }
     }
 
+    /// W from a table file's values in millionths (`lead` and `other`: rows by
+    /// own score, then by the other team's score), as `dominofish equity`
+    /// writes them.
+    pub fn from_millionths(target: u16, lead: &[u32], other: &[u32]) -> Equity {
+        let t = usize::from(target);
+        assert!(lead.len() == t * t && other.len() == t * t);
+        let to_p = |v: &[u32]| v.iter().map(|&m| f64::from(m) / 1e6).collect();
+        Equity {
+            target,
+            w: [to_p(lead), to_p(other)],
+        }
+    }
+
     /// The probability that a team wins from the start of a round with it at
     /// `mine`, the other team at `theirs`, and `leads` saying whether it
     /// leads the round.

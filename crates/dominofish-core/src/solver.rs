@@ -11,17 +11,57 @@
 //! time: in 1v1 the key holds the boneyard position but not its order, so
 //! `Table::clear` starts every new deal.
 //!
+//! With the win objective (M6, D21) a round's end is valued instead by team
+//! 0's probability to win the game, from the equity table W in millionths.
+//! Within a round played from one start the scores at a node are the
+//! start's plus the bonuses paid on the way, which the key's bonus counts
+//! fix, so the key still covers the value; with this objective a table
+//! serves one deal at one start, and one objective, at a time.
+//!
 //! The search allocates nothing: moves live in fixed-size lists and the
 //! table is allocated once.
 
+use crate::equity::Equity;
 use crate::rules::{BONUS, Mode, Move, MoveList, Phase, State, team};
 
 /// The node count of a search with no cap.
 pub const NO_CAP: u64 = u64::MAX;
 
-/// Above any margin a round can reach (every pip, a capicua, and every
-/// bonus stay far below it).
-const INF: i32 = 10_000;
+/// Above any value: any margin a round can reach (every pip, a capicua, and
+/// every bonus stay far below 10,000) and any win value (at most
+/// 1,000,000).
+const INF: i32 = 2_000_000;
+
+/// A win value of 1: the game is won.
+pub const WIN: i32 = 1_000_000;
+
+/// What a solve maximizes for team 0 (D21).
+#[derive(Clone, Copy, Debug)]
+pub enum Objective<'a> {
+    /// The rest of the round's margin (D15).
+    Points,
+    /// The probability in millionths to win the game, by W at the round's
+    /// end (the table's target must be the state's).
+    Win(&'a Equity),
+}
+
+/// Team 0's probability in millionths to win the game at the end of a round
+/// (phase RoundOver or Finished): 1 or 0 when the round's winner reached the
+/// target, else W with the round's winner leading the next round (R6).
+pub fn win_value(w: &Equity, end: &State) -> i32 {
+    debug_assert_eq!(w.target, end.target);
+    let ours = team(end.round_winner) == 0;
+    match end.phase {
+        Phase::Finished => {
+            if ours {
+                WIN
+            } else {
+                0
+            }
+        }
+        _ => (w.win(end.scores[0], end.scores[1], ours) * f64::from(WIN)).round() as i32,
+    }
+}
 
 const EXACT: u8 = 1;
 const LOWER: u8 = 2;
@@ -77,7 +117,7 @@ fn move_code(mv: Move) -> u8 {
 #[derive(Clone, Copy, Default)]
 struct Entry {
     key: u64,
-    value: i16,
+    value: i32,
     bound: u8,
     /// The best move's code (`move_code`), 0 for none.
     mv: u8,
@@ -120,7 +160,7 @@ impl Table {
         let i = key as usize & (self.entries.len() - 1);
         self.entries[i] = Entry {
             key,
-            value: value as i16,
+            value,
             bound,
             mv: move_code(mv),
             generation: self.generation,
@@ -131,8 +171,9 @@ impl Table {
 /// The result of a solve.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Solution {
-    /// The rest of the round's margin, team 0 minus team 1. Exact unless
-    /// `capped`.
+    /// The rest of the round's margin, team 0 minus team 1, or with the win
+    /// objective team 0's probability in millionths to win the game. Exact
+    /// unless `capped`.
     pub value: i32,
     /// The best move of the seat on turn.
     pub best: Move,
@@ -184,6 +225,7 @@ fn gain(before: [u16; 2], after: [u16; 2]) -> i32 {
 
 struct Search<'a> {
     table: Option<&'a mut Table>,
+    objective: Objective<'a>,
     cap: u64,
     nodes: u64,
     aborted: bool,
@@ -210,7 +252,7 @@ impl Search<'_> {
         let key = key(state);
         let mut table_move = 0;
         if let Some(e) = self.table.as_deref().and_then(|t| t.probe(key)) {
-            let v = i32::from(e.value);
+            let v = e.value;
             let cut = match e.bound {
                 EXACT => true,
                 LOWER => v >= beta,
@@ -230,11 +272,22 @@ impl Search<'_> {
         for &mv in moves.as_slice() {
             let before = state.scores;
             let played = state.play(mv);
-            let g = gain(before, state.scores);
-            let v = if state.phase == Phase::Playing {
-                g + self.search(state, alpha - g, beta - g, false).0
-            } else {
-                g
+            let v = match self.objective {
+                Objective::Points => {
+                    let g = gain(before, state.scores);
+                    if state.phase == Phase::Playing {
+                        g + self.search(state, alpha - g, beta - g, false).0
+                    } else {
+                        g
+                    }
+                }
+                Objective::Win(w) => {
+                    if state.phase == Phase::Playing {
+                        self.search(state, alpha, beta, false).0
+                    } else {
+                        win_value(w, state)
+                    }
+                }
             };
             state.undo(mv, played.undo);
             if self.aborted {
@@ -269,13 +322,25 @@ impl Search<'_> {
     }
 }
 
-/// Solves `state` (phase Playing) with at most `cap` nodes, using `table`
-/// if given (cleared by the caller for each new deal). `state` is unchanged
-/// on return. Past the cap, the value and move come from `greedy`.
+/// Solves `state` (phase Playing) for the round margin with at most `cap`
+/// nodes, using `table` if given (cleared by the caller for each new deal).
+/// `state` is unchanged on return. Past the cap, the value and move come
+/// from `greedy`.
 pub fn solve(state: &mut State, table: Option<&mut Table>, cap: u64) -> Solution {
+    solve_with(state, table, cap, Objective::Points)
+}
+
+/// `solve` for an objective (D21).
+pub fn solve_with(
+    state: &mut State,
+    table: Option<&mut Table>,
+    cap: u64,
+    objective: Objective,
+) -> Solution {
     assert_eq!(state.phase, Phase::Playing);
     let mut s = Search {
         table,
+        objective,
         cap,
         nodes: 0,
         aborted: false,
@@ -299,7 +364,10 @@ pub fn solve(state: &mut State, table: Option<&mut Table>, cap: u64) -> Solution
     for &mv in moves.as_slice() {
         let before = state.scores;
         let played = state.play(mv);
-        let v = gain(before, state.scores) + greedy(state);
+        let v = match objective {
+            Objective::Points => gain(before, state.scores) + greedy(state),
+            Objective::Win(w) => greedy_win(w, state),
+        };
         state.undo(mv, played.undo);
         if (maximize && v > pick.0) || (!maximize && v < pick.0) {
             pick = (v, mv);
@@ -318,17 +386,29 @@ pub fn solve(state: &mut State, table: Option<&mut Table>, cap: u64) -> Solution
 /// with a double counted 3 pips heavier; ties to the generator's order) to
 /// the end of the round.
 pub fn greedy(state: &mut State) -> i32 {
+    let start = state.scores;
+    playout(state, |end| gain(start, end.scores))
+}
+
+/// `greedy` with the win objective: the win value at the end of the same
+/// play.
+pub fn greedy_win(w: &Equity, state: &mut State) -> i32 {
+    playout(state, |end| win_value(w, end))
+}
+
+/// `value` of the round's end when every seat plays the first move of the
+/// search's ordering; `state` is unchanged on return.
+fn playout(state: &mut State, value: impl Fn(&State) -> i32) -> i32 {
     let mut moves = MoveList::new();
     let mut trail = [(Move::Pass, None); 128];
     let mut n = 0;
-    let start = state.scores;
     while state.phase == Phase::Playing {
         ordered(state, 0, &mut moves);
         let mv = moves.as_slice()[0];
         trail[n] = (mv, Some(state.play(mv).undo));
         n += 1;
     }
-    let v = gain(start, state.scores);
+    let v = value(state);
     while n > 0 {
         n -= 1;
         if let (mv, Some(undo)) = trail[n] {
@@ -341,6 +421,16 @@ pub fn greedy(state: &mut State) -> i32 {
 /// Plain minimax, with no pruning and no table: the reference the solver
 /// must equal (M3). None past `cap` nodes.
 pub fn minimax(state: &mut State, cap: u64, nodes: &mut u64) -> Option<i32> {
+    minimax_with(state, cap, nodes, Objective::Points)
+}
+
+/// `minimax` for an objective (D21).
+pub fn minimax_with(
+    state: &mut State,
+    cap: u64,
+    nodes: &mut u64,
+    objective: Objective,
+) -> Option<i32> {
     if *nodes >= cap {
         return None;
     }
@@ -352,11 +442,22 @@ pub fn minimax(state: &mut State, cap: u64, nodes: &mut u64) -> Option<i32> {
     for &mv in moves.as_slice() {
         let before = state.scores;
         let played = state.play(mv);
-        let g = gain(before, state.scores);
-        let v = if state.phase == Phase::Playing {
-            minimax(state, cap, nodes).map(|c| g + c)
-        } else {
-            Some(g)
+        let v = match objective {
+            Objective::Points => {
+                let g = gain(before, state.scores);
+                if state.phase == Phase::Playing {
+                    minimax_with(state, cap, nodes, objective).map(|c| g + c)
+                } else {
+                    Some(g)
+                }
+            }
+            Objective::Win(w) => {
+                if state.phase == Phase::Playing {
+                    minimax_with(state, cap, nodes, objective)
+                } else {
+                    Some(win_value(w, state))
+                }
+            }
         };
         state.undo(mv, played.undo);
         let v = v?;
