@@ -1,93 +1,88 @@
 #!/usr/bin/env bash
-# M5-03: test T6 (docs/PLAN.md; it replaces T5 by the owner's Q11 answer) on
-# its 14 committed result files in docs/eval/results/2026-10-29-aivat-t6/:
-# every row as registered (commit, engines, seeds, pairs, --aivat 8, no
-# fault); (a) per row, the mean of corrected minus raw points per round has
-# |t| <= 3.29; (b) the sum of t^2 over the 14 rows is at most 36.12 (the
-# 0.999 quantile of chi-square with 14 df); (c) in the 6 null rows (0, 1, 6,
-# 7, 8, 13) the corrected mean's t is within 3.29 of 0; (d) the full run
-# builds the T5 mutant (action terms against the policy's maximum, not its
-# mean) from the commit that ran the rows, replays rows 2, 3, 9, and 10 with
-# it (16,000 pairs each), requires the same games (equal pair lines) and
-# |t| > 3.29 in at least one row; and prints each row's SD ratio, raw over
-# corrected. --fast skips (d).
+# M5-03: test T7 (docs/PLAN.md; by the owner's Q12 answer it replaces T5 and
+# T6) on its 14 committed result files in
+# docs/eval/results/2026-10-30-aivat-t7/: every row as registered (commit,
+# engines, seeds, pairs, --aivat 8, no fault); (a) per row, the mean of
+# corrected minus raw points per round has |t| <= 3.29; (b) the sum of t^2
+# over the 14 rows is at most 36.12 (the 0.999 quantile of chi-square with
+# 14 df); (c) in the 6 null rows (0, 1, 6, 7, 8, 13) the corrected mean's t
+# is within 3.29 of 0; (d) tools/aivat-recompute.py reproduces the mean, se,
+# and t of corrected minus raw in every T6 row with the terms per round (the
+# harness before the fix of Q12) and in every T7 row with the terms as
+# totals, within one unit of the last printed digit, and with the terms per
+# round on T7's games it fails (a) in at least one game row (5, 6, 12, 13);
+# the report's corrected mean of each T7 row is within 0.01 of its # aivat
+# line's. Prints each row's SD ratio, raw over corrected. --fast runs the
+# same checks.
 set -u
 cd "$(dirname "$0")/../.."
-export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 fail=0
 err() { echo "ERROR $*"; fail=1; }
-dir=docs/eval/results/2026-10-29-aivat-t6
+dir=docs/eval/results/2026-10-30-aivat-t7
+t6=docs/eval/results/2026-10-29-aivat-t6
 commit=$(cat "$dir/COMMIT" 2>/dev/null)
 [ -n "$commit" ] || err "$dir/COMMIT is missing"
 names=(rule-rule random-random rule-random accompanied-heaviest pimc8-rule rule-random rule-rule)
 units=(round round round round round game game)
-pairs=(1000 1000 16000 16000 300 300 300)
-# field <file> <name>: a number after "<name> " in the # aivat line.
-field() { grep '^# aivat' "$1" | sed -n "s/.* $2 \(-\{0,1\}[0-9.]*\).*/\1/p" | head -1; }
-# tval <file>: the corrected-minus-raw t of the # aivat line.
-tval() { grep '^# aivat' "$1" | sed -n 's/.*corrected minus raw mean [-0-9.]* se [0-9.]* t \(-\{0,1\}[0-9.]*\);.*/\1/p'; }
-row_file() { local k=$1 i=$(($1 % 7)) mode; mode=$([ "$1" -lt 7 ] && echo 1v1 || echo 2v2); echo "row-$k-$mode-${units[$i]}-100-${names[$i]}.txt"; }
-sum_t2=0; ratios=""
+as=("rule+--salt+1" "random+--salt+1" "rule" "accompanied" "pimc+--worlds+8" "rule" "rule+--salt+1")
+bs=("rule+--salt+2" "random+--salt+2" "random" "heaviest" "rule" "random" "rule+--salt+2")
+# pairs <k>: row k's registered pair count.
+pairs() { case $(($1 % 7)) in 0|1) echo 1000 ;; 2|3) echo 16000 ;; 4) echo 300 ;; *) if [ "$1" -lt 7 ]; then echo 4000; else echo 1000; fi ;; esac; }
+row_file() { local i=$(($1 % 7)) mode; mode=$([ "$1" -lt 7 ] && echo 1v1 || echo 2v2); echo "row-$1-$mode-${units[$i]}-100-${names[$i]}.txt"; }
+# dst <file>: mean, se, and t of corrected minus raw in the # aivat line.
+dst() { sed -n 's/^# aivat .*corrected minus raw mean \([-0-9.]*\) se \([0-9.]*\) t \([-0-9.]*\);.*/\1 \2 \3/p' "$1"; }
+# recompute <file> <per round|totals>: the same three numbers from the tool.
+recompute() { /usr/bin/python3 -I tools/aivat-recompute.py "$1" | sed -n "s/.*$2: d \([-+0-9.]*\) se \([0-9.]*\) t \([-+0-9.]*\).*/\1 \2 \3/p"; }
+# same <three numbers> <three numbers>: equal within one unit of the last
+# printed digit (0.0001 for the mean and se, 0.001 for t).
+same() { echo "$1 $2" | awk 'NF == 6 { d = $1 - $4; s = $2 - $5; t = $3 - $6; ok = d * d <= 1.21e-8 && s * s <= 1.21e-8 && t * t <= 1.21e-6 } END { exit !ok }'; }
+for g in "$t6"/row-*.txt; do
+  same "$(dst "$g")" "$(recompute "$g" "per round")" || err "T6 $(basename "$g"): the tool per round gives $(recompute "$g" "per round"), the harness $(dst "$g")"
+done
+report=$(sed -n "/^## $(basename "$dir") /,/^## /p" docs/eval/REPORT.md)
+[ -n "$report" ] || err "docs/eval/REPORT.md has no $(basename "$dir") section"
+sum_t2=0; ratios=""; caught=""
 for k in $(seq 0 13); do
-  i=$((k % 7)); mode=$([ "$k" -lt 7 ] && echo 1v1 || echo 2v2)
+  i=$((k % 7)); mode=$([ "$k" -lt 7 ] && echo 1v1 || echo 2v2); n=$(pairs "$k")
   f="$dir/$(row_file "$k")"
   [ -f "$f" ] || { err "row $k: $f is missing"; continue; }
   header=$(head -1 "$f")
-  for want in "a.commit=$commit" "mode=$mode" "unit=${units[$i]}" "pairs=${pairs[$i]}"; do
-    case "$header " in *"$want"*) ;; *) err "row $k: header lacks $want" ;; esac
+  for want in "a.cmd=runs/bin/$commit/dominofish+engine+--bot+${as[$i]}" "b.cmd=runs/bin/$commit/dominofish+engine+--bot+${bs[$i]}" "a.commit=$commit" "mode=$mode" "unit=${units[$i]}" "target=100" "pairs=$n"; do
+    case "$header " in *" $want "*) ;; *) err "row $k: header lacks $want" ;; esac
   done
-  deal=$((620000000 + 1000000 * k))
-  grep -qx "# seeds deals=$deal..$((deal + ${pairs[$i]} - 1)) engines=$((5000800000 + k))" "$f" || err "row $k: seeds differ"
-  [ "$(grep -c '^pair ' "$f")" -eq "${pairs[$i]}" ] || err "row $k: not ${pairs[$i]} pairs"
-  [ "$(grep -c '^aivat ' "$f")" -eq "${pairs[$i]}" ] || err "row $k: not one aivat line per pair"
+  deal=$((640000000 + 1000000 * k))
+  grep -qx "# seeds deals=$deal..$((deal + n - 1)) engines=$((5000900000 + k))" "$f" || err "row $k: seeds differ"
+  [ "$(grep -c '^pair ' "$f")" -eq "$n" ] || err "row $k: not $n pairs"
+  [ "$(grep -c '^aivat ' "$f")" -eq "$n" ] || err "row $k: not one aivat line per pair"
   grep -q '^# fault' "$f" && err "row $k has a fault"
-  grep -q "^# run run=T6 row=$k .*--aivat+8+--timeout-ms+120000" "$f" || err "row $k: no T6 run line with --aivat 8"
+  grep -q "^# run run=T7 row=$k command=runs/bin/$commit/dominofish+match+--mode+$mode+--unit+${units[$i]}+--target+100+--pairs+$n+--seed+$deal+--engine-seed+$((5000900000 + k))+--aivat+8+--timeout-ms+120000+" "$f" || err "row $k: no T7 run line with the registered command"
   grep -q '^# aivat j=8 ' "$f" || err "row $k: no aivat summary"
-  t=$(tval "$f")
+  got=$(dst "$f"); t=$(echo "$got" | awk '{print $3}')
   [ -n "$t" ] || { err "row $k: no t"; continue; }
   awk -v t="$t" 'BEGIN { exit !(t <= 3.29 && t >= -3.29) }' || err "row $k: corrected minus raw t $t (target |t| <= 3.29)"
   sum_t2=$(awk -v s="$sum_t2" -v t="$t" 'BEGIN { print s + t * t }')
-  raw=$(field "$f" "raw sd"); csd=$(grep '^# aivat' "$f" | sed -n 's/.*(AIVAT, cross-fitted) mean -\{0,1\}[0-9.]* sd \([0-9.]*\) .*/\1/p')
-  cmean=$(grep '^# aivat' "$f" | sed -n 's/.*(AIVAT, cross-fitted) mean \(-\{0,1\}[0-9.]*\) .*/\1/p')
+  raw=$(sed -n 's/^# aivat .*; raw sd \([0-9.]*\);.*/\1/p' "$f")
+  cmean=$(sed -n 's/^# aivat .*(AIVAT, cross-fitted) mean \(-\{0,1\}[0-9.]*\) sd .*/\1/p' "$f")
+  csd=$(sed -n 's/^# aivat .*(AIVAT, cross-fitted) mean -\{0,1\}[0-9.]* sd \([0-9.]*\) .*/\1/p' "$f")
   case $i in 0|1|6)
-    ct=$(awk -v m="$cmean" -v s="$csd" -v n="${pairs[$i]}" 'BEGIN { printf "%.3f", m / (s / sqrt(n)) }')
+    ct=$(awk -v m="$cmean" -v s="$csd" -v n="$n" 'BEGIN { printf "%.3f", m / (s / sqrt(n)) }')
     awk -v t="$ct" 'BEGIN { exit !(t <= 3.29 && t >= -3.29) }' || err "null row $k: corrected mean t $ct (target |t| <= 3.29)"
     ;;
   esac
   ratios="$ratios $k:$(awk -v a="$raw" -v b="$csd" 'BEGIN { printf "%.2f", a / b }')"
+  same "$got" "$(recompute "$f" totals)" || err "row $k: the tool with totals gives $(recompute "$f" totals), the harness $got"
+  case $i in 5|6)
+    pt=$(recompute "$f" "per round" | awk '{print $3}')
+    awk -v t="${pt:-0}" 'BEGIN { exit !(t > 3.29 || t < -3.29) }' && caught="$caught row$k:t=$pt"
+    ;;
+  esac
+  rmean=$(printf '%s\n' "$report" | grep "| $(row_file "$k") |" | awk -F'|' '{ split($16, w, " "); print w[1] }')
+  awk -v a="$rmean" -v b="$cmean" 'BEGIN { exit !(a != "" && a - b <= 0.01 && b - a <= 0.01) }' || err "row $k: the report's corrected mean ${rmean:-none} differs from the # aivat line's $cmean"
 done
 awk -v s="$sum_t2" 'BEGIN { exit !(s <= 36.12) }' || err "sum of t^2 $sum_t2 over 14 rows (target at most 36.12)"
-control="skipped (--fast)"
-if [ "${1:-}" != "--fast" ] && [ -n "$commit" ]; then
-  src=runs/src/m503-mutant
-  rm -rf "$src" runs/M5-03/t6-mutant target/mutant; mkdir -p "$src" runs/M5-03/mutant-bin
-  /usr/bin/git archive "$commit" | tar -x -C "$src"
-  /usr/bin/python3 - "$src/crates/dominofish-core/src/aivat.rs" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p).read()
-a = "f64::from(values[i]) - mean(values.into_iter())"
-assert s.count(a) == 1, "the action term changed; update the T5 mutant"
-open(p, "w").write(s.replace(a, "f64::from(values[i]) - f64::from(*values.iter().max().expect(\"moves\"))"))
-PY
-  find "$src" -type f -exec touch {} +
-  (cd "$src" && cargo build -q --release -p dominofish --target-dir ../../../target/mutant) > runs/M5-03/mutant-build.log 2>&1 || err "mutant build failed"
-  cp target/mutant/release/dominofish runs/M5-03/mutant-bin/dominofish
-  rm -rf "$src" target/mutant
-  scripts/run-t6.sh runs/M5-03/mutant-bin/dominofish > runs/M5-03/t6-mutant.log 2>&1 || err "the mutant replay failed (runs/M5-03/t6-mutant.log)"
-  caught=""
-  for k in 2 3 9 10; do
-    m="runs/M5-03/t6-mutant/$(row_file "$k")"
-    [ -f "$m" ] || { err "mutant row $k: $m is missing"; continue; }
-    cmp -s <(grep '^pair ' "$dir/$(row_file "$k")") <(grep '^pair ' "$m") || err "mutant row $k: its games differ from the true row's (pair lines)"
-    t=$(tval "$m")
-    awk -v t="${t:-0}" 'BEGIN { exit !(t > 3.29 || t < -3.29) }' && caught="$caught row$k:t=$t"
-  done
-  [ -n "$caught" ] || err "the biased mutant passed every replayed row (runs/M5-03/t6-mutant/)"
-  control="the biased mutant, on the same games, fails (a):$caught"
-fi
+[ -n "$caught" ] || err "the per-round version passed (a) in every game row (target: |t| > 3.29 in one)"
 if [ "$fail" -eq 0 ]; then
-  echo "M5-03: PASS T6 as registered (commit $commit, 14 rows, no fault): |t| of corrected minus raw at most 3.29 in every row, sum of t^2 $sum_t2 (at most 36.12), null rows' corrected means within 3.29 se of 0; $control; SD ratio raw / corrected by row:$ratios"
+  echo "M5-03: PASS T7 as registered (commit $commit, 14 rows, no fault): |t| of corrected minus raw at most 3.29 in every row, sum of t^2 $sum_t2 (at most 36.12), null rows' corrected means within 3.29 se of 0; the tool reproduces T6 per round and T7 with totals, and the per-round version on T7's games fails (a):$caught; SD ratio raw / corrected by row:$ratios"
 else
   echo "M5-03: FAIL"
 fi

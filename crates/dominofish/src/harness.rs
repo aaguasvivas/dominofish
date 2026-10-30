@@ -353,16 +353,13 @@ impl PairResult {
         f64::from(self.margin()) / f64::from(self.rounds[0] + self.rounds[1])
     }
 
-    /// The pair's margin per round and its AIVAT terms per round (deal,
-    /// draw, action), the row `stats::crossfit` takes.
+    /// The pair's margin per round and its AIVAT term totals (deal, draw,
+    /// action), the row `stats::crossfit` takes. The terms stay totals: in
+    /// full games the number of rounds depends on the luck, so a term
+    /// divided by it loses its zero mean (docs/PLAN.md D19 and Q12).
     pub fn aivat_row(&self) -> Option<(f64, [f64; 3])> {
-        let rounds = f64::from(self.rounds[0] + self.rounds[1]);
-        self.aivat.map(|a| {
-            (
-                self.margin_per_round(),
-                [a.deal / rounds, a.draw / rounds, a.action / rounds],
-            )
-        })
+        self.aivat
+            .map(|a| (self.margin_per_round(), [a.deal, a.draw, a.action]))
     }
 }
 
@@ -791,5 +788,27 @@ fn play_game(
             deal,
             moves: vec![],
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aivat_row_keeps_the_term_totals() {
+        // Terms divided by the pair's 8 rounds biased full-game results (Q12).
+        let p = PairResult {
+            pair: 0,
+            deal_seed: 0,
+            scores: [[100, 60], [40, 100]],
+            rounds: [3, 5],
+            aivat: Some(PairAivat {
+                deal: 8.0,
+                draw: 0.0,
+                action: -4.0,
+            }),
+        };
+        assert_eq!(p.aivat_row(), Some((-20.0 / 8.0, [8.0, 0.0, -4.0])));
     }
 }

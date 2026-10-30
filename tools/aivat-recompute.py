@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-# Diagnostic for Q12 (docs/PLAN.md), not part of any test: recomputes the
-# cross-fitted AIVAT correction of stats::crossfit (crates/dominofish/src/
-# stats.rs) from a match result file's pair and aivat lines, with the terms
-# per round (as the harness's aivat_row builds them) or as per-pair totals,
-# and prints the mean, standard error, and t of corrected minus raw for
-# each. It reproduces the harness's numbers exactly (T6 row 5: -1.6900,
-# 0.4775, -3.539). Usage: python3 -I tools/aivat-recompute.py <result file>...
+# Recomputes the cross-fitted AIVAT correction of stats::crossfit
+# (crates/dominofish/src/stats.rs) from a match result file's pair and aivat
+# lines, with the terms per round (the harness before the fix of Q12,
+# docs/PLAN.md D19) or as per-pair totals (the harness since), and prints the
+# mean, standard error, and t of corrected minus raw for each. Test T7's
+# criterion (d) uses it (scripts/verify/M5-03.sh): it must reproduce T6's
+# rows per round and T7's rows with totals, and fail T7's game rows per
+# round. Usage: python3 -I tools/aivat-recompute.py <result file>...
 import math, sys
 def fit(rows):
     n = len(rows); mean_y = sum(r[0] for r in rows) / max(n, 1)

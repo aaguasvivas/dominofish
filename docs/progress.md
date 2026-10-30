@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-03: T6 fails (row 5 in (a), and (d)); waits for Q12
+- Feature in progress: M5-03: D19 fixed to per-pair term totals (Q12); test T7 registered (Q13); T7 starts after the registration commit
 - Last green commit: 64e01e8 (check.sh passes; regress passes 41 of 41 in 527 s on 2026-10-29)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: Q12 (T6 failed; a defect in D19 for full games), 2026-10-29
+- Open questions: none (Q12 answered 2026-10-29, Q13 answered 2026-10-30)
 - Stashes: none
 
 ## 2026-10-25
@@ -195,3 +195,8 @@
 - Diagnosis on T5's and T6's committed data (a diagnostic, not a claim; tools/aivat-recompute.py re-implements stats::crossfit and reproduces the harness's numbers exactly, row 5: -1.6900, 0.4775, -3.539). Each term's own mean is near 0 in every row (largest |t| 2.30). The harness divides each pair's terms by its number of rounds (aivat_row). In full games that number depends on the luck: in the rule-against-random game rows the term totals correlate with it (-0.14 to -0.39), so the per-round terms lose their zero mean (T6 row 5: totals t +1.20, per round t +2.99) and the correction moves the result. With per-pair totals, those four rows (5 and 12 of T5 and T6) give t +0.56, -1.00, -1.91, and +0.61 (per round: -1.11, -2.31, -3.54, -0.15): the per-round version sits 0.46 to 0.90 points per round lower (mean 0.68); round rows are unchanged (2 rounds in every pair). SD ratio raw / corrected in game rows: 0.98 to 1.36 with totals, 0.98 to 1.41 per round. The mutant's bias mostly cancels between the two sides of a duplicate pair: 0.21 points per round in row 2 at 16,000 pairs. T5's 1,000-pair estimate there (t 1.54) was high by chance; 16,000 pairs imply about 0.78 at 1,000, so Q11's sizing (expected t 6.2) was too optimistic.
 - M5-03 stays failing (passes false); T6 is unchanged; asked as Q12.
 
+## 2026-10-30
+
+- Q12 answered 2026-10-29, word for word: "Fix and run T7". Before stating T7, I found that my Q12 sizing was wrong: at 1,000 pairs the per-round version's expected |t| in the 1v1 rule-against-random game row is 2.9 to 3.5, so T7's power check would succeed with a probability of only about 0.5. Asked as Q13 before T7 was stated; answer 2026-10-30, word for word: "1v1 games at 4,000 (Recommended)" (rows 5 and 6 at 4,000 pairs, rows 12 and 13 at 1,000).
+- D19 fix (PLAN.md D19 amended): PairResult::aivat_row (harness.rs) and the report (report.rs) now give stats::crossfit each pair's term totals beside its margin per round, not the terms divided by the pair's rounds. New unit test aivat_row_keeps_the_term_totals. REPORT.md regenerated: only the 8 game rows of T5 and T6 change (round pairs have 2 rounds each); for example, T6 row 5 is corrected to 16.21 [15.10, 17.31] against raw 16.99 (15.30 with the terms per round), SD ratio 1.21. Those rows' result files keep the per-round numbers that the harness wrote then.
+- T7 registered in PLAN.md (Pre-registered runs) with scripts/run-t7.sh; scripts/verify/M5-03.sh now judges T7. Before the registration, tools/aivat-recompute.py reproduced the corrected-minus-raw mean, se, and t of all 14 T5 rows and all 14 T6 rows per round exactly.

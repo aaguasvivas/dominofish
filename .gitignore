@@ -3,3 +3,4 @@ runs/
 tools/capi-oracle/build/
 web/dist/
 .wrangler/
+__pycache__/

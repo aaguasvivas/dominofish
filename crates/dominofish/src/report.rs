@@ -17,13 +17,11 @@ struct Row {
     run: String,
     /// The `# time` line: each side's reply time per move.
     time: String,
-    /// Each pair's AIVAT terms per round (deal, draw, action), when the
-    /// match ran with --aivat.
+    /// Each pair's AIVAT term totals over both games (deal, draw, action),
+    /// when the match ran with --aivat.
     aivat: Vec<[f64; 3]>,
     margins: Vec<f64>,
     per_round: Vec<f64>,
-    /// Each pair's rounds (both games).
-    rounds: Vec<f64>,
     wins: Vec<f64>,
     sprt: Option<(f64, f64)>,
 }
@@ -44,7 +42,6 @@ fn read_row(path: &Path) -> Result<Row, String> {
         aivat: vec![],
         margins: vec![],
         per_round: vec![],
-        rounds: vec![],
         wins: vec![],
         sprt: None,
     };
@@ -100,7 +97,6 @@ fn read_row(path: &Path) -> Result<Row, String> {
             }
             row.margins.push(margin);
             row.per_round.push(margin / rounds);
-            row.rounds.push(rounds);
             row.wins.push(wins / 2.0);
         }
     }
@@ -270,12 +266,12 @@ pub fn build(results: &Path) -> Result<String, String> {
             let (corrected, ratio) = if r.aivat.is_empty() {
                 ("-".to_string(), "-".to_string())
             } else {
+                // The term totals, as the harness takes them (D19, Q12).
                 let rows: Vec<(f64, [f64; 3])> = r
                     .per_round
                     .iter()
-                    .zip(&r.aivat)
-                    .zip(&r.rounds)
-                    .map(|((&y, t), &n)| (y, [t[0] / n, t[1] / n, t[2] / n]))
+                    .copied()
+                    .zip(r.aivat.iter().copied())
                     .collect();
                 let (c, _) = crossfit(&rows);
                 let c = summary(&c);
