@@ -13,7 +13,7 @@ Each milestone ends with an exit feature, id M<k>-99, whose verify command runs 
 | M2 | Information sets, baseline bots, match harness with duplicate pairs and SPRT, REPORT.md | passed 2026-10-25 |
 | M3 | Exact perfect-information solver, omniscient bot, dominofish bench | passed 2026-10-26 |
 | M4 | PIMC with an exact consistent-world sampler: the strength-first engine | passed 2026-10-26 |
-| M5 | Variance reduction (control variates) | in progress (features appended 2026-10-27) |
+| M5 | Variance reduction (control variates) | passed 2026-10-30 |
 | M6 | Game equity table W and calibrated win probability | not started |
 | M7 | Exact endgames by enumeration | not started |
 | M8 | Inference and partner modeling | not started |

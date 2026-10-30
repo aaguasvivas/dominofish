@@ -2,9 +2,9 @@
 
 ## Top block
 
-- Milestone: M5 (variance reduction) in progress since 2026-10-27; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26
-- Feature in progress: M5-99: the M5 exit; the milestone review's 8 gaps are fixed, and the M5 verifies run again on the fix commit
-- Last green commit: 10feac4 (check.sh passes; regress passes 42 of 42 in 509 s on 2026-10-30; M5-04's README.md and PLAN.md edits began during that run)
+- Milestone: M6 (game equity and calibrated win probability) next; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
+- Feature in progress: none; M6's features are appended next (BUILD.md M6)
+- Last green commit: eda47bb (check.sh passes; M5-01 to M5-04 and M5-99 pass on it); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none (T7 ended 2026-10-30 02:34)
 - Open questions: none (Q12 answered 2026-10-29, Q13 answered 2026-10-30)
@@ -219,4 +219,8 @@
   6. README.md and `match --help` said every term uses 8 (J) samples; the action term uses the exact mean over the bot's tied moves. Fixed in both.
   7. FORMATS.md did not document the corrected-minus-raw fields of the # aivat line or which coefficient triple belongs to which half. Fixed, with the new actions field.
   8. PLAN.md said T6 runs on new seeds; its 1v1 rows 0 to 3 reused the deal seeds of T5's 2v2 rows 10 to 13 (1,000 seeds, then 300 from each of three bases; checked over the files' seeds lines). Fix: a dated T6 note after the entry; T7 overlaps neither test.
-- The review's own scratch build (scratchpad review/mut/target) was a second target tree against hard constraint 10; my mutant builds for gaps 1 and 2 used target/old.
+- The mutant builds for gaps 1 and 2 were scratch copies of the workspace built into target/old (hard constraint 10: one target tree).
+- M5-01 passed again on eda47bb: M5-01: PASS actions: 179 decisions, each bot's choices cover exactly its policy; 21 tied decisions whose action terms sum to 0; cold: 4244 draw values on reshuffled boneyards and 250 later round starts (3 at the cap), equal from a used Valuer and a fresh one; values: 544 states, equal to the solver without a table, whatever ran before; zero: 25 draws from a one-tile boneyard and every round-2 deal against itself give 0; 36 committed R2 rows (19200 pairs) replay with equal pair lines at HEAD; 9 mirror pairs (1v1 and 2v2 games, --aivat 4) give margin 0 and terms exactly 0; 0 allocations
+- M5-02 passed again on eda47bb: M5-02: PASS --aivat leaves the pair lines unchanged (1v1 rounds, 2v2 games); one aivat line per pair; draws=on, and off with the omniscient bot; actions=a,b with HEAD's sides, and - with sides from another binary, whose games stay the same; the report shows corrected 14.93 [6.86, 22.99] , SD ratio 1.11  beside raw and - for a plain file; cross-fit test passes; FORMATS.md documents the lines
+- M2-09 --fast and M4-11 --fast pass on the changed README.md and REPORT.md.
+- M5-99 passed: M5-99: PASS M5-01 ok; M5-02 ok; M5-03 ok; M5-04 ok; M5 milestone review recorded in docs/progress.md. M5 passed. PLAN.md and README.md mark it passed; exit report docs/reports/2026-10-30-m5-exit.md.

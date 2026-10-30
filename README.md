@@ -282,8 +282,8 @@ docs/                    rules, formats, plan, progress, and the evaluation repo
 | M2 | Information sets, baseline bots, match harness | passed |
 | M3 | Exact perfect-information solver, omniscient bot | passed |
 | M4 | Sampling over hidden hands, each world solved exactly | passed |
-| M5 | Variance reduction for smaller measured gains | in progress |
-| M6 | Game equity and a calibrated win probability | planned |
+| M5 | Variance reduction for smaller measured gains | passed |
+| M6 | Game equity and a calibrated win probability | next |
 | M7 | Exact endgames | planned |
 | M8 | Inference from plays and passes, partner modeling | planned |
 | M9 | Fixes for strategy fusion | planned |
