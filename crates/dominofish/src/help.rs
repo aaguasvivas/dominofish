@@ -27,7 +27,8 @@ pub const COMMANDS: &[Command] = &[
         group: "Play",
         summary: "Rank the legal moves at one point of a game record (PIMC)",
         usage: "dominofish analyze --record FILE --round R --ply K [--worlds N]
-           [--seed N] [--nodes N] [--table-bits B]",
+           [--seed N] [--nodes N] [--table-bits B] [--objective points|win]
+           [--equity DIR]",
         options: "  --record FILE       A game record (docs/FORMATS.md, Game records)
   --round R           The round, from 1
   --ply K             Moves already played in that round; the seat on turn
@@ -37,16 +38,20 @@ pub const COMMANDS: &[Command] = &[
   --seed N            Seed of the sampling (default 1)
   --nodes N           Node cap per solve (default 10000000)
   --table-bits B      Table of 2^B entries (default 16, at most 24)
+  --objective OBJ     points (default): the round margin; win: the
+                      probability to win the game, from the equity table W
+  --equity DIR        Where the W tables are (default docs/eval/equity)
 
   Each value is sampled: the mean round points of the seat's team after the
-  move, over worlds each solved exactly, with its standard error.",
+  move, or its win probability, over worlds each solved exactly, with its
+  standard error.",
     },
     Command {
         name: "engine",
         group: "Play",
         summary: "Run a bot over the engine protocol on stdin and stdout",
         usage: "dominofish engine --bot NAME [--worlds N] [--salt N] [--nodes N]
-           [--table-bits B]",
+           [--table-bits B] [--objective points|win] [--equity DIR]",
         options: "  --bot NAME          random, heaviest (bota gorda), accompanied (la más
                       acompañada), rule (counts tiles, reads pass voids),
                       pimc (samples the hidden hands its seat cannot see and
@@ -58,6 +63,9 @@ pub const COMMANDS: &[Command] = &[
                       10000000)
   --table-bits B      PIMC and omniscient: table of 2^B entries (default 16
                       for PIMC, 20 for omniscient; at most 24)
+  --objective OBJ     PIMC: points (default), the round margin, or win, the
+                      probability to win the game from the equity table W
+  --equity DIR        PIMC: where the W tables are (default docs/eval/equity)
   --salt N            Mixed into the seed the referee sends, so two copies of
                       one bot play with independent randomness
 

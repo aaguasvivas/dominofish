@@ -390,3 +390,102 @@ pub fn simulate(
     let se = (p * (1.0 - p) / f64::from(games)).sqrt().max(1e-9);
     (share, p, (share - p) / se)
 }
+
+/// W tables loaded from table files, with an FNV-1a hash of their bytes in
+/// file-name order: what an engine with the win objective reports.
+pub struct WinTables {
+    pub tables: Vec<(Mode, Equity)>,
+    pub hash: u64,
+}
+
+impl WinTables {
+    /// W for a mode and target, if a table was loaded.
+    pub fn get(&self, mode: Mode, target: u16) -> Option<&Equity> {
+        self.tables
+            .iter()
+            .find(|(m, w)| *m == mode && w.target == target)
+            .map(|(_, w)| w)
+    }
+}
+
+/// W from a table file's text (docs/FORMATS.md, Equity rounds and tables).
+pub fn parse_table(text: &str) -> Result<(Mode, Equity), String> {
+    let head = text
+        .lines()
+        .next()
+        .and_then(|l| l.strip_prefix("# equity table "))
+        .ok_or("not an equity table file")?;
+    let field = |k: &str| {
+        head.split_whitespace()
+            .find_map(|w| w.strip_prefix(k))
+            .ok_or(format!("the header has no {k}"))
+    };
+    let mode = match field("mode=")? {
+        "1v1" => Mode::OneVsOne,
+        "2v2" => Mode::TwoVsTwo,
+        m => return Err(format!("mode {m}")),
+    };
+    let target: u16 = field("target=")?
+        .parse()
+        .map_err(|_| "the header's target".to_string())?;
+    let t = usize::from(target);
+    let (mut lead, mut other) = (Vec::with_capacity(t * t), Vec::with_capacity(t * t));
+    for line in text.lines().filter(|l| !l.starts_with('#')) {
+        let mut w = line.split_whitespace();
+        let rows = match w.next() {
+            Some("lead") => &mut lead,
+            Some("other") => &mut other,
+            _ => return Err(format!("line: {line}")),
+        };
+        let a: usize = w
+            .next()
+            .and_then(|a| a.parse().ok())
+            .ok_or(format!("line: {line}"))?;
+        let values: Vec<u32> = w
+            .map(|v| v.parse().map_err(|_| format!("line: {line}")))
+            .collect::<Result<_, _>>()?;
+        if a != rows.len() / t || values.len() != t || values.iter().any(|&v| v > 1_000_000) {
+            return Err(format!("line: {line}"));
+        }
+        rows.extend(values);
+    }
+    if lead.len() != t * t || other.len() != t * t {
+        return Err(format!(
+            "{} lead and {} other values for target {target}",
+            lead.len(),
+            other.len()
+        ));
+    }
+    Ok((mode, Equity::from_millionths(target, &lead, &other)))
+}
+
+/// Every table file w-<mode>-<target>.txt in `dir`.
+pub fn load_tables(dir: &std::path::Path) -> Result<WinTables, String> {
+    let mut names: Vec<std::path::PathBuf> = std::fs::read_dir(dir)
+        .map_err(|e| format!("{}: {e}", dir.display()))?
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.starts_with("w-") && n.ends_with(".txt"))
+        })
+        .collect();
+    names.sort();
+    let mut hash = 0xcbf2_9ce4_8422_2325u64;
+    let mut tables = Vec::new();
+    for path in &names {
+        let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        for &b in &bytes {
+            hash = (hash ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3);
+        }
+        let text = String::from_utf8(bytes).map_err(|_| format!("{}: not text", path.display()))?;
+        tables.push(parse_table(&text).map_err(|e| format!("{}: {e}", path.display()))?);
+    }
+    if tables.is_empty() {
+        return Err(format!(
+            "{} holds no W table (w-<mode>-<target>.txt)",
+            dir.display()
+        ));
+    }
+    Ok(WinTables { tables, hash })
+}

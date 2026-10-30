@@ -2,7 +2,8 @@
 //! turn at one point of a game record (M4-05; docs/PLAN.md D18). The values
 //! are sampled: each move's mean round points for the seat's team over the
 //! worlds drawn from that seat's InfoSet, each world solved exactly, with
-//! the standard error over worlds.
+//! the standard error over worlds. With W tables (M6-02, D21), each move's
+//! mean probability for the seat's team to win the game instead.
 
 use std::fmt::Write as _;
 
@@ -10,11 +11,20 @@ use dominofish_core::infoset::InfoSet;
 use dominofish_core::pimc::{self, Limits};
 use dominofish_core::record::{GameRecord, move_text};
 use dominofish_core::rules::{Phase, team};
+use dominofish_core::solver::{Objective, WIN};
 
+use crate::equity::WinTables;
 use crate::solve::thousands;
 
 /// The ranking, or an error for a request the record cannot answer.
-pub fn run(text: &str, round: u64, ply: u64, limits: &Limits, seed: u64) -> Result<String, String> {
+pub fn run(
+    text: &str,
+    round: u64,
+    ply: u64,
+    limits: &Limits,
+    seed: u64,
+    win: Option<&WinTables>,
+) -> Result<String, String> {
     let record =
         GameRecord::from_text(text).map_err(|e| format!("record line {}: {}", e.line, e.reason))?;
     let rounds = record.rounds.len();
@@ -40,7 +50,17 @@ pub fn run(text: &str, round: u64, ply: u64, limits: &Limits, seed: u64) -> Resu
     }
     let seat = state.turn;
     let info = InfoSet::new(&record, r, ply, seat).map_err(|e| format!("{e:?}"))?;
-    let a = pimc::analyze(&info, limits, seed);
+    let objective = match win {
+        None => Objective::Points,
+        Some(w) => Objective::Win(w.get(record.mode, record.target).ok_or_else(|| {
+            format!(
+                "no W table for {} target {}",
+                record.mode.name(),
+                record.target
+            )
+        })?),
+    };
+    let a = pimc::analyze_with(&info, limits, objective, seed);
     if a.fallback > 0 || a.inconsistent > 0 {
         return Err(format!(
             "the sampler failed (fallback {}, inconsistent worlds {})",
@@ -65,23 +85,40 @@ pub fn run(text: &str, round: u64, ply: u64, limits: &Limits, seed: u64) -> Resu
         thousands(a.nodes),
         a.capped
     );
-    let _ = writeln!(out, "{:<20} {:>8} {:>7}", "Move", "Points", "SE");
+    // Win values are millionths; shown in percent.
+    let (head, scale, sign) = match objective {
+        Objective::Points => ("Points", 1.0, "+"),
+        Objective::Win(_) => ("Win %", 100.0 / f64::from(WIN), ""),
+    };
+    let _ = writeln!(out, "{:<20} {:>8} {:>7}", "Move", head, "SE");
     for m in &a.moves {
         let se = m
             .standard_error(a.worlds)
-            .map_or("-".to_string(), |s| format!("{s:.2}"));
-        let _ = writeln!(
-            out,
-            "{:<20} {:>+8.2} {:>7}",
-            move_text(m.mv),
-            m.mean(a.worlds),
-            se
-        );
+            .map_or("-".to_string(), |s| format!("{:.2}", s * scale));
+        let mean = m.mean(a.worlds) * scale;
+        let value = if sign == "+" {
+            format!("{mean:+.2}")
+        } else {
+            format!("{mean:.2}")
+        };
+        let _ = writeln!(out, "{:<20} {value:>8} {se:>7}", move_text(m.mv));
     }
-    let _ = writeln!(
-        out,
-        "\nPoints: team {team_label}'s round margin from this move on, its own points included, averaged over the sampled worlds."
-    );
+    match objective {
+        Objective::Points => {
+            let _ = writeln!(
+                out,
+                "\nPoints: team {team_label}'s round margin from this move on, its own points included, averaged over the sampled worlds."
+            );
+        }
+        Objective::Win(_) => {
+            let _ = writeln!(
+                out,
+                "\nWin %: team {team_label}'s probability to win the game after this move: each world solved for it, with the round's end valued by the equity table W for {} to {}, averaged over the sampled worlds.",
+                record.mode.name(),
+                record.target
+            );
+        }
+    }
     let _ = writeln!(out, "Best: {}", move_text(a.best));
     Ok(out)
 }
@@ -119,10 +156,10 @@ mod tests {
                     // Positions with at most 18 tiles left keep the debug
                     // build of check.sh fast.
                     if ply % 4 == 0 && dominofish_core::solver::tiles_left(&state) <= 18 {
-                        let out = run(&text, r as u64 + 1, ply as u64, &LIMITS, 3).unwrap();
+                        let out = run(&text, r as u64 + 1, ply as u64, &LIMITS, 3, None).unwrap();
                         assert_eq!(
                             out,
-                            run(&text, r as u64 + 1, ply as u64, &LIMITS, 3).unwrap()
+                            run(&text, r as u64 + 1, ply as u64, &LIMITS, 3, None).unwrap()
                         );
                         let mut legal = MoveList::new();
                         state.legal_moves(&mut legal);
@@ -149,18 +186,18 @@ mod tests {
         let text = record.to_text();
         let n = record.rounds.len() as u64;
         let moves = record.rounds[0].moves.len() as u64;
-        assert!(run(&text, 0, 0, &LIMITS, 1).is_err(), "round 0");
+        assert!(run(&text, 0, 0, &LIMITS, 1, None).is_err(), "round 0");
         assert!(
-            run(&text, n + 1, 0, &LIMITS, 1).is_err(),
+            run(&text, n + 1, 0, &LIMITS, 1, None).is_err(),
             "a round past the end"
         );
         assert!(
-            run(&text, 1, moves + 1, &LIMITS, 1).is_err(),
+            run(&text, 1, moves + 1, &LIMITS, 1, None).is_err(),
             "a ply past the end"
         );
-        let over = run(&text, 1, moves, &LIMITS, 1).unwrap_err();
+        let over = run(&text, 1, moves, &LIMITS, 1, None).unwrap_err();
         assert!(over.contains("is over"), "{over}");
-        assert!(run("dominofish-record 1\nmode 2v2\n", 1, 0, &LIMITS, 1).is_err());
-        assert!(run("garbage", 1, 0, &LIMITS, 1).is_err());
+        assert!(run("dominofish-record 1\nmode 2v2\n", 1, 0, &LIMITS, 1, None).is_err());
+        assert!(run("garbage", 1, 0, &LIMITS, 1, None).is_err());
     }
 }

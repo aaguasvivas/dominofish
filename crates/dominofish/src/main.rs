@@ -287,9 +287,12 @@ fn run() -> Result<(String, bool), Failure> {
             let (mut file, mut round, mut ply, mut worlds, mut seed) =
                 (None, None, None, None, 1u64);
             let (mut nodes, mut bits) = (solve::NODE_CAP, solve::PIMC_TABLE_BITS);
+            let (mut win, mut equity_dir) = (false, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("record") => file = Some(value(&mut parser)?),
+                    Long("objective") => win = parse_objective(&value(&mut parser)?)?,
+                    Long("equity") => equity_dir = Some(value(&mut parser)?),
                     Long("round") => round = Some(parse_num(&value(&mut parser)?)?),
                     Long("ply") => ply = Some(parse_num(&value(&mut parser)?)?),
                     Long("worlds") => worlds = Some(parse_worlds(&value(&mut parser)?)?),
@@ -308,7 +311,21 @@ fn run() -> Result<(String, bool), Failure> {
                 table_bits: bits,
             };
             let text = std::fs::read_to_string(&file).map_err(|e| format!("{file}: {e}"))?;
-            Ok((analyze::run(&text, round, ply, &limits, seed)?, true))
+            let tables = if win {
+                Some(equity::load_tables(std::path::Path::new(
+                    equity_dir.as_deref().unwrap_or(EQUITY_DIR),
+                ))?)
+            } else if equity_dir.is_some() {
+                return Err("--equity applies to --objective win only"
+                    .to_string()
+                    .into());
+            } else {
+                None
+            };
+            Ok((
+                analyze::run(&text, round, ply, &limits, seed, tables.as_ref())?,
+                true,
+            ))
         }
         "playout-bench" => {
             let (mut mode, mut rounds, mut seed) = (None, None, None);
@@ -340,9 +357,12 @@ fn run() -> Result<(String, bool), Failure> {
         "engine" => {
             let (mut bot, mut salt, mut worlds) = (None, None, None);
             let (mut nodes, mut bits) = (solve::NODE_CAP, None);
+            let (mut win, mut equity_dir) = (false, None);
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("bot") => bot = Some(value(&mut parser)?),
+                    Long("objective") => win = parse_objective(&value(&mut parser)?)?,
+                    Long("equity") => equity_dir = Some(value(&mut parser)?),
                     Long("salt") => salt = Some(parse_num(&value(&mut parser)?)?),
                     Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
                     Long("table-bits") => bits = Some(parse_bits(&value(&mut parser)?)?),
@@ -351,8 +371,12 @@ fn run() -> Result<(String, bool), Failure> {
                 }
             }
             let name = bot.ok_or("--bot is required")?;
-            if worlds.is_some() && name != "pimc" {
-                return Err("--worlds applies to --bot pimc only".to_string().into());
+            if (worlds.is_some() || win || equity_dir.is_some()) && name != "pimc" {
+                return Err(
+                    "--worlds, --objective, and --equity apply to --bot pimc only"
+                        .to_string()
+                        .into(),
+                );
             }
             let player = if name == "omniscient" {
                 engine::Player::Omniscient {
@@ -360,11 +384,21 @@ fn run() -> Result<(String, bool), Failure> {
                     bits: bits.unwrap_or(solve::TABLE_BITS),
                 }
             } else if name == "pimc" {
-                engine::Player::Pimc(dominofish_core::pimc::Limits {
-                    worlds: worlds.unwrap_or(solve::PIMC_WORLDS),
-                    nodes,
-                    table_bits: bits.unwrap_or(solve::PIMC_TABLE_BITS),
-                })
+                let tables = if win {
+                    Some(equity::load_tables(std::path::Path::new(
+                        equity_dir.as_deref().unwrap_or(EQUITY_DIR),
+                    ))?)
+                } else {
+                    None
+                };
+                engine::Player::Pimc(
+                    dominofish_core::pimc::Limits {
+                        worlds: worlds.unwrap_or(solve::PIMC_WORLDS),
+                        nodes,
+                        table_bits: bits.unwrap_or(solve::PIMC_TABLE_BITS),
+                    },
+                    tables,
+                )
             } else {
                 engine::Player::Bot(
                     dominofish_core::bots::Bot::from_name(&name)
@@ -586,6 +620,19 @@ fn parse_worlds(s: &str) -> Result<u32, String> {
         Ok(n as u32)
     } else {
         Err(format!("--worlds must be 1 to 4096, got {s}"))
+    }
+}
+
+/// The committed W tables (docs/PLAN.md D20), read from the working
+/// directory, the repository root.
+const EQUITY_DIR: &str = "docs/eval/equity";
+
+/// --objective points|win: whether PIMC plays for the win (D21).
+fn parse_objective(s: &str) -> Result<bool, String> {
+    match s {
+        "points" => Ok(false),
+        "win" => Ok(true),
+        _ => Err(format!("--objective must be points or win, got {s}")),
     }
 }
 

@@ -18,24 +18,31 @@
 //! best mean (core/src/pimc.rs). It plays a forced move without search, and
 //! reports each capped solve, each world that disagrees with its InfoSet,
 //! and a failed draw in info lines; the referee stops the match on the last
-//! two (docs/PLAN.md D17).
+//! two (docs/PLAN.md D17). With W tables it plays for the win objective
+//! (M6-02, D21): each move's mean probability to win the game, from the
+//! table of the game's mode and target; its ready line reports
+//! objective:win with the tables' hash.
 
 use std::io::{BufRead, Write};
 
 use dominofish_core::bots::Bot;
 use dominofish_core::infoset::InfoSet;
 use dominofish_core::pimc::{self, Limits};
+use dominofish_core::solver::Objective;
+
+use crate::equity::WinTables;
 use dominofish_core::protocol::{FromEngine, ToEngine, VERSION, View};
 use dominofish_core::rng::{Rng, derive};
 use dominofish_core::rules::{Mode, MoveList, State};
 use dominofish_core::solver::{self, Table};
 
 /// Who plays: a baseline bot, the omniscient bot with its node cap and
-/// table size (2^bits entries), or PIMC with its limits.
+/// table size (2^bits entries), or PIMC with its limits and, for the win
+/// objective, its W tables.
 pub enum Player {
     Bot(Bot),
     Omniscient { nodes: u64, bits: u32 },
-    Pimc(Limits),
+    Pimc(Limits, Option<WinTables>),
 }
 
 pub fn run(player: Player, salt: Option<u64>) -> Result<(), String> {
@@ -49,7 +56,7 @@ pub fn run(player: Player, salt: Option<u64>) -> Result<(), String> {
     // The omniscient bot's table; one deal per round, cleared at each.
     let mut table = match player {
         Player::Omniscient { bits, .. } => Some(Table::new(bits)),
-        Player::Bot(_) | Player::Pimc(_) => None,
+        Player::Bot(_) | Player::Pimc(..) => None,
     };
     let reply = |out: &mut std::io::StdoutLock, msg: FromEngine| -> Result<(), String> {
         writeln!(out, "{}", msg.to_line())
@@ -73,9 +80,15 @@ pub fn run(player: Player, salt: Option<u64>) -> Result<(), String> {
                         tables: format!("{}MB", t.bytes() >> 20),
                         view: View::Omniscient,
                     },
-                    (Player::Pimc(limits), _) => FromEngine::Ready {
+                    (Player::Pimc(limits, win), _) => FromEngine::Ready {
                         version,
-                        budgets: format!("worlds:{},nodes:{}", limits.worlds, limits.nodes),
+                        budgets: match win {
+                            None => format!("worlds:{},nodes:{}", limits.worlds, limits.nodes),
+                            Some(w) => format!(
+                                "worlds:{},nodes:{},objective:win:{:016x}",
+                                limits.worlds, limits.nodes, w.hash
+                            ),
+                        },
                         threads: 1,
                         tables: format!("{}MB", (16usize << limits.table_bits) >> 20),
                         view: View::InfoSet,
@@ -127,13 +140,25 @@ pub fn run(player: Player, salt: Option<u64>) -> Result<(), String> {
                         }
                         sol.best
                     }
-                    Player::Pimc(limits) => {
+                    Player::Pimc(limits, win) => {
                         let mut legal = MoveList::new();
                         i.legal_moves(&mut legal);
                         if legal.len() == 1 {
                             legal.as_slice()[0]
                         } else {
-                            let a = pimc::analyze(&i, limits, rng.next_u64());
+                            let objective = match win {
+                                None => Objective::Points,
+                                Some(w) => {
+                                    Objective::Win(w.get(mode, i.target).ok_or_else(|| {
+                                        format!(
+                                            "no W table for {} target {}",
+                                            mode.name(),
+                                            i.target
+                                        )
+                                    })?)
+                                }
+                            };
+                            let a = pimc::analyze_with(&i, limits, objective, rng.next_u64());
                             for _ in 0..a.capped {
                                 reply(&mut out, FromEngine::Info("capped".into()))?;
                             }
