@@ -126,6 +126,29 @@ pub const COMMANDS: &[Command] = &[
   --table-bits B      Table of 2^B entries (default 16, at most 24)",
     },
     Command {
+        name: "equity",
+        group: "Measure",
+        summary: "The game equity table W from the engine's own rounds",
+        usage: "dominofish equity --mode 1v1|2v2 --rounds N --seed N --engine-seed N
+           --out-dir DIR [--threads N] [--worlds N] [--nodes N] [--table-bits B]
+       dominofish equity --from FILE --out-dir DIR [--check GAMES]",
+        options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
+  --rounds N          Rounds after the first to record, from self-play games
+                      to 200 between copies of PIMC
+  --seed N            Game g deals from the seed N + g
+  --engine-seed N     Base of the engines' own seeds, apart from the deals
+  --threads N         Games at once, 1 to 4 (default 1); the files are the
+                      same at any count
+  --worlds N          Worlds per move, 1 to 4096 (default 64)
+  --nodes N           Node cap per solve (default 10000000)
+  --table-bits B      Table of 2^B entries (default 16, at most 24)
+  --from FILE         Build the tables from a rounds file instead
+  --out-dir DIR       Writes rounds-<mode>.txt and w-<mode>-100.txt and
+                      w-<mode>-200.txt (docs/FORMATS.md)
+  --check GAMES       Also simulate GAMES games from five round starts per
+                      target and print W beside the share won",
+    },
+    Command {
         name: "world-stats",
         group: "Measure",
         summary: "Exact world counts at decisions of random games, by board",

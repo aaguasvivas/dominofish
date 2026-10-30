@@ -3,6 +3,7 @@
 mod analyze;
 mod capi_fuzz;
 mod engine;
+mod equity;
 mod harness;
 mod help;
 mod report;
@@ -146,6 +147,123 @@ fn run() -> Result<(String, bool), Failure> {
                 table_bits: bits,
             };
             Ok((solve::pimc_stats(mode, games, seed, &limits), true))
+        }
+        "equity" => {
+            let (mut mode, mut rounds, mut seed, mut engine_seed) = (None, None, None, None);
+            let (mut from, mut out_dir, mut check) = (None, None, None);
+            let (mut threads, mut worlds) = (1u64, solve::PIMC_WORLDS);
+            let (mut nodes, mut bits) = (solve::NODE_CAP, solve::PIMC_TABLE_BITS);
+            while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
+                match arg {
+                    Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("rounds") => rounds = Some(parse_num(&value(&mut parser)?)?),
+                    Long("seed") => seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("engine-seed") => engine_seed = Some(parse_num(&value(&mut parser)?)?),
+                    Long("threads") => threads = parse_num(&value(&mut parser)?)?,
+                    Long("worlds") => worlds = parse_worlds(&value(&mut parser)?)?,
+                    Long("nodes") => nodes = parse_num(&value(&mut parser)?)?,
+                    Long("table-bits") => bits = parse_bits(&value(&mut parser)?)?,
+                    Long("from") => from = Some(value(&mut parser)?),
+                    Long("out-dir") => out_dir = Some(value(&mut parser)?),
+                    Long("check") => check = Some(parse_num(&value(&mut parser)?)?),
+                    _ => return Err(arg.unexpected().to_string().into()),
+                }
+            }
+            let out_dir = std::path::PathBuf::from(out_dir.ok_or("--out-dir is required")?);
+            if !(1..=4).contains(&threads) {
+                return Err(format!("--threads must be 1 to 4, got {threads}").into());
+            }
+            std::fs::create_dir_all(&out_dir)
+                .map_err(|e| Failure::Run(format!("{}: {e}", out_dir.display())))?;
+            let write = |name: &str, text: &str| {
+                let path = out_dir.join(name);
+                std::fs::write(&path, text)
+                    .map_err(|e| Failure::Run(format!("{}: {e}", path.display())))
+            };
+            let mut log = String::new();
+            let (mode, outcomes, rounds_name) = match from {
+                Some(path) => {
+                    let text = std::fs::read_to_string(&path)
+                        .map_err(|e| Failure::Run(format!("{path}: {e}")))?;
+                    let (mode, outcomes) =
+                        equity::parse_rounds(&text).map_err(|e| format!("{path}: {e}"))?;
+                    let name = std::path::Path::new(&path)
+                        .file_name()
+                        .map_or(path.clone(), |n| n.to_string_lossy().to_string());
+                    (mode, outcomes, name)
+                }
+                None => {
+                    let mode = mode.ok_or("--mode is required without --from")?;
+                    let wanted = rounds.ok_or("--rounds is required without --from")?;
+                    if wanted < 2 {
+                        return Err("--rounds must be at least 2".into());
+                    }
+                    let seed = seed.ok_or("--seed is required without --from")?;
+                    let engine_seed =
+                        engine_seed.ok_or("--engine-seed is required without --from")?;
+                    let limits = dominofish_core::pimc::Limits {
+                        worlds,
+                        nodes,
+                        table_bits: bits,
+                    };
+                    let start = std::time::Instant::now();
+                    let (recorded, work) = equity::record(
+                        mode,
+                        wanted as usize,
+                        seed,
+                        engine_seed,
+                        &limits,
+                        threads as usize,
+                    )?;
+                    let settings = format!(
+                        "deals={seed}+game engines={engine_seed} worlds={worlds} nodes={nodes} table_bits={bits}"
+                    );
+                    let name = format!("rounds-{}.txt", mode.name());
+                    write(
+                        &name,
+                        &equity::rounds_text(mode, &settings, &recorded, &work),
+                    )?;
+                    let _ = writeln!(
+                        log,
+                        "equity: {} rounds after the first from {} games ({} moves, {} searched decisions, {} capped solves) in {:.1} s on {threads} threads; wrote {}",
+                        recorded.len(),
+                        work.games,
+                        work.moves,
+                        work.decisions,
+                        work.capped,
+                        start.elapsed().as_secs_f64(),
+                        out_dir.join(&name).display()
+                    );
+                    (
+                        mode,
+                        recorded.into_iter().map(|r| r.outcome).collect(),
+                        name,
+                    )
+                }
+            };
+            for target in equity::TARGETS {
+                let w = dominofish_core::equity::Equity::build(target, &outcomes);
+                let name = format!("w-{}-{target}.txt", mode.name());
+                write(
+                    &name,
+                    &equity::table_text(mode, &w, &outcomes, &rounds_name),
+                )?;
+                let _ = writeln!(log, "equity: wrote {}", out_dir.join(&name).display());
+                if let Some(games) = check {
+                    for (k, start) in equity::check_starts(target).into_iter().enumerate() {
+                        let (share, p, z) =
+                            equity::simulate(&w, &outcomes, start, games as u32, 1000 + k as u64);
+                        let _ = writeln!(
+                            log,
+                            "equity check: target {target} start {}-{} {} W {p:.4} simulated {share:.4} over {games} games z {z:.2}",
+                            start.0,
+                            start.1,
+                            if start.2 { "lead" } else { "other" }
+                        );
+                    }
+                }
+            }
+            Ok((log, true))
         }
         "world-stats" => {
             let (mut mode, mut games, mut seed) = (None, None, None);

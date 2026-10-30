@@ -5,6 +5,7 @@
 pub mod aivat;
 pub mod bench;
 pub mod bots;
+pub mod equity;
 mod hash;
 pub mod infoset;
 pub mod perft;

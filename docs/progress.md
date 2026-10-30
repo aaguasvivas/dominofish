@@ -7,7 +7,7 @@
 - Last green commit: eda47bb (check.sh passes; M5-01 to M5-04 and M5-99 pass on it); regress last passed 42 of 42 in 509 s on 10feac4 (2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none (T7 ended 2026-10-30 02:34)
-- Open questions: none (Q12 answered 2026-10-29, Q13 answered 2026-10-30)
+- Open questions: Q14 (the 2v2 equity run takes about 8 hours; docs/PLAN.md)
 - Stashes: none
 
 ## 2026-10-25
@@ -225,3 +225,5 @@
 - M2-09 --fast and M4-11 --fast pass on the changed README.md and REPORT.md.
 - M5-99 passed: M5-99: PASS M5-01 ok; M5-02 ok; M5-03 ok; M5-04 ok; M5 milestone review recorded in docs/progress.md. M5 passed. PLAN.md and README.md mark it passed; exit report docs/reports/2026-10-30-m5-exit.md.
 - M6 started: docs/PLAN.md D20 (the equity table W: the engine's own rounds after the first, re-scored without the cap, and a recursion over scores with the strict pase cap, an uncapped capicua, and a game won only by winning a round) and D21 (the win-probability objective in millionths, an engine option until the game-win SPRT decides); M6-01 to M6-05 appended to docs/features.json, M6-99 unchanged.
+- M6-01 code: core/src/equity.rs (RoundOutcome, rescore, the D20 recursion with its 2 by 2 solve for rounds that return to the same scores) and crates/dominofish/src/equity.rs (`dominofish equity`: PIMC self-play on up to 4 threads, deterministic by game index; the rounds and table files of docs/FORMATS.md; --from and --check). Core tests: 6 pass, among them all 2,632 rounds after the first of 320 seeded bot games, re-scored and applied at their real start scores, equal the rules engine's end scores, 13 of them with a bonus refused at the cap, and the recursion against simulated games. Smoke runs at 2 worlds: 1 and 3 threads give identical files; the tables rebuilt with --from are identical; --check gives |z| at most 1.18 over 10 start states.
+- Timing at 64 worlds on 4 threads (load average 143 from system services, so high): 2v2 0.95 s of CPU per searched decision and 17.5 decisions per round; 1v1 0.20 s and 11.4. At normal load (0.56 s per 2v2 decision from M4-07), 10,000 rounds take about 8 hours in 2v2 and about 1 hour in 1v1. D20's 3-hour estimate for 2v2 was wrong and is amended; 2v2 waits for Q14.
