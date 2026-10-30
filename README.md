@@ -195,7 +195,7 @@ R3 stops each row at its SPRT decision, so these intervals rest on 16 pairs each
 
 ### Variance reduction (AIVAT)
 
-`dominofish match --aivat 8` values the luck of a match with the exact solver (the terms under [What it does now](#what-it-does-now)). A term is the value after an event minus its mean over 8 samples of the event, so it has mean 0. The harness subtracts the terms from the result with coefficients fitted on the other half of the pairs. Test T7, pre-registered in [docs/PLAN.md](docs/PLAN.md), checks on 14 matchups that the correction keeps each result's mean, and it measures how much the correction narrows the result:
+`dominofish match --aivat 8` values the luck of a match with the exact solver (the terms under [What it does now](#what-it-does-now)). A deal or draw term is the value after the event minus its mean over 8 sampled alternatives (other deals, other boneyard orders), and an action term is the value after a bot's move minus its mean over the bot's tied moves, so each term has mean 0. The harness subtracts the terms from the result with coefficients fitted on the other half of the pairs. Test T7, pre-registered in [docs/PLAN.md](docs/PLAN.md), checks on 14 matchups that the correction keeps each result's mean, and it measures how much the correction narrows the result:
 
 | Row | Mode | Unit | A | B | Pairs | Raw points per round [95% CI] | Corrected [95% CI] | Corrected minus raw, t | SD raw / corrected |
 |---|---|---|---|---|---|---|---|---|---|

@@ -84,8 +84,10 @@ pub const COMMANDS: &[Command] = &[
                       a decision
   --sprt-track        Play every pair and report the first decision
   --aivat J           Also report the result corrected by AIVAT control
-                      variates, each term against J sampled outcomes (1 to
-                      64); the play and the raw result do not change",
+                      variates: each deal and draw against J sampled
+                      outcomes (1 to 64), each baseline bot's choice against
+                      its tied moves; the play and the raw result do not
+                      change",
     },
     Command {
         name: "bench",

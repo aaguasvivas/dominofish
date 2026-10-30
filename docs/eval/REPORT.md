@@ -121,7 +121,7 @@ Command of each row: `runs/bin/f77e9c2/dominofish match --mode 1v1 --unit round 
 
 ## 2026-10-26-pimc-curve-r5 (R5)
 
-Pre-registered as R5 in docs/PLAN.md. Side A: commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:1,nodes:10000000, threads 1, tables 1MB. Side B: commit e3f9a4f, Bench -, binary hash f14485ac51db0b38, budgets -, threads 1, tables -. Engine seed base: 5000500000 to 5000500013 (one per row). Measured 2026-10-26 at a 1-minute load average of 5.15 to 26.85.
+Pre-registered as R5 in docs/PLAN.md. Side A: commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:1,nodes:10000000, threads 1, tables 1MB in rows 0, 7; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:2,nodes:10000000, threads 1, tables 1MB in rows 1, 8; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:4,nodes:10000000, threads 1, tables 1MB in rows 2, 9; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:8,nodes:10000000, threads 1, tables 1MB in rows 3, 10; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:16,nodes:10000000, threads 1, tables 1MB in rows 4, 11; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:32,nodes:10000000, threads 1, tables 1MB in rows 5, 12; commit e3f9a4f, Bench 6121081, binary hash f14485ac51db0b38, budgets worlds:64,nodes:10000000, threads 1, tables 1MB in rows 6, 13. Side B: commit e3f9a4f, Bench -, binary hash f14485ac51db0b38, budgets -, threads 1, tables -. Engine seed base: 5000500000 to 5000500013 (one per row). Measured 2026-10-26 at a 1-minute load average of 5.15 to 26.85.
 
 | Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) | A corrected points per round [95% CI] | SD raw / corrected |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -180,7 +180,9 @@ Command of each row: `runs/bin/ebaa5fd/dominofish match --mode 1v1 --unit round 
 
 ## 2026-10-27-aivat-t5 (T5)
 
-Pre-registered as T5 in docs/PLAN.md. Side A: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Side B: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Engine seed base: 5000700000 to 5000700013 (one per row). Measured 2026-10-27 at a 1-minute load average of 4.52 to 21.83.
+Pre-registered as T5 in docs/PLAN.md. Side A: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables - in rows 0 to 3, 5 to 10, 12, 13; commit 4696b5f, Bench 6121081, binary hash 32afaf35db21609f, budgets worlds:8,nodes:10000000, threads 1, tables 1MB in rows 4, 11. Side B: commit 4696b5f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Engine seed base: 5000700000 to 5000700013 (one per row). Measured 2026-10-27 to 2026-10-29 at a 1-minute load average of 4.52 to 21.83.
+
+Note, added 2026-10-30 after the M5 milestone review. T5 was judged on the `# aivat` lines of its result files, which the harness of commit 4696b5f wrote with each pair's AIVAT terms divided by its rounds: criteria (a) to (c) passed, and the power check (d) failed (docs/PLAN.md Q11). The corrected columns here use the per-pair term totals of D19 as amended (Q12), so the game rows (5, 6, 12, and 13) differ from the files; row 5, for example, shows 15.54 [14.47, 16.61] with SD ratio 1.18 here, against 14.89 [13.88, 15.91] and 1.24 in its file. The round rows do not change, since every round pair has 2 rounds.
 
 | Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) | A corrected points per round [95% CI] | SD raw / corrected |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -203,7 +205,9 @@ Command of each row: `runs/bin/4696b5f/dominofish match --mode 1v1 --unit round 
 
 ## 2026-10-29-aivat-t6 (T6)
 
-Pre-registered as T6 in docs/PLAN.md. Side A: commit f763c0f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Side B: commit f763c0f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Engine seed base: 5000800000 to 5000800013 (one per row). Measured 2026-10-29 at a 1-minute load average of 6.85 to 39.92.
+Pre-registered as T6 in docs/PLAN.md. Side A: commit f763c0f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables - in rows 0 to 3, 5 to 10, 12, 13; commit f763c0f, Bench 6121081, binary hash 32afaf35db21609f, budgets worlds:8,nodes:10000000, threads 1, tables 1MB in rows 4, 11. Side B: commit f763c0f, Bench -, binary hash 32afaf35db21609f, budgets -, threads 1, tables -. Engine seed base: 5000800000 to 5000800013 (one per row). Measured 2026-10-29 at a 1-minute load average of 6.85 to 39.92.
+
+Note, added 2026-10-30 after the M5 milestone review. T6 failed: criterion (a) in row 5, where corrected minus raw had t -3.539 in its `# aivat` line, and the power check (d), where the mutant reached t 3.13 at most (docs/PLAN.md Q12). Its result files hold the corrected results of the harness of commit f763c0f, which divided each pair's AIVAT terms by its rounds; that division is the bias row 5 exposed. The corrected columns here use the per-pair term totals of D19 as amended, so the game rows (5, 6, 12, and 13) differ from the files: row 5 shows 16.21 [15.10, 17.31] with SD ratio 1.21 here, against 15.30 [14.32, 16.29] and 1.37 in its file. The round rows do not change. Rows 0 to 3 reuse the deal seeds of T5's rows 10 to 13 in the other mode (docs/PLAN.md, the T6 note).
 
 | Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) | A corrected points per round [95% CI] | SD raw / corrected |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -226,7 +230,7 @@ Command of each row: `runs/bin/f763c0f/dominofish match --mode 1v1 --unit round 
 
 ## 2026-10-30-aivat-t7 (T7)
 
-Pre-registered as T7 in docs/PLAN.md. Side A: commit ff3cdea, Bench -, binary hash 0721caec84a7dc86, budgets -, threads 1, tables -. Side B: commit ff3cdea, Bench -, binary hash 0721caec84a7dc86, budgets -, threads 1, tables -. Engine seed base: 5000900000 to 5000900013 (one per row). Measured 2026-10-30 at a 1-minute load average of 6.94 to 21.24.
+Pre-registered as T7 in docs/PLAN.md. Side A: commit ff3cdea, Bench -, binary hash 0721caec84a7dc86, budgets -, threads 1, tables - in rows 0 to 3, 5 to 10, 12, 13; commit ff3cdea, Bench 6121081, binary hash 0721caec84a7dc86, budgets worlds:8,nodes:10000000, threads 1, tables 1MB in rows 4, 11. Side B: commit ff3cdea, Bench -, binary hash 0721caec84a7dc86, budgets -, threads 1, tables -. Engine seed base: 5000900000 to 5000900013 (one per row). Measured 2026-10-30 at a 1-minute load average of 6.94 to 21.24.
 
 | Mode | Unit | Target | A | B | Pairs | A points per round [95% CI] | A game-win rate [95% CI] | SPRT (H0, H1) | Wall s | Peak RSS MB | Deal seeds | File | A ms per move (mean / max) | A corrected points per round [95% CI] | SD raw / corrected |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

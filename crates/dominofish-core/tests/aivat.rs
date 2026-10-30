@@ -3,10 +3,11 @@
 //! sum to exactly 0 over its policy, and its decisions over many seeds use
 //! every move of its policy and no other; a draw term from a boneyard of
 //! one tile and a deal term against the real deal are 0; and a value is a
-//! function of the state (the same with any table history). With
-//! AIVAT_FULL=1 (scripts/verify/M5-01.sh, release mode) the tests run at
-//! full size; without it they use positions near the end of a round, so
-//! check.sh's debug build stays fast.
+//! function of the state (the same with any table history), also at the
+//! harness's node cap, where a Valuer used before must give a fresh one's
+//! values. With AIVAT_FULL=1 (scripts/verify/M5-01.sh, release mode) the
+//! tests run at full size; without it they use positions near the end of a
+//! round, so check.sh's debug build stays fast.
 
 mod common;
 
@@ -15,7 +16,7 @@ use dominofish_core::bots::Bot;
 use dominofish_core::infoset::InfoSet;
 use dominofish_core::referee::play_bots;
 use dominofish_core::rng::Rng;
-use dominofish_core::rules::{Mode, Move, MoveList, Phase};
+use dominofish_core::rules::{Mode, Move, MoveList, Phase, State};
 use dominofish_core::solver::{self, NO_CAP};
 
 fn full() -> bool {
@@ -143,5 +144,60 @@ fn a_value_is_a_function_of_the_state() {
     assert!(checked > if full() { 100 } else { 20 }, "{checked}");
     println!(
         "aivat values: {checked} states, equal to the solver without a table, whatever ran before"
+    );
+}
+
+#[test]
+fn a_used_valuer_gives_a_fresh_ones_values_at_the_cap() {
+    // At the harness's cap (2,000,000 nodes, D19), in the order the harness
+    // values states: draws on reshuffled boneyards, whose positions share
+    // table keys (the key leaves out the 1v1 boneyard order, D15), and the
+    // starts of later rounds, whose searches can reach the cap and then
+    // depend on the table they start from.
+    let cap = 2_000_000;
+    let same = |used: &mut Valuer, state: &State, mv: Option<Move>| {
+        let mut fresh = Valuer::new(16, cap);
+        let (a, b) = match mv {
+            Some(m) => (used.after(state, m), fresh.after(state, m)),
+            None => (used.value(state), fresh.value(state)),
+        };
+        assert_eq!(a, b, "a used Valuer changed a value");
+        fresh.capped
+    };
+    let mut used = Valuer::new(16, cap);
+    let mut rng = Rng::new(11);
+    let (mut draws, mut starts, mut capped) = (0u64, 0u64, 0u64);
+    for seed in 0..if full() { 40 } else { 3 } {
+        let record = common::random_record(Mode::OneVsOne, 100, 9_100 + seed, false);
+        for (r, round) in record.rounds.iter().enumerate() {
+            let (mut state, _) = record.round_start(r).unwrap();
+            if r > 0 && full() {
+                capped += same(&mut used, &state, None);
+                starts += 1;
+            }
+            for &mv in &round.moves {
+                let small = solver::tiles_left(&state) <= 12;
+                if mv == Move::Draw && state.boneyard().len() >= 2 && (full() || small) {
+                    let mut order = state.boneyard().to_vec();
+                    for _ in 0..4 {
+                        for i in (1..order.len()).rev() {
+                            order.swap(i, rng.below(i as u32 + 1) as usize);
+                        }
+                        let s = state.with_boneyard(&order);
+                        capped += same(&mut used, &s, Some(Move::Draw));
+                        draws += 1;
+                    }
+                }
+                state.play(mv);
+            }
+        }
+    }
+    assert!(draws > if full() { 1000 } else { 10 }, "{draws}");
+    assert!(
+        !full() || (starts > 20 && capped > 0),
+        "{starts} starts, {capped} capped"
+    );
+    println!(
+        "aivat cold: {draws} draw values on reshuffled boneyards and {starts} later round starts ({capped} at the cap), equal from a used Valuer and a fresh one"
     );
 }

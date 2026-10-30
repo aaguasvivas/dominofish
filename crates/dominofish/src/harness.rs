@@ -37,8 +37,9 @@ pub struct Side {
     pub command: Vec<String>,
     pub commit: String,
     pub hash: u64,
-    /// The baseline bot the command runs (`engine --bot <name>`), whose
-    /// policy the AIVAT action terms use; None for any other engine.
+    /// The baseline bot the command runs (`engine --bot <name>`); None for
+    /// any other engine. The AIVAT action terms use its policy only when the
+    /// side runs the referee's own binary (`run`).
     pub bot: Option<Bot>,
 }
 
@@ -46,6 +47,13 @@ fn fnv64(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
         (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
     })
+}
+
+/// The hash of the running binary, the referee's, as `Side::hash` is a
+/// side's.
+fn own_hash() -> Option<u64> {
+    let path = std::env::current_exe().ok()?;
+    std::fs::read(path).ok().map(|bytes| fnv64(&bytes))
 }
 
 impl Side {
@@ -110,7 +118,8 @@ struct Engine {
     /// Time from each `go` to its move: total and slowest, in nanoseconds,
     /// and the number of moves.
     think: Think,
-    /// The side's baseline bot, if any (`Side::bot`).
+    /// The baseline bot whose policy the AIVAT action terms use: the side's
+    /// (`Side::bot`) when the side runs the referee's own binary, else None.
     bot: Option<Bot>,
 }
 
@@ -135,7 +144,7 @@ impl Think {
 const STDERR_TAIL: usize = 2000;
 
 impl Engine {
-    fn spawn(side: &Side, name: String) -> Result<Engine, String> {
+    fn spawn(side: &Side, bot: Option<Bot>, name: String) -> Result<Engine, String> {
         let mut child = Command::new(&side.command[0])
             .args(&side.command[1..])
             .stdin(Stdio::piped())
@@ -193,7 +202,7 @@ impl Engine {
             view: View::InfoSet,
             capped: 0,
             think: Think::default(),
-            bot: side.bot,
+            bot,
         })
     }
 
@@ -372,11 +381,13 @@ pub struct Report {
     pub capped: [u64; 2],
     /// Each side's reply times to `go`.
     pub think: [Think; 2],
-    /// AIVAT values computed, those that reached the node cap, and whether
-    /// draw terms were on (off when an engine sees hidden state).
+    /// AIVAT values computed, those that reached the node cap, whether
+    /// draw terms were on (off when an engine sees hidden state), and which
+    /// sides' moves had action terms [A, B].
     pub aivat_values: u64,
     pub aivat_capped: u64,
     pub aivat_draws: bool,
+    pub aivat_actions: [bool; 2],
 }
 
 /// An engine's own settings, from its ready line.
@@ -466,12 +477,19 @@ pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
         aivat_values: 0,
         aivat_capped: 0,
         aivat_draws: false,
+        aivat_actions: [false; 2],
     };
     let per_side = (spec.mode.seats() / 2) as usize;
+    // An action term weighs a bot's move with the referee's own
+    // Bot::policy, so only a side that runs this same binary gets one: a
+    // bot from another commit may break its ties another way.
+    let own = spec.aivat.and_then(|_| own_hash());
     let mut engines: Vec<Engine> = Vec::new();
-    for (side, name) in [(&spec.a, "a"), (&spec.b, "b")] {
+    for (s, (side, name)) in [(&spec.a, "a"), (&spec.b, "b")].into_iter().enumerate() {
+        let bot = side.bot.filter(|_| own == Some(side.hash));
+        report.aivat_actions[s] = bot.is_some();
         for k in 0..per_side {
-            match Engine::spawn(side, format!("{name}{k}")) {
+            match Engine::spawn(side, bot, format!("{name}{k}")) {
                 Ok(e) => engines.push(e),
                 Err(e) => {
                     report.fault = Some((Fault::Crash, e));

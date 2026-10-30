@@ -149,6 +149,53 @@ fn side_text(header: &str, side: &str) -> String {
     )
 }
 
+/// A side's settings over a run's rows: one text when every row has the
+/// same, else each distinct text with the rows that have it (a run can play
+/// PIMC in some rows and baseline bots in others).
+fn sides_text(rows: &[Row], ids: &[u32], side: &str) -> String {
+    let mut groups: Vec<(String, Vec<u32>)> = Vec::new();
+    for (r, &id) in rows.iter().zip(ids) {
+        let text = side_text(&r.header, side);
+        match groups.iter_mut().find(|(t, _)| *t == text) {
+            Some((_, g)) => g.push(id),
+            None => groups.push((text, vec![id])),
+        }
+    }
+    if groups.len() == 1 {
+        return groups.remove(0).0;
+    }
+    groups
+        .iter()
+        .map(|(text, g)| format!("{text} in rows {}", row_list(g)))
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+/// Row numbers in order as text, with runs of three or more as "a to b".
+fn row_list(ids: &[u32]) -> String {
+    let mut parts = Vec::new();
+    let mut i = 0;
+    while i < ids.len() {
+        let mut j = i;
+        while j + 1 < ids.len() && ids[j + 1] == ids[j] + 1 {
+            j += 1;
+        }
+        if j >= i + 2 {
+            parts.push(format!("{} to {}", ids[i], ids[j]));
+        } else {
+            parts.extend(ids[i..=j].iter().map(u32::to_string));
+        }
+        i = j + 1;
+    }
+    parts.join(", ")
+}
+
+/// The row number in a result file's name, row-<k>-...
+fn row_number(path: &Path) -> Option<u32> {
+    let name = path.file_name()?.to_string_lossy().to_string();
+    name.split('-').nth(1)?.parse().ok()
+}
+
 /// The table label of a side: its bot, marked when it cheats, with PIMC's
 /// worlds per move.
 fn side_label(header: &str, side: &str) -> String {
@@ -190,18 +237,24 @@ pub fn build(results: &Path) -> Result<String, String> {
             .filter_map(|e| e.ok().map(|e| e.path()))
             .filter(|p| p.extension().is_some_and(|x| x == "txt"))
             .collect();
-        files.sort_by_key(|p| {
-            let name = p.file_name().unwrap().to_string_lossy().to_string();
-            name.split('-')
-                .nth(1)
-                .and_then(|n| n.parse::<u32>().ok())
-                .unwrap_or(u32::MAX)
-        });
+        files.sort_by_key(|p| row_number(p).unwrap_or(u32::MAX));
         let rows: Vec<Row> = files
             .iter()
             .map(|f| read_row(f))
             .collect::<Result<_, _>>()?;
         let Some(first) = rows.first() else { continue };
+        let ids: Vec<u32> = files
+            .iter()
+            .enumerate()
+            .map(|(i, p)| row_number(p).unwrap_or(i as u32))
+            .collect();
+        let mut dates: Vec<&str> = rows.iter().filter_map(|r| field(&r.run, "date")).collect();
+        dates.sort_unstable();
+        let date = match (dates.first(), dates.last()) {
+            (Some(lo), Some(hi)) if lo == hi => lo.to_string(),
+            (Some(lo), Some(hi)) => format!("{lo} to {hi}"),
+            _ => "-".to_string(),
+        };
         let name = dir.file_name().unwrap().to_string_lossy().to_string();
         let run_id = field(&first.run, "run").unwrap_or("-");
         let loads: Vec<f64> = rows
@@ -229,9 +282,9 @@ pub fn build(results: &Path) -> Result<String, String> {
         let _ = write!(
             out,
             "\n## {name} ({run_id})\n\nPre-registered as {run_id} in docs/PLAN.md. Side A: {}. Side B: {}. Engine seed base: {engine_seeds}. Measured {} at a 1-minute load average of {load}.\n\n",
-            side_text(&first.header, "a"),
-            side_text(&first.header, "b"),
-            field(&first.run, "date").unwrap_or("-"),
+            sides_text(&rows, &ids, "a"),
+            sides_text(&rows, &ids, "b"),
+            date,
         );
         // note.md in a run directory: a later finding about that run, added
         // beside its committed result files instead of editing them.

@@ -601,12 +601,22 @@ fn write_match(
             b[1][1],
             b[1][2]
         );
+        let actions: Vec<&str> = ["a", "b"]
+            .into_iter()
+            .zip(report.aivat_actions)
+            .filter_map(|(side, on)| on.then_some(side))
+            .collect();
         let _ = writeln!(
             text,
-            "# aivat j={j} nodes={} values={} capped={} draws={} {aivat_line}",
+            "# aivat j={j} nodes={} values={} capped={} actions={} draws={} {aivat_line}",
             harness::AIVAT_NODES,
             report.aivat_values,
             report.aivat_capped,
+            if actions.is_empty() {
+                "-".to_string()
+            } else {
+                actions.join(",")
+            },
             if report.aivat_draws { "on" } else { "off" }
         );
         aivat_line.push('\n');
