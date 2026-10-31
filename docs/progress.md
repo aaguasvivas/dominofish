@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-03: T8 runs (four rows on 4 threads, about 4.5 hours), then the M6-03 verify; M6-01 and M6-02 passed 2026-10-30
-- Last green commit: 28bb4c7 (check.sh passes; M6-01 and M6-02 pass on 8bf559f; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
+- Feature in progress: M6-03: the M6-03 verify on the committed T8 files (T8 ended 2026-10-31 00:58); M6-01 and M6-02 passed 2026-10-30
+- Last green commit: 43f9079 (check.sh passes; M6-01 and M6-02 pass on 8bf559f; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: T8 (nohup nice -n 10 scripts/run-t8.sh > runs/T8.log 2>&1), PID 62627 with runs/bin/28bb4c7 (one calibrate process per row; row 0 is PID 62756), started 2026-10-30 22:47 at a load average of 3.2; ETA about 03:20 (about 1 hour per row at 4 threads)
+- Running jobs: none
 - Open questions: none (Q14 answered 2026-10-30)
 - Stashes: none
 
@@ -246,3 +246,14 @@
 - M6-02 passed on 8bf559f: M6-02: PASS 6776 positions and variants, 6776 equal to naive minimax with win values, 0 past its cap with the table on and off equal; 3477 decided (win value 0 or 1); 0 mismatches; 1v1 44 decisions, 2v2 61 decisions, every move's mean equals its exact win value with standard error 0; rearranged worlds with an identical public record, 1v1 132 and 2v2 113; the same PIMC analysis with the win objective, node counts included; points unchanged (Bench: 6121081, solver and PIMC tests pass); analyze shows win probabilities (moves by mode: 1v1:4 2v2:4); matches with the win objective in both modes have no fault and name objective:win:92e9098c57533309
 - T8 started 22:47 (scripts/run-t8.sh, PID 62627, runs/bin/28bb4c7) at a load average of 3.2 with 24 GB free. The calibrate code is the same as at the T8 registration (fdf2d1c): the later commits changed only the match command (--sprt-on), the docs, and the equity data.
 - M6-99 verify written (scripts/verify/M6-99.sh, after M5-99.sh): M6-01 to M6-05 must each print their PASS line, and docs/progress.md must record the M6 milestone review. Not run yet: M6-03 waits for T8, and M6-04 and M6-05 have no verify script yet.
+
+## 2026-10-31
+
+- T8 ended 00:58 with exit 0 and no fault, about 2.4 hours before its ETA: rows 0 to 3 took 2,372, 1,966, 1,694, and 1,790 s on 4 threads (7,822 s in all), with peak RSS at most 11.8 MB and load averages of 4.5 to 5.2 at the row starts (runs/bin/28bb4c7). The registered 4.5 hours came from timings at a load average of 20 to 44: a 2v2 game to 100 took about 40 s of CPU then and 15.9 s of CPU (user and system time over games) in row 2, so at the higher load a game took 2.5 times the CPU time. This M1 has 4 performance and 4 efficiency cores.
+- T8 results, with 95% intervals from 1,000 bootstrap resamples of the games:
+  - Row 0, 1v1 to 100, 1,000 games, 63,099 predictions: Brier 0.2098 [0.2027, 0.2169], baseline 0.2175 [0.2107, 0.2242], skill 0.0356 [0.0280, 0.0425].
+  - Row 1, 1v1 to 200, 500 games, 64,409 predictions: Brier 0.1981 [0.1881, 0.2084], baseline 0.2021 [0.1925, 0.2120], skill 0.0200 [0.0142, 0.0259].
+  - Row 2, 2v2 to 100, 400 games, 19,397 predictions: Brier 0.2188 [0.2097, 0.2291], baseline 0.2228 [0.2136, 0.2328], skill 0.0180 [0.0025, 0.0325].
+  - Row 3, 2v2 to 200, 200 games, 18,820 predictions: Brier 0.2064 [0.1893, 0.2231], baseline 0.2093 [0.1920, 0.2252], skill 0.0137 [0.0021, 0.0261].
+  - In each row the skill's interval is above 0: PIMC's win probability predicts the game's result better than W from the score alone. In the reliability tables the largest gap between a bin's mean prediction and its share won is 0.028, 0.034, 0.038, and 0.027 in rows 0 to 3 (row 2's in bin 0.0 to 0.1, 141 predictions). In all four rows bin 0.4 to 0.5 won more often than its mean prediction (by 0.006 to 0.027) and bin 0.5 to 0.6 less often (by 0.015 to 0.023): near 0.5 the predictions are farther from 0.5 than the results. The table has no intervals, so no test says whether these gaps exceed sampling noise.
+  - Committed docs/eval/calibration/t8-row-0-1v1-100.txt, t8-row-1-1v1-200.txt, t8-row-2-2v2-100.txt, and t8-row-3-2v2-200.txt.
