@@ -14,6 +14,7 @@ mod stats;
 mod world_stats;
 
 use std::fmt::Write as _;
+use std::io::Write as _;
 use std::process::ExitCode;
 
 use lexopt::ValueExt;
@@ -501,9 +502,11 @@ fn run() -> Result<(String, bool), Failure> {
             let mut sprt_wins = false;
             let mut track = false;
             let mut aivat = None;
+            let mut threads = 1u64;
             while let Some(arg) = parser.next().map_err(|e| e.to_string())? {
                 match arg {
                     Long("mode") => mode = Some(parse_mode(&value(&mut parser)?)?),
+                    Long("threads") => threads = parse_num(&value(&mut parser)?)?,
                     Long("unit") => {
                         unit = Some(match value(&mut parser)?.as_str() {
                             "round" => harness::Unit::Round,
@@ -556,6 +559,9 @@ fn run() -> Result<(String, bool), Failure> {
                     _ => return Err(arg.unexpected().to_string().into()),
                 }
             }
+            if !(1..=4).contains(&threads) {
+                return Err(format!("--threads must be 1 to 4, got {threads}").into());
+            }
             let spec = harness::Spec {
                 mode: mode.ok_or("--mode is required")?,
                 unit: unit.ok_or("--unit is required")?,
@@ -570,6 +576,7 @@ fn run() -> Result<(String, bool), Failure> {
                 timeout: std::time::Duration::from_millis(timeout_ms),
                 engine_seed: engine_seed.ok_or("--engine-seed is required")?,
                 aivat,
+                threads: threads as usize,
             };
             let out = out.ok_or("--out is required")?;
             if sprt_wins && (sprt.is_none() || spec.unit != harness::Unit::Game) {
@@ -580,7 +587,8 @@ fn run() -> Result<(String, bool), Failure> {
             // decision; --pairs is then the maximum. With --sprt-track the
             // match plays every pair and the outcome is the first decision.
             // A long match prints its progress to stderr at most once a
-            // minute: the pairs done and, with an SPRT, the LLR.
+            // minute: the pairs done and, with an SPRT, the LLR. A failed
+            // write (a closed pipe, a full disk) skips the line.
             let (target, max) = (spec.target, spec.pairs);
             let (started, mut done, mut shown) = (std::time::Instant::now(), 0u64, 0u64);
             let report = harness::run(&spec, &mut |pair| {
@@ -600,7 +608,10 @@ fn run() -> Result<(String, bool), Failure> {
                         let (lower, upper) = t.bounds();
                         format!(", LLR {:.3} (bounds {lower:.3} and {upper:.3})", t.llr())
                     });
-                    eprintln!("match: {done} of at most {max} pairs in {s} s{llr}");
+                    let _ = writeln!(
+                        std::io::stderr(),
+                        "match: {done} of at most {max} pairs in {s} s{llr}"
+                    );
                 }
                 stop
             });

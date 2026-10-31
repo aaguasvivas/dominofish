@@ -9,11 +9,12 @@
 //! illegal move, crash, timeout, protocol error, line out of turn, or wrong
 //! header echo stops the match and voids it (hard constraint 6).
 
+use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError};
 use std::time::{Duration, Instant};
 
 use dominofish_core::aivat::{self, Valuer};
@@ -283,6 +284,17 @@ impl Engine {
         Ok(())
     }
 
+    /// After the engine's last pair: a line other than info that it has
+    /// sent, or its exit, is a fault, as it would be at its next pair. A
+    /// line still on its way is not seen.
+    fn check_quiet(&mut self) -> Result<(), (Fault, String)> {
+        self.expect_quiet()?;
+        match self.child.try_wait() {
+            Ok(Some(_)) => Err((Fault::Crash, self.exited())),
+            _ => Ok(()),
+        }
+    }
+
     fn stop(mut self) {
         let _ = self.send("quit");
         for _ in 0..50 {
@@ -313,6 +325,11 @@ pub struct Spec {
     /// AIVAT with this many sampled deals and boneyard orders per term
     /// (docs/PLAN.md D19); None leaves the result uncorrected.
     pub aivat: Option<u32>,
+    /// Pairs played at once, each by its own set of engines. A pair's
+    /// result depends only on its index (its deal and engine seeds), and the
+    /// referee takes the pairs in index order, so a match without a fault
+    /// gives the same report at any count, reply times aside (`schedule`).
+    pub threads: usize,
 }
 
 /// A finished game: its final scores, its rounds, and team 0's AIVAT
@@ -372,6 +389,7 @@ impl PairResult {
     }
 }
 
+#[derive(Default)]
 pub struct Report {
     pub header: String,
     pub pairs: Vec<PairResult>,
@@ -464,161 +482,426 @@ impl Spec {
     }
 }
 
-/// Plays the match; stops at the first fault, or after a pair when `stop`
-/// says so (an SPRT decision).
+/// Plays the match, `spec.threads` pairs at once, and stops after a pair
+/// when `stop` says so (an SPRT decision) or at a fault: then it reports the
+/// fault of the lowest pair index once every pair in flight has ended
+/// (`schedule`). After the last pair, a line out of turn or an exit of any
+/// engine is also a fault.
 pub fn run(spec: &Spec, stop: &mut dyn FnMut(&PairResult) -> bool) -> Report {
-    let mut report = Report {
-        header: String::new(),
-        pairs: Vec::new(),
-        moves: 0,
-        fault: None,
-        capped: [0, 0],
-        think: [Think::default(); 2],
-        aivat_values: 0,
-        aivat_capped: 0,
-        aivat_draws: false,
-        aivat_actions: [false; 2],
-    };
+    let mut report = Report::default();
     let per_side = (spec.mode.seats() / 2) as usize;
     // An action term weighs a bot's move with the referee's own
     // Bot::policy, so only a side that runs this same binary gets one: a
     // bot from another commit may break its ties another way.
     let own = spec.aivat.and_then(|_| own_hash());
-    let mut engines: Vec<Engine> = Vec::new();
-    for (s, (side, name)) in [(&spec.a, "a"), (&spec.b, "b")].into_iter().enumerate() {
-        let bot = side.bot.filter(|_| own == Some(side.hash));
-        report.aivat_actions[s] = bot.is_some();
-        for k in 0..per_side {
-            match Engine::spawn(side, bot, format!("{name}{k}")) {
-                Ok(e) => engines.push(e),
-                Err(e) => {
-                    report.fault = Some((Fault::Crash, e));
-                    engines.into_iter().for_each(Engine::stop);
-                    return report;
+    // One set of engines per thread: the first set's are a0, b0, and so on,
+    // set t's a0.t, b0.t.
+    let mut sets: Vec<Vec<Engine>> = Vec::new();
+    'spawn: for t in 0..spec.threads {
+        let mut engines = Vec::new();
+        for (s, (side, name)) in [(&spec.a, "a"), (&spec.b, "b")].into_iter().enumerate() {
+            let bot = side.bot.filter(|_| own == Some(side.hash));
+            report.aivat_actions[s] = bot.is_some();
+            for k in 0..per_side {
+                let label = if t == 0 {
+                    format!("{name}{k}")
+                } else {
+                    format!("{name}{k}.{t}")
+                };
+                match Engine::spawn(side, bot, label) {
+                    Ok(e) => engines.push(e),
+                    Err(e) => {
+                        report.fault = Some((Fault::Crash, e));
+                        sets.push(engines);
+                        break 'spawn;
+                    }
                 }
             }
         }
+        sets.push(engines);
     }
-    let mut valuer = spec.aivat.map(|_| Valuer::new(16, AIVAT_NODES));
-    let result = handshake(spec, &mut engines, per_side, &mut report.header).and_then(|_| {
-        // A draw term needs a boneyard order no engine sees.
-        let draws = engines.iter().all(|e| e.view == View::InfoSet);
-        report.aivat_draws = spec.aivat.is_some() && draws;
-        for i in 0..spec.pairs {
-            let deal_seed = spec.seed + i;
-            let mut scores = [[0u16; 2]; 2];
-            let mut rounds = [0u32; 2];
-            // Side A's terms over both games: deal, draw, action.
-            let mut terms = [0.0f64; 3];
-            for g in 0..2 {
-                // engine_at[seat]: side A's engines take team g's seats.
-                let engine_at: Vec<usize> = (0..spec.mode.seats())
-                    .map(|seat| {
-                        let a_side = team(seat) == g;
-                        let k = (seat / 2) as usize;
-                        if a_side { k } else { per_side + k }
-                    })
-                    .collect();
-                let (final_scores, played, team0_terms) = play_game(
-                    spec,
-                    &mut engines,
-                    &engine_at,
-                    i,
-                    deal_seed,
-                    &mut report.moves,
-                    valuer.as_mut().map(|v| (v, draws)),
-                )?;
-                scores[g] = [final_scores[g], final_scores[1 - g]];
-                rounds[g] = played;
-                // Side A holds team g's seats: team 0's terms count for A
-                // in game 0 and against A in game 1.
-                let sign = if g == 0 { 1.0 } else { -1.0 };
-                for (t, x) in terms.iter_mut().zip(team0_terms) {
-                    *t += sign * x;
-                }
-            }
-            let pair = PairResult {
-                pair: i,
-                deal_seed,
-                scores,
-                rounds,
-                aivat: spec.aivat.map(|_| PairAivat {
-                    deal: terms[0],
-                    draw: terms[1],
-                    action: terms[2],
-                }),
-            };
-            let done = stop(&pair);
-            report.pairs.push(pair);
-            if done {
-                break;
-            }
+    if report.fault.is_none() {
+        let mut valuers: Vec<Option<Valuer>> = sets
+            .iter()
+            .map(|_| spec.aivat.map(|_| Valuer::new(16, AIVAT_NODES)))
+            .collect();
+        let result = handshake(spec, &mut sets, per_side, &mut report.header).and_then(|_| {
+            // A draw term needs a boneyard order no engine sees.
+            let draws = sets[0].iter().all(|e| e.view == View::InfoSet);
+            report.aivat_draws = spec.aivat.is_some() && draws;
+            play_pairs(
+                spec,
+                &mut sets,
+                &mut valuers,
+                per_side,
+                draws,
+                stop,
+                &mut report,
+            )?;
+            // A line out of turn or an exit after a set's last pair is a
+            // fault, as it would be at that set's next pair.
+            sets.iter_mut().flatten().try_for_each(Engine::check_quiet)
+        });
+        if let Err(f) = result {
+            report.fault = Some(f);
         }
-        Ok(())
-    });
-    if let Err(f) = result {
-        report.fault = Some(f);
     }
-    for (k, e) in engines.iter().enumerate() {
-        report.capped[k / per_side] += e.capped;
-        report.think[k / per_side].add(e.think);
-    }
-    if let Some(v) = &valuer {
-        report.aivat_values = v.values;
-        report.aivat_capped = v.capped;
-    }
-    engines.into_iter().for_each(Engine::stop);
+    sets.into_iter().flatten().for_each(Engine::stop);
     report
 }
 
-/// Version and settings from every engine, then the header, which each
-/// engine must echo. The engines of one side must report the same settings.
-fn handshake(
+/// What one pair cost: its moves, each side's capped searches and reply
+/// times, and the AIVAT values computed and capped.
+#[derive(Clone, Copy, Default)]
+struct PairStats {
+    moves: u64,
+    capped: [u64; 2],
+    think: [Think; 2],
+    aivat_values: u64,
+    aivat_capped: u64,
+}
+
+impl Report {
+    fn add(&mut self, s: &PairStats) {
+        self.moves += s.moves;
+        for k in 0..2 {
+            self.capped[k] += s.capped[k];
+            self.think[k].add(s.think[k]);
+        }
+        self.aivat_values += s.aivat_values;
+        self.aivat_capped += s.aivat_capped;
+    }
+}
+
+/// One pair from a worker: the pair or its fault, and what it cost.
+type Played = (Result<PairResult, (Fault, String)>, PairStats);
+
+/// The pairs handed out, the pairs the referee has taken in index order,
+/// and whether to hand out no more.
+struct Gate {
+    next: u64,
+    taken: u64,
+    halt: bool,
+}
+
+/// The gate the workers and the referee share. A thread that panics while
+/// it holds the lock leaves the gate as it was, so the others go on and the
+/// panic reaches the caller when the threads join.
+struct Shared {
+    gate: Mutex<Gate>,
+    wake: Condvar,
+}
+
+impl Shared {
+    fn lock(&self) -> MutexGuard<'_, Gate> {
+        self.gate.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// Hands out no more pairs; a worker still finishes the one it plays.
+    fn halt(&self) {
+        self.lock().halt = true;
+        self.wake.notify_all();
+    }
+
+    fn set_taken(&self, taken: u64) {
+        self.lock().taken = taken;
+        self.wake.notify_all();
+    }
+
+    /// The next pair for a worker, which waits while `window` pairs past
+    /// the last one taken are out; None once halted or every pair is out.
+    fn next(&self, pairs: u64, window: u64) -> Option<u64> {
+        let mut g = self.lock();
+        while !g.halt && g.next < pairs && g.next >= g.taken + window {
+            g = self.wake.wait(g).unwrap_or_else(PoisonError::into_inner);
+        }
+        if g.halt || g.next >= pairs {
+            return None;
+        }
+        g.next += 1;
+        Some(g.next - 1)
+    }
+}
+
+/// Halts the gate when its thread unwinds from a panic, so no thread waits
+/// for a pair that never comes, and the panic reaches the caller when the
+/// threads join.
+struct HaltOnPanic<'a>(&'a Shared);
+
+impl Drop for HaltOnPanic<'_> {
+    fn drop(&mut self) {
+        if std::thread::panicking() {
+            self.0.halt();
+        }
+    }
+}
+
+/// Plays the pairs, each set of engines with its own AIVAT valuer on its
+/// own thread (`schedule`).
+fn play_pairs(
+    spec: &Spec,
+    sets: &mut [Vec<Engine>],
+    valuers: &mut [Option<Valuer>],
+    per_side: usize,
+    draws: bool,
+    stop: &mut dyn FnMut(&PairResult) -> bool,
+    report: &mut Report,
+) -> Result<(), (Fault, String)> {
+    let mut workers: Vec<_> = sets.iter_mut().zip(valuers.iter_mut()).collect();
+    let play = |w: &mut (&mut Vec<Engine>, &mut Option<Valuer>), i: u64| {
+        measured(spec, w.0, per_side, i, w.1.as_mut(), draws)
+    };
+    schedule(spec.pairs, &mut workers, &play, stop, report)
+}
+
+/// Hands out the pair indices 0, 1, 2, and so on to `workers`, each on its
+/// own thread, and takes the results in index order. A worker starts pair
+/// i only while i is below the pairs taken plus the number of workers, so a
+/// single worker plays the pairs strictly in turn. `stop` sees the pairs in
+/// index order, and a pair started past its stop is discarded. A fault in
+/// any pair played, one past a stop included, voids the match: the referee
+/// takes every pair below the fault up to a stop, waits for every pair in
+/// flight, and returns the fault of the lowest index, with that pair's
+/// cost. So when a pair's result and faults depend only on its index, the
+/// report is the same at any number of workers, faults included, apart from
+/// the engine name in a fault and a fault in a pair past a stop, which a
+/// single worker never plays. A fault an engine commits between pairs (a
+/// line out of turn, an exit) shows at that engine's next pair, so its pair
+/// index can change with the number of workers.
+fn schedule<W: Send>(
+    pairs: u64,
+    workers: &mut [W],
+    play: &(dyn Fn(&mut W, u64) -> Played + Sync),
+    stop: &mut dyn FnMut(&PairResult) -> bool,
+    report: &mut Report,
+) -> Result<(), (Fault, String)> {
+    let window = workers.len() as u64;
+    let shared = Shared {
+        gate: Mutex::new(Gate {
+            next: 0,
+            taken: 0,
+            halt: false,
+        }),
+        wake: Condvar::new(),
+    };
+    std::thread::scope(|scope| {
+        // Before the spawns, so that a failed spawn also halts the workers
+        // already started.
+        let _halt = HaltOnPanic(&shared);
+        let (tx, rx) = channel();
+        for w in workers.iter_mut() {
+            let (tx, shared) = (tx.clone(), &shared);
+            scope.spawn(move || {
+                let _halt = HaltOnPanic(shared);
+                while let Some(i) = shared.next(pairs, window) {
+                    let (result, stats) = play(w, i);
+                    let failed = result.is_err();
+                    if tx.send((i, result, stats)).is_err() || failed {
+                        break;
+                    }
+                }
+            });
+        }
+        drop(tx);
+        let mut pending: BTreeMap<u64, (PairResult, PairStats)> = BTreeMap::new();
+        // The fault of the lowest pair index, with that pair's cost.
+        let mut fault: Option<(u64, (Fault, String), PairStats)> = None;
+        let (mut taken, mut stopped) = (0, false);
+        // Every result until the last worker ends, so that a fault in a
+        // pair in flight at a stop or at another fault still counts.
+        for (i, result, stats) in rx.iter() {
+            match result {
+                Ok(pair) => {
+                    pending.insert(i, (pair, stats));
+                }
+                Err(f) => {
+                    if fault.as_ref().is_none_or(|(j, ..)| i < *j) {
+                        fault = Some((i, f, stats));
+                    }
+                }
+            }
+            let limit = fault.as_ref().map_or(pairs, |(j, ..)| *j);
+            while !stopped && taken < limit {
+                let Some((pair, stats)) = pending.remove(&taken) else {
+                    break;
+                };
+                report.add(&stats);
+                stopped = stop(&pair);
+                report.pairs.push(pair);
+                taken += 1;
+            }
+            if stopped || fault.is_some() || taken == pairs {
+                shared.halt();
+            } else {
+                shared.set_taken(taken);
+            }
+        }
+        match fault {
+            Some((_, f, stats)) => {
+                report.add(&stats);
+                Err(f)
+            }
+            None => Ok(()),
+        }
+    })
+}
+
+/// Pair i with one set of engines, and what it cost, also when it fails;
+/// a fault names its pair.
+fn measured(
     spec: &Spec,
     engines: &mut [Engine],
     per_side: usize,
+    i: u64,
+    mut valuer: Option<&mut Valuer>,
+    draws: bool,
+) -> Played {
+    let capped: Vec<u64> = engines.iter().map(|e| e.capped).collect();
+    let values = valuer.as_ref().map_or((0, 0), |v| (v.values, v.capped));
+    for e in engines.iter_mut() {
+        e.think = Think::default();
+    }
+    let mut stats = PairStats::default();
+    let result = play_pair(
+        spec,
+        engines,
+        per_side,
+        i,
+        valuer.as_deref_mut(),
+        draws,
+        &mut stats.moves,
+    )
+    .map_err(|(kind, detail)| (kind, format!("pair {i}: {detail}")));
+    for (k, e) in engines.iter().enumerate() {
+        stats.capped[k / per_side] += e.capped - capped[k];
+        stats.think[k / per_side].add(e.think);
+    }
+    if let Some(v) = valuer {
+        stats.aivat_values = v.values - values.0;
+        stats.aivat_capped = v.capped - values.1;
+    }
+    (result, stats)
+}
+
+/// Pair i: its deal played twice, side A on team 0's seats first, then on
+/// team 1's.
+fn play_pair(
+    spec: &Spec,
+    engines: &mut [Engine],
+    per_side: usize,
+    i: u64,
+    mut valuer: Option<&mut Valuer>,
+    draws: bool,
+    moves: &mut u64,
+) -> Result<PairResult, (Fault, String)> {
+    let deal_seed = spec.seed + i;
+    let mut scores = [[0u16; 2]; 2];
+    let mut rounds = [0u32; 2];
+    // Side A's terms over both games: deal, draw, action.
+    let mut terms = [0.0f64; 3];
+    for g in 0..2 {
+        // engine_at[seat]: side A's engines take team g's seats.
+        let engine_at: Vec<usize> = (0..spec.mode.seats())
+            .map(|seat| {
+                let a_side = team(seat) == g;
+                let k = (seat / 2) as usize;
+                if a_side { k } else { per_side + k }
+            })
+            .collect();
+        let (final_scores, played, team0_terms) = play_game(
+            spec,
+            engines,
+            &engine_at,
+            i,
+            deal_seed,
+            moves,
+            valuer.as_deref_mut().map(|v| (v, draws)),
+        )?;
+        scores[g] = [final_scores[g], final_scores[1 - g]];
+        rounds[g] = played;
+        // Side A holds team g's seats: team 0's terms count for A in game 0
+        // and against A in game 1.
+        let sign = if g == 0 { 1.0 } else { -1.0 };
+        for (t, x) in terms.iter_mut().zip(team0_terms) {
+            *t += sign * x;
+        }
+    }
+    Ok(PairResult {
+        pair: i,
+        deal_seed,
+        scores,
+        rounds,
+        aivat: spec.aivat.map(|_| PairAivat {
+            deal: terms[0],
+            draw: terms[1],
+            action: terms[2],
+        }),
+    })
+}
+
+/// Version and settings from every engine, then the header, which each
+/// engine must echo. The engines of one side must report the same settings,
+/// and every set of engines the same settings as the first set.
+fn handshake(
+    spec: &Spec,
+    sets: &mut [Vec<Engine>],
+    per_side: usize,
     header: &mut String,
 ) -> Result<(), (Fault, String)> {
-    let mut reported: Vec<Settings> = Vec::new();
-    for e in engines.iter_mut() {
-        e.send(&ToEngine::Hello { version: VERSION }.to_line(Mode::TwoVsTwo))?;
-        match e.recv(spec.timeout)? {
-            FromEngine::Ready {
-                version,
-                budgets,
-                threads,
-                tables,
-                view,
-            } if version == VERSION => {
-                e.view = view;
-                reported.push(Settings {
+    let mut first: Vec<Settings> = Vec::new();
+    for engines in sets.iter_mut() {
+        let mut reported: Vec<Settings> = Vec::new();
+        for e in engines.iter_mut() {
+            e.send(&ToEngine::Hello { version: VERSION }.to_line(Mode::TwoVsTwo))?;
+            match e.recv(spec.timeout)? {
+                FromEngine::Ready {
+                    version,
                     budgets,
                     threads,
                     tables,
                     view,
-                });
+                } if version == VERSION => {
+                    e.view = view;
+                    reported.push(Settings {
+                        budgets,
+                        threads,
+                        tables,
+                        view,
+                    });
+                }
+                other => {
+                    return Err((
+                        Fault::Protocol,
+                        format!("{}: expected ready, got {other:?}", e.name),
+                    ));
+                }
             }
-            other => {
+        }
+        for (k, set) in reported.iter().enumerate() {
+            if *set != reported[k / per_side * per_side] {
                 return Err((
                     Fault::Protocol,
-                    format!("{}: expected ready, got {other:?}", e.name),
+                    format!(
+                        "{}: settings differ from its side's: {set:?}",
+                        engines[k].name
+                    ),
                 ));
             }
         }
-    }
-    for (k, set) in reported.iter().enumerate() {
-        if *set != reported[k / per_side * per_side] {
+        if first.is_empty() {
+            first = reported;
+        } else if let Some(k) = (0..first.len()).find(|&k| reported[k] != first[k]) {
             return Err((
                 Fault::Protocol,
                 format!(
-                    "{}: settings differ from its side's: {set:?}",
-                    engines[k].name
+                    "{}: settings differ from the first set's: {:?}",
+                    engines[k].name, reported[k]
                 ),
             ));
         }
     }
-    *header = spec.header(&[reported[0].clone(), reported[per_side].clone()]);
-    for e in engines.iter_mut() {
+    *header = spec.header(&[first[0].clone(), first[per_side].clone()]);
+    for e in sets.iter_mut().flatten() {
         e.send(&ToEngine::Header(header.clone()).to_line(Mode::TwoVsTwo))?;
         match e.recv(spec.timeout)? {
             FromEngine::Header(h) if h == *header => {}
@@ -828,5 +1111,217 @@ mod tests {
             }),
         };
         assert_eq!(p.aivat_row(), Some((-20.0 / 8.0, [8.0, 0.0, -4.0])));
+    }
+
+    fn won(i: u64) -> PairResult {
+        PairResult {
+            pair: i,
+            deal_seed: i,
+            scores: [[100, 0], [100, 0]],
+            rounds: [1, 1],
+            aivat: None,
+        }
+    }
+
+    /// `schedule` on `n` workers whose pair i takes `delay(i)` ms, costs one
+    /// move, and fails when `fails(i)`, with a stop after pair `stop_at`:
+    /// the pairs taken, the moves counted, and the outcome.
+    fn scheduled(
+        n: usize,
+        pairs: u64,
+        delay: impl Fn(u64) -> u64 + Sync,
+        fails: impl Fn(u64) -> bool + Sync,
+        stop_at: Option<u64>,
+    ) -> (Vec<u64>, u64, Result<(), (Fault, String)>) {
+        let mut workers = vec![(); n];
+        let play = |_: &mut (), i: u64| -> Played {
+            std::thread::sleep(Duration::from_millis(delay(i)));
+            let stats = PairStats {
+                moves: 1,
+                ..PairStats::default()
+            };
+            if fails(i) {
+                (Err((Fault::Crash, format!("pair {i}"))), stats)
+            } else {
+                (Ok(won(i)), stats)
+            }
+        };
+        let mut report = Report::default();
+        let outcome = schedule(
+            pairs,
+            &mut workers,
+            &play,
+            &mut |p| stop_at == Some(p.pair),
+            &mut report,
+        );
+        let taken = report.pairs.iter().map(|p| p.pair).collect();
+        (taken, report.moves, outcome)
+    }
+
+    #[test]
+    fn schedule_takes_the_pairs_in_index_order() {
+        for n in 1..=4 {
+            // Even pairs finish late, so results arrive out of order.
+            let (taken, moves, outcome) =
+                scheduled(n, 12, |i| if i % 2 == 0 { 20 } else { 0 }, |_| false, None);
+            assert_eq!(taken, (0..12).collect::<Vec<_>>(), "{n} workers");
+            assert_eq!(moves, 12, "{n} workers");
+            assert!(outcome.is_ok(), "{n} workers");
+        }
+    }
+
+    #[test]
+    fn schedule_stops_at_the_same_pair_and_counts_no_pair_past_it() {
+        for n in 1..=4 {
+            let (taken, moves, outcome) = scheduled(n, 100, |i| (i * 7) % 5, |_| false, Some(9));
+            assert_eq!(taken, (0..10).collect::<Vec<_>>(), "{n} workers");
+            assert_eq!(moves, 10, "{n} workers: a pair past the stop counted");
+            assert!(outcome.is_ok(), "{n} workers");
+        }
+    }
+
+    /// Waits until `flag` is set; panics after 10 s, so a test fails
+    /// instead of hanging.
+    fn wait_for(flag: &std::sync::atomic::AtomicBool) {
+        let start = Instant::now();
+        while !flag.load(std::sync::atomic::Ordering::SeqCst) {
+            assert!(
+                start.elapsed() < Duration::from_secs(10),
+                "a flag never came"
+            );
+            std::thread::sleep(Duration::from_millis(1));
+        }
+    }
+
+    #[test]
+    fn a_fault_in_a_pair_past_the_stop_voids_the_match() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        // Pair 9, the stop, waits until pair 10 has started; pair 10 fails
+        // only after the referee has taken pair 9 and stopped.
+        let (started, stopped) = (AtomicBool::new(false), AtomicBool::new(false));
+        let mut workers = vec![(); 2];
+        let play = |_: &mut (), i: u64| -> Played {
+            let stats = PairStats {
+                moves: 1,
+                ..PairStats::default()
+            };
+            match i {
+                9 => wait_for(&started),
+                10 => {
+                    started.store(true, Ordering::SeqCst);
+                    wait_for(&stopped);
+                    return (Err((Fault::Crash, "pair 10".into())), stats);
+                }
+                _ => {}
+            }
+            (Ok(won(i)), stats)
+        };
+        let mut stop = |p: &PairResult| {
+            let done = p.pair == 9;
+            stopped.store(done, Ordering::SeqCst);
+            done
+        };
+        let mut report = Report::default();
+        let outcome = schedule(100, &mut workers, &play, &mut stop, &mut report);
+        let taken: Vec<u64> = report.pairs.iter().map(|p| p.pair).collect();
+        assert_eq!(taken, (0..10).collect::<Vec<_>>());
+        assert_eq!(
+            report.moves, 11,
+            "the faulted pair's cost counts, and no other"
+        );
+        assert_eq!(outcome.expect_err("a fault").1, "pair 10");
+    }
+
+    #[test]
+    fn the_lowest_fault_comes_after_every_pair_below_it() {
+        // Pair 5 fails late and pair 6 at once: pairs 0 to 4 still count,
+        // and the fault is pair 5's, as with one worker.
+        for n in 1..=4 {
+            let (taken, moves, outcome) = scheduled(
+                n,
+                20,
+                |i| match i {
+                    3 => 40,
+                    5 => 60,
+                    _ => 0,
+                },
+                |i| i == 5 || i == 6,
+                None,
+            );
+            assert_eq!(taken, (0..5).collect::<Vec<_>>(), "{n} workers");
+            assert_eq!(moves, 6, "{n} workers");
+            assert_eq!(outcome.expect_err("a fault").1, "pair 5", "{n} workers");
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "a scoped thread panicked")]
+    fn a_worker_panic_ends_the_match() {
+        let mut workers = vec![(); 3];
+        let play = |_: &mut (), i: u64| -> Played {
+            assert_ne!(i, 2, "a worker panic");
+            std::thread::sleep(Duration::from_millis(5));
+            (Ok(won(i)), PairStats::default())
+        };
+        let _ = schedule(
+            50,
+            &mut workers,
+            &play,
+            &mut |_| false,
+            &mut Report::default(),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "a referee panic")]
+    fn a_referee_panic_ends_the_match() {
+        let mut workers = vec![(); 3];
+        let play = |_: &mut (), i: u64| -> Played { (Ok(won(i)), PairStats::default()) };
+        let mut stop = |p: &PairResult| {
+            assert_ne!(p.pair, 3, "a referee panic");
+            false
+        };
+        let _ = schedule(50, &mut workers, &play, &mut stop, &mut Report::default());
+    }
+
+    #[test]
+    fn check_quiet_finds_a_line_out_of_turn_and_an_exit() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir =
+            std::env::temp_dir().join(format!("dominofish-check-quiet-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("create the temporary directory");
+        let engine = |name: &str, body: &str| {
+            let path = dir.join(name);
+            std::fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("write the script");
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+                .expect("make the script executable");
+            let side = Side::new(path.to_str().expect("a UTF-8 path")).expect("the side");
+            Engine::spawn(&side, None, name.into()).expect("spawn the script")
+        };
+        let mut stray = engine("stray", "echo 'move pass'\nsleep 5");
+        let mut exited = engine("exited", "exit 0");
+        let mut quiet = engine("quiet", "sleep 5");
+        // The line and the exit arrive when they arrive: poll for them.
+        let fault_of = |e: &mut Engine| {
+            let start = Instant::now();
+            loop {
+                if let Err((kind, _)) = e.check_quiet() {
+                    return kind;
+                }
+                assert!(
+                    start.elapsed() < Duration::from_secs(10),
+                    "{} gave no fault",
+                    e.name
+                );
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        };
+        assert_eq!(fault_of(&mut stray), Fault::Protocol);
+        assert_eq!(fault_of(&mut exited), Fault::Crash);
+        assert!(quiet.check_quiet().is_ok());
+        for e in [stray, exited, quiet] {
+            e.stop();
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -77,7 +77,8 @@ pub const COMMANDS: &[Command] = &[
         summary: "Play duplicate pairs between two engines; optional SPRT",
         usage: "dominofish match --mode 1v1|2v2 --unit round|game --target 100|200
            --pairs N --seed N --engine-seed N --a CMD --b CMD --out FILE
-           [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]] [--aivat J]",
+           [--timeout-ms N] [--sprt MU0,MU1 [--sprt-track]] [--aivat J]
+           [--threads N]",
         options: "  --mode 1v1|2v2      Heads-up or partners (parejas)
   --unit round|game   Score round 1 of each game, or play to the target
   --target 100|200    Points that win the game
@@ -97,7 +98,12 @@ pub const COMMANDS: &[Command] = &[
                       variates: each deal and draw against J sampled
                       outcomes (1 to 64), each baseline bot's choice against
                       its tied moves; the play and the raw result do not
-                      change",
+                      change
+  --threads N         Pairs played at once, each by its own engines (1 to 4,
+                      default 1); without a fault the result file is the
+                      same at any N, reply times aside; a fault in any pair
+                      played, one past an SPRT stop included, voids the
+                      match",
     },
     Command {
         name: "bench",
