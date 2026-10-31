@@ -579,16 +579,30 @@ fn run() -> Result<(String, bool), Failure> {
             // its share of games won by A, and stops the match at a
             // decision; --pairs is then the maximum. With --sprt-track the
             // match plays every pair and the outcome is the first decision.
-            let target = spec.target;
+            // A long match prints its progress to stderr at most once a
+            // minute: the pairs done and, with an SPRT, the LLR.
+            let (target, max) = (spec.target, spec.pairs);
+            let (started, mut done, mut shown) = (std::time::Instant::now(), 0u64, 0u64);
             let report = harness::run(&spec, &mut |pair| {
-                sprt.as_mut().is_some_and(|t| {
+                let stop = sprt.as_mut().is_some_and(|t| {
                     t.push(if sprt_wins {
                         f64::from(pair.wins(target)) / 2.0
                     } else {
                         f64::from(pair.margin())
                     });
                     !track && t.decision().is_some()
-                })
+                });
+                done += 1;
+                let s = started.elapsed().as_secs();
+                if s >= shown + 60 {
+                    shown = s;
+                    let llr = sprt.as_ref().map_or(String::new(), |t| {
+                        let (lower, upper) = t.bounds();
+                        format!(", LLR {:.3} (bounds {lower:.3} and {upper:.3})", t.llr())
+                    });
+                    eprintln!("match: {done} of at most {max} pairs in {s} s{llr}");
+                }
+                stop
             });
             write_match(&spec, &report, sprt.as_ref(), sprt_wins, &out).map_err(Failure::Run)
         }

@@ -142,7 +142,7 @@ InfoSet::to_text writes what one seat knows as one line of space-separated key=v
 
 ## Match results
 
-`dominofish match` writes one file per match (the --out path: runs/ for scratch matches, docs/eval/results/ for committed runs) and prints one summary line. Build an engine binary first with `scripts/build-bin.sh <commit>`, which prints runs/bin/<commit>/dominofish; the harness refuses a binary under target/.
+`dominofish match` writes one file per match (the --out path: runs/ for scratch matches, docs/eval/results/ for committed runs) and prints one summary line. A match that runs longer than a minute also prints a progress line to stderr, at most once a minute: `match: <n> of at most <pairs> pairs in <s> s`, followed by `, LLR <llr> (bounds <lower> and <upper>)` when an SPRT runs. The file does not change. Build an engine binary first with `scripts/build-bin.sh <commit>`, which prints runs/bin/<commit>/dominofish; the harness refuses a binary under target/.
 
 ```bash
 scripts/build-bin.sh HEAD
