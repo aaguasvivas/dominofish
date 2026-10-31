@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-03: T8 starts next (scripts/run-t8.sh, four rows on 4 threads, about 4.5 hours), then the M6-03 verify; M6-01 and M6-02 passed 2026-10-30
-- Last green commit: 8bf559f (check.sh passes; M6-01 and M6-02 pass on it; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
+- Feature in progress: M6-03: T8 runs (four rows on 4 threads, about 4.5 hours), then the M6-03 verify; M6-01 and M6-02 passed 2026-10-30
+- Last green commit: 28bb4c7 (check.sh passes; M6-01 and M6-02 pass on 8bf559f; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: none (the 2v2 equity run ended 2026-10-30 22:38)
+- Running jobs: T8 (nohup nice -n 10 scripts/run-t8.sh > runs/T8.log 2>&1), PID 62627 with runs/bin/28bb4c7 (one calibrate process per row; row 0 is PID 62756), started 2026-10-30 22:47 at a load average of 3.2; ETA about 03:20 (about 1 hour per row at 4 threads)
 - Open questions: none (Q14 answered 2026-10-30)
 - Stashes: none
 
@@ -244,3 +244,4 @@
 - The 2v2 equity run ended 22:38, about 1.6 hours before its ETA: 10,000 rounds after the first from 1,703 games (301,361 moves, 166,808 searched decisions, 0 capped solves) in 23,180 s on 4 threads, peak RSS 10.3 MB, load average 7.02 at its start (runs/bin/a79e5ed). Its wall time per searched decision per thread, 0.556 s, equals the normal-load timing from M4-07; the 8-hour ETA held a margin for load. W(0, 0, lead) = 0.5442 and W(0, 0, other) = 0.4558 in 2v2 to 100; the tables from the two halves of the rounds differ by at most 22,941 millionths at 100 and at 200 (sampling precision, no threshold). Committed docs/eval/equity/rounds-2v2.txt, w-2v2-100.txt, and w-2v2-200.txt (8bf559f).
 - M6-01 passed on 8bf559f: M6-01: PASS 1v1: 10000 rounds from 883 games (110888 searched decisions, 2306 capped solves); 2v2: 10000 rounds from 1703 games (166808 searched decisions, 0 capped solves); tables rebuilt from the rounds equal the committed ones; simulated starts |z| at most 1.55 (target < 4); halves differ by at most (millionths) 1v1-100:17998 1v1-200:17998 2v2-100:22941 2v2-200:22941; rescore: 2632 rounds after the first of bot games, re-scored and applied at their start scores, equal the rules engine's end scores; 13 bonuses refused at the cap; 1 and 4 threads give the same files
 - M6-02 passed on 8bf559f: M6-02: PASS 6776 positions and variants, 6776 equal to naive minimax with win values, 0 past its cap with the table on and off equal; 3477 decided (win value 0 or 1); 0 mismatches; 1v1 44 decisions, 2v2 61 decisions, every move's mean equals its exact win value with standard error 0; rearranged worlds with an identical public record, 1v1 132 and 2v2 113; the same PIMC analysis with the win objective, node counts included; points unchanged (Bench: 6121081, solver and PIMC tests pass); analyze shows win probabilities (moves by mode: 1v1:4 2v2:4); matches with the win objective in both modes have no fault and name objective:win:92e9098c57533309
+- T8 started 22:47 (scripts/run-t8.sh, PID 62627, runs/bin/28bb4c7) at a load average of 3.2 with 24 GB free. The calibrate code is the same as at the T8 registration (fdf2d1c): the later commits changed only the match command (--sprt-on), the docs, and the equity data.
