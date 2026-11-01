@@ -3,10 +3,10 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-04: R7 (registered in docs/PLAN.md: rows one at a time on 4 threads, about 5 to 8 hours expected, at most 34), then the M6-04 verify; M6-01 and M6-02 passed 2026-10-30, M6-03 2026-10-31
-- Last green commit: b70548a (check.sh passes; M6-01 and M6-02 pass on 8bf559f, M6-03 on 2eb1efe; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
+- Feature in progress: M6-04: R7 paused 2026-11-01 16:24 at the owner's request; no row is complete (row 0 had played 390 of at most 2,700 pairs). Resume all four rows with: nohup nice -n 10 caffeinate -i scripts/run-r7.sh > runs/R7.log 2>&1 & (it reuses runs/bin/8305990 from the results directory's COMMIT file); then the M6-04 verify. M6-01 and M6-02 passed 2026-10-30, M6-03 2026-10-31
+- Last green commit: 8305990 (check.sh passes; M6-01 and M6-02 pass on 8bf559f, M6-03 on 2eb1efe; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
-- Running jobs: none
+- Running jobs: none (R7 stopped 2026-11-01 16:24, its sleep hold released)
 - Open questions: none (Q15 answered 2026-11-01)
 - Stashes: none
 
@@ -276,3 +276,5 @@
 ## 2026-11-01
 
 - Q15 answered 2026-11-01, word for word: "H1 0.53 (Recommended)" and "Keep it awake (Recommended)". R7 registered in docs/PLAN.md (Pre-registered runs): PIMC with the win objective against PIMC with points at 64 worlds, full games at 100 and 200 in both modes, rows one at a time on 4 threads, held-out deal seeds 2,050,000,000 + 1,000,000 k + i, engine seed base 5,001,300,000 + k, --aivat 8, the SPRT on the game-win share with H0 0.50 and H1 0.53, at most 2,700 pairs per row, --timeout-ms 1800000; the default objective becomes win only if all four rows accept H1. scripts/run-r7.sh runs it under caffeinate -i (Q15), and scripts/verify/M6-04.sh checks it. Smoke test of the command form on one dev pair (deal seed 1,200,000,000): the header names both sides' settings, and pair 0 equals the pilot's pair 0.
+- R7 started 15:27 (scripts/run-r7.sh under caffeinate -i, PID 97983, runs/bin/8305990, byte-identical to b70548a's binary) at a load average of 8.2 with 28 GB free; row 0 (1v1 to 100) first. Expected per row at full cores, at H0 or H1 and at the midpoint: about 30 and 48 minutes (row 0), 61 and 99 (row 1), 68 and 110 (row 2), and 140 and 227 (row 3).
+- R7 paused 16:24 at the owner's request ("Can you pause this and save progress"). Stopped the script (PID 97983) first, so it could not start row 1, then caffeinate and the row 0 match; no DominoFish process is left, and the sleep hold is released. Row 0 (1v1 to 100) had played 390 pairs in 2,382 s on 4 threads (LLR -2.087, bounds -2.944 and 2.944), 6.1 s per pair, about three quarters of the full-core speed (4.6 s). A match writes its file at its end, so no row file exists and no row is complete. Each pair's result depends only on its index, so a restart replays the same pairs and gives the same result; the stop changes nothing in R7. scripts/run-r7.sh now takes the binary of the commit in docs/eval/results/2026-11-01-win-objective-r7/COMMIT (8305990, committed) when that file exists, so a resume after later commits still runs every row from the registered commit.

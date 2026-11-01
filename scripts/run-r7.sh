@@ -13,16 +13,20 @@
 # Q15 answer keeps the Mac awake: start it as
 # nohup nice -n 10 caffeinate -i scripts/run-r7.sh > runs/R7.log 2>&1 &
 # Usage: scripts/run-r7.sh [rows], for example scripts/run-r7.sh 2 3 for
-# the 2v2 rows (default: all four); then run `dominofish report`.
+# the 2v2 rows (default: all four); then run `dominofish report`. A run
+# that resumes after a stop uses the binary of the commit in the results
+# directory's COMMIT file, so every row comes from one commit; a row that
+# was stopped starts again at pair 0 and plays the same pairs.
 set -u
 cd "$(dirname "$0")/.."
 H1=0.53
 MAX=2700
-bin=$(scripts/build-bin.sh HEAD | tail -1)
-[ -x "$bin" ] || { echo "ERROR build failed: $bin"; exit 1; }
 dir=docs/eval/results/2026-11-01-win-objective-r7
 status=runs/R7
 mkdir -p "$dir" "$status"
+commit=$(cat "$dir/COMMIT" 2>/dev/null || /usr/bin/git rev-parse --short=7 HEAD)
+bin=$(scripts/build-bin.sh "$commit" | tail -1)
+[ -x "$bin" ] || { echo "ERROR build failed: $bin"; exit 1; }
 basename "$(dirname "$bin")" > "$dir/COMMIT"
 rows=${*:-0 1 2 3}
 fail=0
