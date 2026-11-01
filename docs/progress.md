@@ -3,11 +3,11 @@
 ## Top block
 
 - Milestone: M6 (game equity and calibrated win probability) in progress since 2026-10-30; M0, M1, and M2 passed 2026-10-25, M3 and M4 passed 2026-10-26, M5 passed 2026-10-30
-- Feature in progress: M6-04: R7's registration, which waits for the owner's choice of its bound and its run time (Q15); `match --threads` is in; M6-01 and M6-02 passed 2026-10-30, M6-03 2026-10-31
-- Last green commit: 54ca14b (check.sh passes; M6-01 and M6-02 pass on 8bf559f, M6-03 on 2eb1efe; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
+- Feature in progress: M6-04: R7 (registered in docs/PLAN.md: rows one at a time on 4 threads, about 5 to 8 hours expected, at most 34), then the M6-04 verify; M6-01 and M6-02 passed 2026-10-30, M6-03 2026-10-31
+- Last green commit: b70548a (check.sh passes; M6-01 and M6-02 pass on 8bf559f, M6-03 on 2eb1efe; regress passes 43 of 43 in 474 s on a79e5ed, 2026-10-30)
 - Last Bench: 6121081 (746d622, fixtures/bench.txt, default limits)
 - Running jobs: none
-- Open questions: none (Q14 answered 2026-10-30)
+- Open questions: none (Q15 answered 2026-11-01)
 - Stashes: none
 
 ## 2026-10-25
@@ -271,3 +271,8 @@
 - Review of `match --threads`, two workflow rounds of read-only reviewers with one verifier per high or medium finding. The first round confirmed three defects in the first version, all fixed: a fault in a pair started past an SPRT stop was lost, so the match passed; a panic on the referee thread hung the run; the integration test compared no counter. The second round found no high or medium defect, and its five low findings are fixed: the referee's panic guard now comes before the thread spawns, four doc statements are corrected, and tests of the AIVAT counts and of the end-of-pairs check are added.
 - Tests of `match --threads`: seven unit tests in crates/dominofish/src/harness.rs (the scheduler with fake workers: index order, a stop, a fault in a pair past the stop forced with flags, the lowest fault, a worker panic and a referee panic that end the run; and the end-of-pairs check on three shell engines), five runs in a row passing; crates/dominofish/tests/match_threads.rs (bots in games, rounds with an SPRT stop, the omniscient bot at a 2,000-node cap for the capped count, one pair at 4 threads, and --aivat 2: file and summary equal at 1, 2, and 4 threads), which fails on a mutant that takes the pairs out of order. In release: PIMC at 2 worlds against the random bot with --aivat 2 and an SPRT stop at pair 27 gives the same file at 1 and 4 threads and from 54ca14b's binary; PIMC with the win objective against points at 4 worlds with --aivat 4 does the same at 1 and 3 threads; the 14 fault engines of M2-06 at 3 threads each stop with their fault, and every fault line names pair 0 and engine b0, as one thread does.
 - The machine was under heavy load during this work: the load average reached 269 at 17:00 (macOS processes: Siri AI, dasd, imagent, identityservicesd), and the machine slept about 5 hours during the first review.
+- Q15 asked 2026-10-31: the bound H1 of R7's SPRT on the game-win share (H0 0.50), with times for rows one at a time on 4 threads at the pilot's CPU time per pair: H1 0.53 about 5 to 8 hours expected, at most 34 hours (2,700 pairs per row); H1 0.54 about 3 to 5 hours, at most 18 hours (1,400 pairs); H1 0.52 about 11 to 18 hours, at most 70 hours (5,500 pairs); about 3 times longer under load like the pilot's. Also: keep the Mac awake for the run (caffeinate -i for the run's duration) or not.
+
+## 2026-11-01
+
+- Q15 answered 2026-11-01, word for word: "H1 0.53 (Recommended)" and "Keep it awake (Recommended)". R7 registered in docs/PLAN.md (Pre-registered runs): PIMC with the win objective against PIMC with points at 64 worlds, full games at 100 and 200 in both modes, rows one at a time on 4 threads, held-out deal seeds 2,050,000,000 + 1,000,000 k + i, engine seed base 5,001,300,000 + k, --aivat 8, the SPRT on the game-win share with H0 0.50 and H1 0.53, at most 2,700 pairs per row, --timeout-ms 1800000; the default objective becomes win only if all four rows accept H1. scripts/run-r7.sh runs it under caffeinate -i (Q15), and scripts/verify/M6-04.sh checks it. Smoke test of the command form on one dev pair (deal seed 1,200,000,000): the header names both sides' settings, and pair 0 equals the pilot's pair 0.
